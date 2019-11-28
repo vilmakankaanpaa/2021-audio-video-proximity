@@ -1,8 +1,12 @@
 import gspread
 import csv
+import sys
 #from gspread.httpsession import HTTPSession
 from oauth2client.service_account import ServiceAccountCredentials
-from datetime import datetime
+from datetime import datetime, timedelta
+import http.client as httplib
+
+sys.excepthook = sys.__excepthook__
 
 class Logger:
     
@@ -17,13 +21,23 @@ class Logger:
         #http_session = HTTPSession(headers={'Connection':'Keep-Alive'})
         self.client = gspread.authorize(self.creds)#, http_session)
         self.client.login()
-        
-        
+
         self.sheets()
         
         # reset sheet rows if empty
         if 1 == len(self.sheet.get_all_values()):
             self.sheet.resize(rows=1)
+            
+    def internet_connected(self):
+        conn = httplib.HTTPConnection("www.google.fi", timeout=2)
+        try:
+            conn.request("HEAD", "/")
+            conn.close()
+            return True
+        except Exception as e:
+            conn.close()
+            print(e)
+            return False
             
     def log_local(self, data):
         # add data to tempdata to wait uploading to google sheets
@@ -44,23 +58,45 @@ class Logger:
     def log_drive(self, time):
         #self.tempdata.append(data)
         #self.log_local(data)
-        #now = datetime.now()
-        #diff = (now - self.prev_log_time).total_seconds() / 60.0
-        #if diff >= 1:
-        try:
-            self.sheets()
-            for row in self.tempdata:
-                self.sheet.append_row(row)
-            self.tempdata = []
-            self.prev_log_time = time
-        except:
-            print('Logging to Google Drive failed at', time)
-        
+        #now = datetime.now()         
+        diff = (time - self.prev_log_time).total_seconds()
+        print(time, self.prev_log_time)
+        print(diff)
+        log_interval = 2
+        if diff >= log_interval:
+            if not self.internet_connected():
+                self.prev_log_time = time + timedelta(0, 120)
+                with open('logfail.csv', 'a', newline='') as logfile:
+                    logwriter = csv.writer(logfile, delimiter=',')
+                    logwriter.writerow(['Logging to Google Drive failed: no Internet connection', time.strftime("%Y-%m-%d %H:%M:%S")])
+                return
+            
+            nof_rows = int(log_interval + log_interval / 2)
+            print(nof_rows)
+            try:
+                print('Data to be logged before:', len(self.tempdata) )
+                self.sheets()
+                for row in self.tempdata[0:nof_rows]:
+                    self.sheet.append_row(row)
+                self.tempdata = self.tempdata[nof_rows:]
+                self.prev_log_time = time
+                print('Data to be logged after:', len(self.tempdata) )
+            except Exception as e: 
+                print('Logging to Google Drive failed at', time)
+                print('Exception {}'.format(type(e).__name__))
+                #print(e)
+                with open('logfail.csv', 'a', newline='') as logfile:
+                    logwriter = csv.writer(logfile, delimiter=',')
+                    logwriter.writerow(['Logging to Google Drive failed: {}'.format(type(e).__name__), time.strftime("%Y-%m-%d %H:%M:%S")])
+        #elif not self.internet_connected():
+                #if not self.internet_connected():
+            # If no internet wait a few minutes before trying again
+   
         
     def log_alive(self):
         time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        self.sheets()
         try:
+            self.sheets()
             print('Try to insert')
             self.alive.insert_row([time])
             print('Insert successful')

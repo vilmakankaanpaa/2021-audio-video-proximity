@@ -1,10 +1,13 @@
 #!/usr/bin/python
 import os
+import sys
 import time
 from datetime import datetime
 import spidev
 from sound_control import MyPlayer
 from sound_log import Logger
+
+sys.excepthook = sys.__excepthook__
  
 spi = spidev.SpiDev()
 spi.open(0,0)
@@ -21,7 +24,7 @@ def get_volts(channel=0):
     return v
 
 def is_in_range(v):
-    if v > 0.24:
+    if v > 0.41:
         return True
     else:
         return False
@@ -35,8 +38,9 @@ def update_log(logger, start=False, end=False, sensors_active=[]):
     
   
 if __name__ == "__main__":
+    print(os.getpid())
     status_in_range = False
-    channel_indices = [0,1,3]
+    channel_indices = [0,1,2]
     player = MyPlayer()
     logger = Logger()
     prev_alive_time = datetime.now()
@@ -49,9 +53,9 @@ if __name__ == "__main__":
             print('Log alive!', diff)
             logger.log_alive()
             prev_alive_time = now
-        # Sheets API has a quota so update only every 10s
-        if (now - logger.prev_log_time).total_seconds() >= 10:
-            logger.log_drive(now)
+        # Sheets API has a quota so if there are too many requests within 100s they need to be postponed TODO!!
+        #if (now - logger.prev_log_time).total_seconds() >= 10:
+        logger.log_drive(now)
         sensors_in_range = [is_in_range(get_volts(i)) for i in channel_indices]
         new_in_range = any(sensors_in_range)
         print("In range?", sensors_in_range)
