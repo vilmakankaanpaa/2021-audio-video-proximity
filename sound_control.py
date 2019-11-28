@@ -15,24 +15,24 @@ class MyPlayer(MPyg321Player):
     def onAnyStop(self):
         """Callback when the music stops for any reason"""
         
-        print("The music has stopped")
+        #print("The music has stopped")
 
     def onUserPause(self):
         """Callback when user pauses the music"""
-        print("The music has paused")
+        #print("The music has paused")
 
     def onUserResume(self):
         """Callback when user resumes the music"""
-        print("The music has resumed")
+        #print("The music has resumed")
 
     def onUserStop(self):
         """Callback when user stops music"""
-        print("The music has stopped (by user)")
+        #print("The music has stopped (by user)")
 
     def onMusicEnd(self):
         """Callback when music ends"""
         self.status = PlayerStatus.INSTANCIATED
-        print("The music has ended")
+        #print("The music has ended")
 
 
 def do_some_play_pause(player):

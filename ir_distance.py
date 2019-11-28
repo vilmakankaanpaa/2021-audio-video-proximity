@@ -20,7 +20,7 @@ def read_channel(channel):
 
 def get_volts(channel=0):
     v=(read_channel(channel)/1023.0)*3.3
-    print("Voltage: %.2f V" % v) 
+    #print("Voltage: %.2f V" % v) 
     return v
 
 def is_in_range(v):
@@ -40,6 +40,7 @@ def update_log(logger, start=False, end=False, sensors_active=[]):
 if __name__ == "__main__":
     print(os.getpid())
     status_in_range = False
+    playing = False
     channel_indices = [0,1,2]
     player = MyPlayer()
     logger = Logger()
@@ -50,7 +51,7 @@ if __name__ == "__main__":
         diff = (now - prev_alive_time).total_seconds() / 60.0
         # ping alive every 5 mins
         if diff > 5:
-            print('Log alive!', diff)
+            #print('Log alive!', diff)
             logger.log_alive()
             prev_alive_time = now
         # Sheets API has a quota so if there are too many requests within 100s they need to be postponed TODO!!
@@ -58,14 +59,16 @@ if __name__ == "__main__":
         logger.log_drive(now)
         sensors_in_range = [is_in_range(get_volts(i)) for i in channel_indices]
         new_in_range = any(sensors_in_range)
-        print("In range?", sensors_in_range)
+        #print("In range?", sensors_in_range)
 
         # if player has quit, spawn new
         if player.status == 4:
             player = MyPlayer()
         p_status = player.status
 
-        if new_in_range:
+        # Require two consecutive sensor readings before
+        # triggering play
+        if new_in_range and status_in_range:
             # record start of sound play for logging
             start = True
             # if paused resume  
@@ -77,12 +80,14 @@ if __name__ == "__main__":
             else:
                 # status is 1 i.e. already playing
                 start = False
+            playing = True
             update_log(logger, start=start, sensors_active=sensors_in_range)
-        if status_in_range and not new_in_range:
+        if playing and not new_in_range:
             player.pause()
+            playing = False
             update_log(logger, end=True, sensors_active=sensors_in_range)
 
         status_in_range = new_in_range
-        time.sleep(0.5)
+        time.sleep(0.4)
         
 
