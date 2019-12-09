@@ -20,11 +20,13 @@ def read_channel(channel):
 
 def get_volts(channel=0):
     v=(read_channel(channel)/1023.0)*3.3
-    #print("Voltage: %.2f V" % v) 
+    print("Voltage: %.2f V" % v) 
     return v
 
-def is_in_range(v):
-    if v > 0.41:
+def is_in_range(v, i):
+    if i == 1 and v > 0.71:
+        return True
+    elif i in [0, 2] and v > 0.45:
         return True
     else:
         return False
@@ -57,7 +59,7 @@ if __name__ == "__main__":
         # Sheets API has a quota so if there are too many requests within 100s they need to be postponed TODO!!
         #if (now - logger.prev_log_time).total_seconds() >= 10:
         logger.log_drive(now)
-        sensors_in_range = [is_in_range(get_volts(i)) for i in channel_indices]
+        sensors_in_range = [is_in_range(get_volts(i), i) for i in channel_indices]
         new_in_range = any(sensors_in_range)
         #print("In range?", sensors_in_range)
 
@@ -73,17 +75,20 @@ if __name__ == "__main__":
             start = True
             # if paused resume  
             if p_status == 2:
-                player.resume()
+                pass
+                #player.resume()
             # otherwise start playing if not already on
             elif p_status != 1:
-                player.play_song("rain.mp3")
+                pass
+                #player.play_song("rain.mp3")
             else:
                 # status is 1 i.e. already playing
                 start = False
             playing = True
             update_log(logger, start=start, sensors_active=sensors_in_range)
         if playing and not new_in_range:
-            player.pause()
+            pass
+            #player.pause()
             playing = False
             update_log(logger, end=True, sensors_active=sensors_in_range)
 
