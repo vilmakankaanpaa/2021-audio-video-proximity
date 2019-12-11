@@ -87,11 +87,10 @@ if __name__ == "__main__":
             playing = True
             update_log(logger, start=start, sensors_active=sensors_in_range)
         if playing and not new_in_range:
-            pass
             #player.pause()
             playing = False
             update_log(logger, end=True, sensors_active=sensors_in_range)
-
+            pass
         status_in_range = new_in_range
         time.sleep(0.4)
         
