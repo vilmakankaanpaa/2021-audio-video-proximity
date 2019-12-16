@@ -26,7 +26,9 @@ def get_volts(channel=0):
 def is_in_range(v, i):
     if i == 1 and v > 0.71:
         return True
-    elif i in [0, 2] and v > 0.45:
+    elif i == 2 and v > 0.42:
+        return True
+    elif i == 0 and v > 0.50:
         return True
     else:
         return False
@@ -75,22 +77,22 @@ if __name__ == "__main__":
             start = True
             # if paused resume  
             if p_status == 2:
-                pass
-                #player.resume()
+                #pass
+                player.resume()
             # otherwise start playing if not already on
             elif p_status != 1:
-                pass
-                #player.play_song("rain.mp3")
+                #pass
+                player.play_song("rain.mp3")
             else:
                 # status is 1 i.e. already playing
                 start = False
             playing = True
             update_log(logger, start=start, sensors_active=sensors_in_range)
         if playing and not new_in_range:
-            #player.pause()
+            player.pause()
             playing = False
             update_log(logger, end=True, sensors_active=sensors_in_range)
-            pass
+            #pass
         status_in_range = new_in_range
         time.sleep(0.4)
         
