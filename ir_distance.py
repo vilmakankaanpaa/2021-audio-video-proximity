@@ -82,7 +82,7 @@ if __name__ == "__main__":
             # otherwise start playing if not already on
             elif p_status != 1:
                 #pass
-                player.play_song("rain.mp3")
+                player.play_song("music.mp3")
             else:
                 # status is 1 i.e. already playing
                 start = False
