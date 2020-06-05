@@ -1,4 +1,4 @@
-#!/usr/bin/python
+activeSensors#!/usr/bin/python
 import os
 import sys
 import time
@@ -13,54 +13,59 @@ sys.excepthook = sys.__excepthook__
 spi = spidev.SpiDev()
 spi.open(0,0)
 
-
 def read_channel(channel):
   val = spi.xfer2([1,(8+channel)<<4,0])
   data = ((val[1]&3) << 8) + val[2]
   return data
 
 def get_volts(channel=0):
-    v=(read_channel(channel)/1023.0)*3.3
+    volts = (read_channel(channel)/1023.0)*3.3
     #print("Voltage: %.2f V" % v)
-    return v
+    return volts
 
-def is_in_range(v, i):
+def is_in_range(voltsValue, sensorIndex):
     # Threshold for every sensor: probably depends on the location
     # and have to be tested and adjusted
-    if i == 1 and v > 0.71:
+    if sensorIndex == 1 and voltsValue > 0.71:
         return True
-    elif i == 2 and v > 0.42:
+    elif sensorIndex == 2 voltsValue > 0.42:
         return True
-    elif i == 0 and v > 0.50:
+    elif sensorIndex == 0 and voltsValue > 0.50:
         return True
     else:
         return False
 
-# Update local log file
-def update_log(logger, start=False, end=False, sensors_active=[]):
-    now = datetime.now()
-    timestr = now.strftime("%Y-%m-%d %H:%M:%S")
-    data = [timestr, start, end] + sensors_active
+def update_log(logger, start=False, end=False, activeSensors=[]):
+    timeNow = datetime.now()
+    timestr = timeNow.strftime("%Y-%m-%d %H:%M:%S")
+    data = [timestr, start, end] + activeSensors
     logger.log_local(data)
 
-
 if __name__ == "__main__":
+
     print(os.getpid())
-    status_in_range = False
-    playing = False
-    channel_indices = [0,1,2]
-    player = MyPlayer()
+
+    inRangeStatus = False
+    playingAudio = False
+    sensorIndices = [0,1,2]
+
+    audioPlayer = MyPlayer()
     logger = Logger()
-    prev_alive_time = datetime.now()
+
+    prevAliveTime = datetime.now()
     logger.log_alive()
+
     while True:
-        now = datetime.now()
-        diff = (now - prev_alive_time).total_seconds() / 60.0
+
+        timeNow = datetime.now()
+        diff = (timeNow - prevAliveTime).total_seconds() / 60.0
+
         # ping alive every 5 mins
         if diff > 5:
             #print('Log alive!', diff)
             logger.log_alive()
-            prev_alive_time = now
+            prevAliveTime = timeNow
+
         # Sheets API has a quota so if there are too many requests within 100s they need to be postponed TODO!!
         # Note on 03/06/20: I think the above TODO is old and everything works, but just in case it doesn't I'll
         # leave this here to point to a potential problem.
@@ -68,38 +73,40 @@ if __name__ == "__main__":
         # online logging intitated separate from sensor readings, so that if the quota is passed and data accumulated
         # only locally, the waiting records will be logged as soon as possible whether there is activity going on
         # or not
+        #logger.log_drive(timeNow) SKIP LOGGING TO DRIVE UNTIL CONNECTED TO API AGAIN
 
-        #logger.log_drive(now) SKIP LOGGING TO DRIVE UNTIL CONNECTED TO API AGAIN
-        sensors_in_range = [is_in_range(get_volts(i), i) for i in channel_indices]
-        new_in_range = any(sensors_in_range)
-        print("Movement detected", sensors_in_range)
-        print("New in range:", new_in_range)
+        sensorsInRange = [is_in_range(get_volts(i), i) for i in sensorIndices]
+        anyInRange = any(sensorsInRange)
+        #print("Movement detected", sensorsInRange)
+        print("Any in range?", anyInRange)
 
-        # if the player has quit, spawn new
-        if player.status == 4:
-            player = MyPlayer()
-        p_status = player.status
+        # if the audioPlayer has quit, spawn new
+        if audioPlayer.status == 4:
+            audioPlayer = MyPlayer()
+        audioPlayerStatus = audioPlayer.status
 
         # Require two consecutive sensor readings before
+        # (this is done by saving the first "new in range" to
+        # "inRangeStatus" and then eventually here both of these are true)
         # triggering play to prevent random activations
-        if new_in_range and status_in_range:
+        if anyInRange and inRangeStatus:
             # record start of sound play for logging
             start = True
             # if paused resume
-            if p_status == 2:
-                player.resume()
+            if audioPlayerStatus == 2:
+                audioPlayer.resume()
             # otherwise start playing if not already on
-            elif p_status != 1:
+            elif audioPlayerStatus != 1:
                 # music file name here
-                player.play_song("music.mp3")
+                audioPlayer.play_song("music.mp3")
             else:
                 # status is 1 i.e. already playing
                 start = False
-            playing = True
-            update_log(logger, start=start, sensors_active=sensors_in_range)
-        if playing and not new_in_range:
-            player.pause()
-            playing = False
-            update_log(logger, end=True, sensors_active=sensors_in_range)
-        status_in_range = new_in_range
+            playingAudio = True
+            update_log(logger, start=start, activeSensors=sensorsInRange)
+        if playingAudio and not anyInRange:
+            audioPlayer.pause()
+            playingAudio = False
+            update_log(logger, end=True, activeSensors=sensorsInRange)
+        inRangeStatus = anyInRange
         time.sleep(0.4)
