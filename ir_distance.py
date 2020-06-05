@@ -28,7 +28,7 @@ def is_in_range(voltsValue, sensorIndex):
     # and have to be tested and adjusted
     if sensorIndex == 1 and voltsValue > 0.71:
         return True
-    elif sensorIndex == 2 voltsValue > 0.42:
+    elif sensorIndex == 2 and voltsValue > 0.42:
         return True
     elif sensorIndex == 0 and voltsValue > 0.50:
         return True
