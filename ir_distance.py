@@ -98,6 +98,7 @@ if __name__ == "__main__":
             # otherwise start playing if not already on
             elif audioPlayerStatus != 1:
                 # music file name here
+                print("Starting audio")
                 audioPlayer.play_song("music.mp3")
             else:
                 # status is 1 i.e. already playing
