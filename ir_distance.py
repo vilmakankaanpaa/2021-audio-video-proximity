@@ -104,7 +104,7 @@ if __name__ == "__main__":
                 # status is 1 i.e. already playing
                 start = False
             playingAudio = True
-            update_log(logger, start=start, activeSensors=sensorsInRange)
+            update_log(logger, start=True, activeSensors=sensorsInRange)
         if playingAudio and not anyInRange:
             audioPlayer.pause()
             playingAudio = False
