@@ -12,8 +12,8 @@ sys.excepthook = sys.__excepthook__
 # Spidev used to connect to and read the sensors
 spi = spidev.SpiDev()
 spi.open(0,0)
- 
- 
+
+
 def read_channel(channel):
   val = spi.xfer2([1,(8+channel)<<4,0])
   data = ((val[1]&3) << 8) + val[2]
@@ -21,11 +21,11 @@ def read_channel(channel):
 
 def get_volts(channel=0):
     v=(read_channel(channel)/1023.0)*3.3
-    print("Voltage: %.2f V" % v) 
+    #print("Voltage: %.2f V" % v) 
     return v
 
 def is_in_range(v, i):
-    # Threshold for every sensor: probably depends on the location 
+    # Threshold for every sensor: probably depends on the location
     # and have to be tested and adjusted
     if i == 1 and v > 0.71:
         return True
@@ -35,15 +35,15 @@ def is_in_range(v, i):
         return True
     else:
         return False
- 
+
 # Update local log file
 def update_log(logger, start=False, end=False, sensors_active=[]):
     now = datetime.now()
     timestr = now.strftime("%Y-%m-%d %H:%M:%S")
     data = [timestr, start, end] + sensors_active
     logger.log_local(data)
-    
-  
+
+
 if __name__ == "__main__":
     print(os.getpid())
     status_in_range = False
@@ -65,13 +65,13 @@ if __name__ == "__main__":
         # Note on 03/06/20: I think the above TODO is old and everything works, but just in case it doesn't I'll
         # leave this here to point to a potential problem.
 
-        # online logging intitated separate from sensor readings, so that if the quota is passed and data accumulated 
+        # online logging intitated separate from sensor readings, so that if the quota is passed and data accumulated
         # only locally, the waiting records will be logged as soon as possible whether there is activity going on
         # or not
         logger.log_drive(now)
         sensors_in_range = [is_in_range(get_volts(i), i) for i in channel_indices]
         new_in_range = any(sensors_in_range)
-        #print("In range?", sensors_in_range)
+        print("In range?", sensors_in_range)
 
         # if the player has quit, spawn new
         if player.status == 4:
@@ -83,7 +83,7 @@ if __name__ == "__main__":
         if new_in_range and status_in_range:
             # record start of sound play for logging
             start = True
-            # if paused resume  
+            # if paused resume
             if p_status == 2:
                 player.resume()
             # otherwise start playing if not already on
@@ -101,5 +101,3 @@ if __name__ == "__main__":
             update_log(logger, end=True, sensors_active=sensors_in_range)
         status_in_range = new_in_range
         time.sleep(0.4)
-        
-
