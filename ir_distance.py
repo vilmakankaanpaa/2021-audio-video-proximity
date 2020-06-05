@@ -35,10 +35,11 @@ def is_in_range(voltsValue, sensorIndex):
     else:
         return False
 
-def update_log(logger, start=False, end=False, activeSensors=[]):
+def update_log(logger, startAudio=False, endAudio=False, activeSensors=[]):
     timeNow = datetime.now()
     timestr = timeNow.strftime("%Y-%m-%d %H:%M:%S")
-    data = [timestr, start, end] + activeSensors
+    # TODO log readable values
+    data = [timestr, startAudio, endAudio] + activeSensors
     logger.log_local(data)
 
 if __name__ == "__main__":
@@ -78,12 +79,16 @@ if __name__ == "__main__":
         sensorsInRange = [is_in_range(get_volts(i), i) for i in sensorIndices]
         anyInRange = any(sensorsInRange)
         #print("Movement detected", sensorsInRange)
-        print("Any in range?", anyInRange)
+
+        if anyInRange != inRangeStatus:
+            print("Statuschange of inRange:", anyInRange)
 
         # if the audioPlayer has quit, spawn new
         if audioPlayer.status == 4:
             audioPlayer = MyPlayer()
+
         audioPlayerStatus = audioPlayer.status
+        print("audioPlayer status:", audioPlayerStatus)
 
         # Require two consecutive sensor readings before
         # (this is done by saving the first "new in range" to
@@ -91,23 +96,25 @@ if __name__ == "__main__":
         # triggering play to prevent random activations
         if anyInRange and inRangeStatus:
             # record start of sound play for logging
-            start = True
+            startValue= True
             # if paused resume
             if audioPlayerStatus == 2:
                 audioPlayer.resume()
             # otherwise start playing if not already on
             elif audioPlayerStatus != 1:
-                # music file name here
                 print("Starting audio")
                 audioPlayer.play_song("music.mp3")
             else:
                 # status is 1 i.e. already playing
-                start = False
+                startValue = False
             playingAudio = True
-            update_log(logger, start=True, activeSensors=sensorsInRange)
+            update_log(logger, startAudio=startValue, activeSensors=sensorsInRange)
+
+        # Pause audio if not in range
         if playingAudio and not anyInRange:
             audioPlayer.pause()
             playingAudio = False
-            update_log(logger, end=True, activeSensors=sensorsInRange)
+            update_log(logger, endAudio=True, activeSensors=sensorsInRange)
+
         inRangeStatus = anyInRange
         time.sleep(0.4)
