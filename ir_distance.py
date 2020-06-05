@@ -8,7 +8,8 @@ from sound_control import MyPlayer
 from sound_log import Logger
 
 sys.excepthook = sys.__excepthook__
- 
+
+# Spidev used to connect to and read the sensors
 spi = spidev.SpiDev()
 spi.open(0,0)
  
@@ -24,6 +25,8 @@ def get_volts(channel=0):
     return v
 
 def is_in_range(v, i):
+    # Threshold for every sensor: probably depends on the location 
+    # and have to be tested and adjusted
     if i == 1 and v > 0.71:
         return True
     elif i == 2 and v > 0.42:
@@ -59,29 +62,33 @@ if __name__ == "__main__":
             logger.log_alive()
             prev_alive_time = now
         # Sheets API has a quota so if there are too many requests within 100s they need to be postponed TODO!!
-        #if (now - logger.prev_log_time).total_seconds() >= 10:
+        # Note on 03/06/20: I think the above TODO is old and everything works, but just in case it doesn't I'll
+        # leave this here to point to a potential problem.
+
+        # online logging intitated separate from sensor readings, so that if the quota is passed and data accumulated 
+        # only locally, the waiting records will be logged as soon as possible whether there is activity going on
+        # or not
         logger.log_drive(now)
         sensors_in_range = [is_in_range(get_volts(i), i) for i in channel_indices]
         new_in_range = any(sensors_in_range)
         #print("In range?", sensors_in_range)
 
-        # if player has quit, spawn new
+        # if the player has quit, spawn new
         if player.status == 4:
             player = MyPlayer()
         p_status = player.status
 
         # Require two consecutive sensor readings before
-        # triggering play
+        # triggering play to prevent random activations
         if new_in_range and status_in_range:
             # record start of sound play for logging
             start = True
             # if paused resume  
             if p_status == 2:
-                #pass
                 player.resume()
             # otherwise start playing if not already on
             elif p_status != 1:
-                #pass
+                # music file name here
                 player.play_song("music.mp3")
             else:
                 # status is 1 i.e. already playing
@@ -92,7 +99,6 @@ if __name__ == "__main__":
             player.pause()
             playing = False
             update_log(logger, end=True, sensors_active=sensors_in_range)
-            #pass
         status_in_range = new_in_range
         time.sleep(0.4)
         

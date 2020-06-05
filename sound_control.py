@@ -1,4 +1,7 @@
 """
+Music player class
+
+
 MPyG321 callbacks example
 Playing and pausing some music, triggering callbacks
 You need to add a "sample.mp3" file in the working directory
@@ -35,6 +38,7 @@ class MyPlayer(MPyg321Player):
         #print("The music has ended")
 
 
+# Just an example
 def do_some_play_pause(player):
     """Does some play and pause"""
     player.play_song("sample.mp3")
