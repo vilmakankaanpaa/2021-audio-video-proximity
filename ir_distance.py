@@ -21,7 +21,7 @@ def read_channel(channel):
 
 def get_volts(channel=0):
     v=(read_channel(channel)/1023.0)*3.3
-    #print("Voltage: %.2f V" % v) 
+    #print("Voltage: %.2f V" % v)
     return v
 
 def is_in_range(v, i):
@@ -68,10 +68,12 @@ if __name__ == "__main__":
         # online logging intitated separate from sensor readings, so that if the quota is passed and data accumulated
         # only locally, the waiting records will be logged as soon as possible whether there is activity going on
         # or not
-        logger.log_drive(now)
+
+        #logger.log_drive(now) SKIP LOGGING TO DRIVE UNTIL CONNECTED TO API AGAIN
         sensors_in_range = [is_in_range(get_volts(i), i) for i in channel_indices]
         new_in_range = any(sensors_in_range)
-        print("In range?", sensors_in_range)
+        print("Movement detected", sensors_in_range)
+        print("New in range:", new_in_range)
 
         # if the player has quit, spawn new
         if player.status == 4:

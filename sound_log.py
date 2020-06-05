@@ -57,7 +57,7 @@ class Logger:
     def sheets(self):
         # Login and connect to the sheets if not already connected
         if not self.creds.access_token_expired and self.sheet and self.alive:
-            print('All good already')
+            #print('Logged in and G sheets are setup.')
             return
         if self.creds.access_token_expired:
             self.client.login()
