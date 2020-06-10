@@ -203,13 +203,11 @@ if __name__ == "__main__":
         else:
             if usingAudio and playingAudio:
                 pause_audio(audioPlayer)
-                print('Audio paused')
                 playingAudio = False # TODO: not used
                 update_log(logger, endAudio=True, activeSensors=sensorsInRange)
 
             if usingVideo and playingVideo:
                 pause_video(videoPlayer)
-                print('Video paused')
                 playingVideo = False
                 """TODO: logging"""
 
