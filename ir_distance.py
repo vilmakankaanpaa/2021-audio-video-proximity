@@ -13,6 +13,11 @@ sys.excepthook = sys.__excepthook__
 spi = spidev.SpiDev()
 spi.open(0,0)
 
+"""
+TODO: audio and video status dicts
+TODO: audio/video on = true/false
+"""
+
 def read_channel(channel):
   val = spi.xfer2([1,(8+channel)<<4,0])
   data = ((val[1]&3) << 8) + val[2]
@@ -38,9 +43,57 @@ def is_in_range(voltsValue, sensorIndex):
 def update_log(logger, startAudio=False, endAudio=False, activeSensors=[]):
     timeNow = datetime.now()
     timestr = timeNow.strftime("%Y-%m-%d %H:%M:%S")
-    # TODO log readable values
+    """
+    TODO log readable values
+    """
     data = [timestr, startAudio, endAudio] + activeSensors
     logger.log_local(data)
+
+def play_audio(audioPlayer):
+
+    # Player status: 0 - ready; 1 - playing; 2 - paused; 3 - stopped; 4 - quit
+    playerStatus = audioPlayer.status
+
+    startValue = False # record start of sound play for logging
+
+    if playerStatus == 2:   # currently paused
+        audioPlayer.resume()
+        startValue = True """ TODO: is this correct log? """
+
+    elif playerStatus != 1:     # currently not paused and not playing -> start
+        print('Starting audio')
+        startValue = True
+        audioPlayer.play_song("music.mp3")
+        """TODO: use AUDIO_PATH"""
+
+    playingAudio = True """ TODO: redundant? """
+
+    return startValue, playingAudio
+
+
+def pause_audio(audioPlayer):
+    audioPlayer.pause()
+
+
+def play_video(videoPlayer):
+
+    # video paused -> start playing
+    # video is not started -> start playing
+    videoPlayer._play_video()
+    startValue = True
+
+    # if already playing -> dont do anything
+    # startValue = False
+
+    # IN ANY CASE:
+    playingVideo = True """ TODO: redundant? """
+
+    return startValue, playingVideo
+
+
+def pause_video(videoPlayer):
+    videoPlayer._pause_video()
+
 
 if __name__ == "__main__":
 
@@ -48,9 +101,11 @@ if __name__ == "__main__":
 
     inRangeStatus = False
     playingAudio = False
+    playingVideo = False
     sensorIndices = [0,1,2]
 
     audioPlayer = MyPlayer()
+    #videoPlayer = VideoPlayer()
     logger = Logger()
 
     prevAliveTime = datetime.now()
@@ -59,10 +114,9 @@ if __name__ == "__main__":
     while True:
 
         timeNow = datetime.now()
-        diff = (timeNow - prevAliveTime).total_seconds() / 60.0
+        timeDiff = (timeNow - prevAliveTime).total_seconds() / 60.0
 
-        # ping alive every 5 mins
-        if diff > 5:
+        if timeDiff > 5:
             #print('Log alive!', diff)
             logger.log_alive()
             prevAliveTime = timeNow
@@ -74,7 +128,9 @@ if __name__ == "__main__":
         # online logging intitated separate from sensor readings, so that if the quota is passed and data accumulated
         # only locally, the waiting records will be logged as soon as possible whether there is activity going on
         # or not
-        #logger.log_drive(timeNow) SKIP LOGGING TO DRIVE UNTIL CONNECTED TO API AGAIN
+        """
+        logger.log_drive(timeNow) SKIP LOGGING TO DRIVE UNTIL CONNECTED TO API AGAIN
+        """
 
         sensorsInRange = [is_in_range(get_volts(i), i) for i in sensorIndices]
         anyInRange = any(sensorsInRange)
@@ -87,49 +143,36 @@ if __name__ == "__main__":
         if audioPlayer.status == 4:
             audioPlayer = MyPlayer()
 
-        audioPlayerStatus = audioPlayer.status
-        print("audioPlayer status:", audioPlayerStatus)
+        print("audioPlayer status:", audioPlayer.status)
 
         # Require two consecutive sensor readings before
         # (this is done by saving the first "new in range" to
         # "inRangeStatus" and then eventually here both of these are true)
         # triggering play to prevent random activations
+        """TODO: readable names for the two cases e.g. detectedInRange or something"""
         if anyInRange and inRangeStatus:
 
-            """
-            TODO: separate function of these to control what to do with music when sensor status is changed
-            """
-            # record start of sound play for logging
-            startValue = True
-            # if paused resume
-            if audioPlayerStatus == 2:
-                audioPlayer.resume()
-            # otherwise start playing if not already on
-            elif audioPlayerStatus != 1:
-                print("Starting audio")
-                audioPlayer.play_song("music.mp3")
-            else:
-                # status is 1 i.e. already playing
-                startValue = False
-            playingAudio = True
-            update_log(logger, startAudio=startValue, activeSensors=sensorsInRange)
+            audioStartValue, playingAudio = play_audio(audioPlayer) # if just started or not, if playing or not (of course is?? also, needed?)
+            # TODO: playingAudio not used
+            update_log(logger, startAudio=audioStartValue, activeSensors=sensorsInRange)
 
-            """
-            TODO: separate function to control video when sensor status determined and changed
-            """
+            #videoStartValue, playingVideo = play_video(videoPlayer)
+            # TODO: update log
+
+        if (!anyInRange) and (!inRangeStatus):  # nothing in range for two consecutive runs
+
+            if playingAudio:
+                 pause_audio(audioPlayer)
+                 playingAudio = False # TODO: not used
+                 update_log(logger, endAudio=True, activeSensors=sensorsInRange)
+
+            #if playingVideo:
+            #     pause_video(videoPlayer)
+            #     playingVideo = False
 
 
-        """
-        TODO: should it not be fine to also change this just when determined change == false?
-        e.g. both are false at the same time (anyInRange and inRangeStatus)
-        TODO: separate function for audio control
-        TODO: separate function for video control
-        """
-        # Pause audio if not in range and already playing Music
-        if playingAudio and not anyInRange:
-            audioPlayer.pause()
-            playingAudio = False
-            update_log(logger, endAudio=True, activeSensors=sensorsInRange)
+        ####
 
+        #info for next loop:
         inRangeStatus = anyInRange
         time.sleep(0.4)
