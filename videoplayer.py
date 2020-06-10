@@ -17,12 +17,19 @@ class VideoPlayer():
         # load video first to simplify the usage in the code -> does not start playing the video until told so.
         self.currentVideoPath = videoPath
 
-        if self.audio:
-            self.player = OMXPlayer(self.currentVideoPath, args="-o alsa:hw:1,0 --loop")
-        else:
-            self.player = OMXPlayer(self.currentVideoPath, args="--loop")
+        """
+        -o              audio output
+        --no-osd        do not show status info on screen
+        --aspect-mode   aspect of the video on screen
+        --loop          continuously play the video
+        """
+        self.player = OMXPlayer(self.currentVideoPath, args="-o alsa:hw:1,0 --no-osd --aspect-mode fill --loop")
 
         self.player.pause()
+
+        if not self.audio:
+            player.mute()
+
         self.status = 1
 
     def _play_video(self):
