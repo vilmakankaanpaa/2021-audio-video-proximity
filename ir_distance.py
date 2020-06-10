@@ -160,6 +160,11 @@ if __name__ == "__main__":
             audioPlayer = MyPlayer()
         #print("audioPlayer status:", audioPlayer.status)
 
+        if usingVideo and videoPlayer.status == 4:
+            videoPlayer = VideoPlayer(configs.VIDEO_AUDIO_ON)
+            videoPlayer._load_video(configs.VIDEO_PATH)
+
+
         """TODO: if videoplayer has quit, spawn new """
 
         """TODO: change this to a numerical value to hace freedom to choose the threshold"""
