@@ -183,11 +183,11 @@ if __name__ == "__main__":
 
         if userDetected:
 
-            if usingAudio:
+            if usingAudio and not playingAudio:
                 audioStartValue, playingAudio = play_audio(audioPlayer) # if just started or not, if playing or not (of course is?? also, needed?)
                 update_log(logger, startAudio=audioStartValue, activeSensors=sensorsInRange)
 
-            if usingVideo:
+            if usingVideo and not playingVideo:
                 videoStartValue, playingVideo = play_video(videoPlayer)
                 """ TODO: logging """
 
