@@ -162,12 +162,14 @@ if __name__ == "__main__":
 
         """TODO: change this to a numerical value to hace freedom to choose the threshold"""
         # When two consecutive checks are same, set new value
-        if anyInRange and inRangeStatus:
+        if anyInRange == True and inRangeStatus == True:
             userDetected = True
             print("Monkey came in")
-        elif (!anyInRange) and (!inRangeStatus):
+
+        elif anyInRange == False and inRangeStatus == False:
             userDetected = False
             print("No monkeys in tunnel")
+
         #else:
             # two consecutive checks are different
             #print("Status change of inRange:", anyInRange)
