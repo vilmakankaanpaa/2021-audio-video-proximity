@@ -4,6 +4,7 @@ import sys
 import time
 from datetime import datetime
 import spidev
+
 from sound_control import MyPlayer
 from videoplayer import VideoPlayer
 from sound_log import Logger
@@ -120,7 +121,7 @@ if __name__ == "__main__":
         playingAudio = False
 
     if usingVideo:
-        videoPlayer = VideoPlayer()
+        videoPlayer = VideoPlayer(configs.VIDEO_AUDIO_ON)
         videoPlayer._load_video(configs.VIDEO_PATH)
         playingVideo = False
 

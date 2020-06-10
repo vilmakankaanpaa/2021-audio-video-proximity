@@ -6,14 +6,20 @@ from time import sleep
 
 class VideoPlayer():
 
-    def __init__(self):
+    def __init__(self, useVideoAudio):
         self.player = None
         self.currentVideoPath = None
+        self.audio = useVideoAudio
 
     def _load_video(self, videoPath):
         # load video first to simplify the usage in the code -> does not start playing the video until told so.
         self.currentVideoPath = videoPath
-        self.player = OMXPlayer(self.currentVideoPath, args="-o alsa:hw:1,0 --loop")
+
+        if self.audio:
+            self.player = OMXPlayer(self.currentVideoPath, args="-o alsa:hw:1,0 --loop")
+        else:
+            self.player = OMXPlayer(self.currentVideoPath, args="--loop")
+
         self.player.pause()
 
     def _play_video(self):
