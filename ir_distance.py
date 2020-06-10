@@ -81,7 +81,7 @@ if __name__ == "__main__":
         #print("Movement detected", sensorsInRange)
 
         if anyInRange != inRangeStatus:
-            print("Statuschange of inRange:", anyInRange)
+            print("Status change of inRange:", anyInRange)
 
         # if the audioPlayer has quit, spawn new
         if audioPlayer.status == 4:
@@ -95,8 +95,12 @@ if __name__ == "__main__":
         # "inRangeStatus" and then eventually here both of these are true)
         # triggering play to prevent random activations
         if anyInRange and inRangeStatus:
+
+            """
+            TODO: separate function of these to control what to do with music when sensor status is changed
+            """
             # record start of sound play for logging
-            startValue= True
+            startValue = True
             # if paused resume
             if audioPlayerStatus == 2:
                 audioPlayer.resume()
@@ -110,7 +114,18 @@ if __name__ == "__main__":
             playingAudio = True
             update_log(logger, startAudio=startValue, activeSensors=sensorsInRange)
 
-        # Pause audio if not in range
+            """
+            TODO: separate function to control video when sensor status determined and changed
+            """
+
+
+        """
+        TODO: should it not be fine to also change this just when determined change == false?
+        e.g. both are false at the same time (anyInRange and inRangeStatus)
+        TODO: separate function for audio control
+        TODO: separate function for video control
+        """
+        # Pause audio if not in range and already playing Music
         if playingAudio and not anyInRange:
             audioPlayer.pause()
             playingAudio = False
