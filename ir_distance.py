@@ -5,6 +5,7 @@ import time
 from datetime import datetime
 import spidev
 from sound_control import MyPlayer
+from videoplayer import VideoPlayer
 from sound_log import Logger
 import configs
 
