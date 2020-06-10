@@ -67,7 +67,7 @@ def play_audio(audioPlayer):
         # currently not paused and not playing -> start
         print('Starting audio')
         startValue = True
-        audioPlayer.play_song(AUDIO_PATH)
+        audioPlayer.play_song(configs.AUDIO_PATH)
     else:
         pass
 
@@ -106,8 +106,8 @@ if __name__ == "__main__":
 
     print(os.getpid())
 
-    usingAudio = USE_AUDIO
-    usingVideo = USE_VIDEO
+    usingAudio = configs.USE_AUDIO
+    usingVideo = configs.USE_VIDEO
 
     inRangeStatus = False
     userDetected = False
@@ -120,7 +120,7 @@ if __name__ == "__main__":
 
     if usingVideo:
         videoPlayer = VideoPlayer()
-        videoPlayer._load_video(VIDEO_PATH)
+        videoPlayer._load_video(configs.VIDEO_PATH)
         playingVideo = False
 
     logger = Logger()
