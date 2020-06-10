@@ -28,7 +28,7 @@ class VideoPlayer():
         self.player.pause()
 
         if not self.audio:
-            player.mute()
+            self.player.mute()
 
         self.status = 1
 
