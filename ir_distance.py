@@ -56,16 +56,23 @@ def play_audio(audioPlayer):
 
     startValue = False # record start of sound play for logging
 
-    if playerStatus == 2:   # currently paused
+    if playerStatus == 2:
+        # currently paused
         audioPlayer.resume()
-        startValue = True """ TODO: is this correct log? """
-
-    elif playerStatus != 1:     # currently not paused and not playing -> start
+        startValue = True
+        """
+        TODO: is this correct log?
+        """
+    elif playerStatus != 1:
+        # currently not paused and not playing -> start
         print('Starting audio')
         startValue = True
         audioPlayer.play_song(AUDIO_PATH)
+    else:
+        pass
 
-    playingAudio = True """ TODO: redundant? """
+    playingAudio = True
+    """ TODO: redundant? """
 
     return startValue, playingAudio
 
@@ -85,7 +92,8 @@ def play_video(videoPlayer):
     # startValue = False
 
     # IN ANY CASE:
-    playingVideo = True """ TODO: redundant? """
+    playingVideo = True
+    """ TODO: redundant? """
 
     return startValue, playingVideo
 
