@@ -6,7 +6,7 @@ from datetime import datetime
 import spidev
 from sound_control import MyPlayer
 from sound_log import Logger
-import constants
+import configs
 
 sys.excepthook = sys.__excepthook__
 
