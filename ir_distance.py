@@ -6,6 +6,7 @@ from datetime import datetime
 import spidev
 from sound_control import MyPlayer
 from sound_log import Logger
+import constants
 
 sys.excepthook = sys.__excepthook__
 
@@ -15,7 +16,6 @@ spi.open(0,0)
 
 """
 TODO: audio and video status dicts
-TODO: audio/video on = true/false
 """
 
 def read_channel(channel):
@@ -63,8 +63,7 @@ def play_audio(audioPlayer):
     elif playerStatus != 1:     # currently not paused and not playing -> start
         print('Starting audio')
         startValue = True
-        audioPlayer.play_song("music.mp3")
-        """TODO: use AUDIO_PATH"""
+        audioPlayer.play_song(AUDIO_PATH)
 
     playingAudio = True """ TODO: redundant? """
 
@@ -99,13 +98,23 @@ if __name__ == "__main__":
 
     print(os.getpid())
 
+    usingAudio = USE_AUDIO
+    usingVideo = USE_VIDEO
+
     inRangeStatus = False
-    playingAudio = False
-    playingVideo = False
+    userDetected = False
+
     sensorIndices = [0,1,2]
 
-    audioPlayer = MyPlayer()
-    #videoPlayer = VideoPlayer()
+    if usingAudio:
+        audioPlayer = MyPlayer()
+        playingAudio = False
+
+    if usingVideo:
+        videoPlayer = VideoPlayer()
+        videoPlayer._load_video(VIDEO_PATH)
+        playingVideo = False
+
     logger = Logger()
 
     prevAliveTime = datetime.now()
@@ -136,42 +145,47 @@ if __name__ == "__main__":
         anyInRange = any(sensorsInRange)
         #print("Movement detected", sensorsInRange)
 
-        if anyInRange != inRangeStatus:
-            print("Status change of inRange:", anyInRange)
-
         # if the audioPlayer has quit, spawn new
-        if audioPlayer.status == 4:
+        if usingAudio and audioPlayer.status == 4:
             audioPlayer = MyPlayer()
+        #print("audioPlayer status:", audioPlayer.status)
 
-        print("audioPlayer status:", audioPlayer.status)
+        """TODO: if videoplayer has quit, spawn new """
 
-        # Require two consecutive sensor readings before
-        # (this is done by saving the first "new in range" to
-        # "inRangeStatus" and then eventually here both of these are true)
-        # triggering play to prevent random activations
-        """TODO: readable names for the two cases e.g. detectedInRange or something"""
+        """TODO: change this to a numerical value to hace freedom to choose the threshold"""
+        # When two consecutive checks are same, set new value
         if anyInRange and inRangeStatus:
+            userDetected = True
+            print("Monkey came in")
+        elif (!anyInRange) and (!inRangeStatus):
+            userDetected = False
+            print("No monkeys in tunnel")
+        #else:
+            # two consecutive checks are different
+            #print("Status change of inRange:", anyInRange)
 
-            audioStartValue, playingAudio = play_audio(audioPlayer) # if just started or not, if playing or not (of course is?? also, needed?)
-            # TODO: playingAudio not used
-            update_log(logger, startAudio=audioStartValue, activeSensors=sensorsInRange)
+        if userDetected:
 
-            #videoStartValue, playingVideo = play_video(videoPlayer)
-            # TODO: update log
+            if usingAudio:
+                audioStartValue, playingAudio = play_audio(audioPlayer) # if just started or not, if playing or not (of course is?? also, needed?)
+                update_log(logger, startAudio=audioStartValue, activeSensors=sensorsInRange)
 
-        if (!anyInRange) and (!inRangeStatus):  # nothing in range for two consecutive runs
+            if usingVideo:
+                videoStartValue, playingVideo = play_video(videoPlayer)
+                """ TODO: logging """
 
-            if playingAudio:
-                 pause_audio(audioPlayer)
-                 playingAudio = False # TODO: not used
-                 update_log(logger, endAudio=True, activeSensors=sensorsInRange)
+        else:
+            if usingAudio and playingAudio:
+                pause_audio(audioPlayer)
+                print('Audio paused')
+                playingAudio = False # TODO: not used
+                update_log(logger, endAudio=True, activeSensors=sensorsInRange)
 
-            #if playingVideo:
-            #     pause_video(videoPlayer)
-            #     playingVideo = False
-
-
-        ####
+            if usingVideo and playingVideo:
+                pause_video(videoPlayer)
+                print('Video paused')
+                playingVideo = False
+                """TODO: logging"""
 
         #info for next loop:
         inRangeStatus = anyInRange
