@@ -65,6 +65,7 @@ def play_audio(audioPlayer):
         """
         TODO: is this correct log?
         """
+        print('Resuming audio')
     elif playerStatus != 1:
         # currently not paused and not playing -> start
         print('Starting audio')
@@ -81,6 +82,7 @@ def play_audio(audioPlayer):
 
 def pause_audio(audioPlayer):
     audioPlayer.pause()
+    print('Pausing audio')
 
 
 def play_video(videoPlayer):
@@ -97,11 +99,14 @@ def play_video(videoPlayer):
     playingVideo = True
     """ TODO: redundant? """
 
+    print('Playing video')
+
     return startValue, playingVideo
 
 
 def pause_video(videoPlayer):
     videoPlayer._pause_video()
+    print('Pausing video')
 
 
 if __name__ == "__main__":
@@ -119,11 +124,13 @@ if __name__ == "__main__":
     if usingAudio:
         audioPlayer = MyPlayer()
         playingAudio = False
+        print("Using audio")
 
     if usingVideo:
         videoPlayer = VideoPlayer(configs.VIDEO_AUDIO_ON)
         videoPlayer._load_video(configs.VIDEO_PATH)
         playingVideo = False
+        print("Using video. Video audio on:", configs.VIDEO_AUDIO_ON)
 
     logger = Logger()
 
@@ -170,12 +177,14 @@ if __name__ == "__main__":
         """TODO: change this to a numerical value to hace freedom to choose the threshold"""
         # When two consecutive checks are same, set new value
         if anyInRange == True and inRangeStatus == True:
+            if not userDetected:
+                print("Monkey came in")
             userDetected = True
-            print("Monkey came in")
 
         elif anyInRange == False and inRangeStatus == False:
+            if userDetected:
+                print("All monkeys left")
             userDetected = False
-            print("No monkeys in tunnel")
 
         #else:
             # two consecutive checks are different
