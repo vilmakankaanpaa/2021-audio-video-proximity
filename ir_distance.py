@@ -49,7 +49,7 @@ def update_log(logger, startAudio=False, endAudio=False, activeSensors=[]):
     TODO log readable values
     """
     data = [timestr, startAudio, endAudio] + activeSensors
-    logger.log_local(data)
+    logger._log_local(data)
 
 def play_audio(audioPlayer):
 
@@ -112,6 +112,7 @@ def pause_video(videoPlayer):
 if __name__ == "__main__":
 
     print(os.getpid())
+    """ TODO: save the pid to temp file"""
 
     usingAudio = configs.USE_AUDIO
     usingVideo = configs.USE_VIDEO
@@ -135,7 +136,7 @@ if __name__ == "__main__":
     logger = Logger()
 
     prevAliveTime = datetime.now()
-    logger.log_alive()
+    logger._log_alive()
 
     while True:
 
@@ -144,7 +145,7 @@ if __name__ == "__main__":
 
         if timeDiff > 5:
             #print('Log alive!', diff)
-            logger.log_alive()
+            logger._log_alive()
             prevAliveTime = timeNow
 
         # Sheets API has a quota so if there are too many requests within 100s they need to be postponed TODO!!
@@ -155,7 +156,7 @@ if __name__ == "__main__":
         # only locally, the waiting records will be logged as soon as possible whether there is activity going on
         # or not
         """
-        logger.log_drive(timeNow) SKIP LOGGING TO DRIVE UNTIL CONNECTED TO API AGAIN
+        logger._log_drive(timeNow) SKIP LOGGING TO DRIVE UNTIL CONNECTED TO API AGAIN
         """
 
         sensorsInRange = [is_in_range(get_volts(i), i) for i in sensorIndices]
