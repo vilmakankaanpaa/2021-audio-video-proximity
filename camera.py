@@ -4,11 +4,12 @@ from picamera import PiCamera
 from time import sleep
 
 
-class Camera(folderPath):
+class Camera():
 
-    self.camera = PiCamera()
-    self.folderPath = folderPath
-    self.recording = False # not recording
+    def __init__(self, folderPath):
+        self.camera = PiCamera()
+        self.folderPath = folderPath
+        self.recording = False # not recording
 
     def start_recording(videoName):
         camera.start_recording(self.folderPath + videoName + '.h264')
