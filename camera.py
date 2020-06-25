@@ -12,12 +12,12 @@ class Camera():
         self.recording = False # not recording
 
     def start_recording(videoName):
-        camera.start_recording(self.folderPath + videoName + '.h264')
+        self.start_recording(self.folderPath + videoName + '.h264')
         self.recording = True
 
 
     def stop_recording():
-        camera.stop_recording()
+        self.stop_recording()
         self.recording = False
 
 
