@@ -214,7 +214,7 @@ if __name__ == "__main__":
 
             if recordingOn and not cameraIsRecording:
                 fileName = new_video_name()
-                camera.start_recording()
+                camera.start_recording(fileName)
 
             if usingAudio and not playingAudio:
                 audioStartValue, playingAudio = play_audio(audioPlayer) # if just started or not, if playing or not (of course is?? also, needed?)
