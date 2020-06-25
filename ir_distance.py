@@ -3,6 +3,8 @@ import os
 import sys
 import time
 from datetime import datetime
+from datetime import date
+from datetime import time
 import spidev
 
 from sound_control import MyPlayer
@@ -109,6 +111,16 @@ def pause_video(videoPlayer):
     print('Pausing video')
 
 
+def new_video_name():
+    """have to first create new folder per date, if using"""
+    # options: datetime.isoformat(timeObject) OR timeObject.hour + .minute + .second
+    dateStr = date.isoformat(date.today())
+    t = datetime.time(datetime.now())
+    timestr = str(t.hour)+'-'+str(t.minute)+'-'+str(t.second)
+
+    return (dateStr + 'T' + timestr)
+
+
 if __name__ == "__main__":
 
     print(os.getpid())
@@ -116,6 +128,7 @@ if __name__ == "__main__":
 
     usingAudio = configs.USE_AUDIO
     usingVideo = configs.USE_VIDEO
+    recordingOn = configs.RECORDING_ON
 
     inRangeStatus = False
     userDetected = False
@@ -132,6 +145,9 @@ if __name__ == "__main__":
         videoPlayer._load_video(configs.VIDEO_PATH)
         playingVideo = False
         print("Using video. Video audio on:", configs.VIDEO_AUDIO_ON)
+
+    if recordingOn:
+        camera = Camera(configs.RECORDINGS_FOLDER)
 
     logger = Logger()
 
@@ -175,7 +191,7 @@ if __name__ == "__main__":
 
         """TODO: if videoplayer has quit, spawn new """
 
-        """TODO: change this to a numerical value to hace freedom to choose the threshold"""
+        """TODO: change this to a numerical value to have freedom to choose the threshold"""
         # When two consecutive checks are same, set new value
         if anyInRange == True and inRangeStatus == True:
             if not userDetected:
@@ -193,6 +209,9 @@ if __name__ == "__main__":
 
         if userDetected:
 
+            if recordingOn and not camera.is_recording():
+                camera.start_recording(new_video_name())
+
             if usingAudio and not playingAudio:
                 audioStartValue, playingAudio = play_audio(audioPlayer) # if just started or not, if playing or not (of course is?? also, needed?)
                 update_log(logger, startAudio=audioStartValue, activeSensors=sensorsInRange)
@@ -202,7 +221,12 @@ if __name__ == "__main__":
                 """ TODO: logging """
 
         else:
+
+            if camera.is_recording():
+                camera.stop_recording()
+
             if usingAudio and playingAudio:
+
                 pause_audio(audioPlayer)
                 playingAudio = False # TODO: not used
                 update_log(logger, endAudio=True, activeSensors=sensorsInRange)
