@@ -208,7 +208,7 @@ if __name__ == "__main__":
             # two consecutive checks are different
             #print("Status change of inRange:", anyInRange)
 
-        cameraIsRecording = camera.is_recording()
+        cameraIsRecording = camera.recording
 
         if userDetected:
 

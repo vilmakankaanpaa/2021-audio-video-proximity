@@ -21,10 +21,6 @@ class Camera():
         self.recording = False
 
 
-    def is_recording():
-        return self.recording
-
-
     def start_preview():
         # views preview of camera on the attached screen
         self.camera.start_preview()
