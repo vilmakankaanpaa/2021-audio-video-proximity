@@ -18,8 +18,8 @@ class Logger:
         self.ALIVESHEET = configs.G_LOG_SHEET_ALIVE
 
         # The actual connection instances (set by self._connect_sheets())
-        self.main_sheet = None
-        self.alive_sheet = None
+        self.main_sheet_ = None
+        self.alive_sheet_ = None
 
         self.tempdata = []
         self.prev_log_time = datetime.now()
