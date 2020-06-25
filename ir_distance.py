@@ -150,10 +150,10 @@ if __name__ == "__main__":
     if recordingOn:
         camera = Camera(configs.RECORDINGS_FOLDER)
 
-    logger = Logger()
+#    logger = Logger()
 
     prevAliveTime = datetime.now()
-    logger._log_alive()
+#    logger._log_alive()
 
     while True:
 
@@ -162,7 +162,7 @@ if __name__ == "__main__":
 
         if timeDiff > 5:
             #print('Log alive!', diff)
-            logger._log_alive()
+#            logger._log_alive()
             prevAliveTime = timeNow
 
         # Sheets API has a quota so if there are too many requests within 100s they need to be postponed TODO!!
@@ -215,7 +215,7 @@ if __name__ == "__main__":
 
             if usingAudio and not playingAudio:
                 audioStartValue, playingAudio = play_audio(audioPlayer) # if just started or not, if playing or not (of course is?? also, needed?)
-                update_log(logger, startAudio=audioStartValue, activeSensors=sensorsInRange)
+#                update_log(logger, startAudio=audioStartValue, activeSensors=sensorsInRange)
 
             if usingVideo and not playingVideo:
                 videoStartValue, playingVideo = play_video(videoPlayer)
@@ -230,7 +230,7 @@ if __name__ == "__main__":
 
                 pause_audio(audioPlayer)
                 playingAudio = False # TODO: not used
-                update_log(logger, endAudio=True, activeSensors=sensorsInRange)
+#                update_log(logger, endAudio=True, activeSensors=sensorsInRange)
 
             if usingVideo and playingVideo:
                 pause_video(videoPlayer)
