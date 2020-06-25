@@ -10,6 +10,7 @@ import spidev
 from sound_control import MyPlayer
 from videoplayer import VideoPlayer
 from sound_log import Logger
+from camera import Camera
 import configs
 
 sys.excepthook = sys.__excepthook__
