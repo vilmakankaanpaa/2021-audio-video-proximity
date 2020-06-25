@@ -123,5 +123,5 @@ class Logger:
             print('Error logging alive: something else')
 
     def _log_main(self):
-        """TODO""""
+        """TODO"""
         pass
