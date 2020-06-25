@@ -1,7 +1,7 @@
 #!/usr/bin/python
 import os
 import sys
-import time
+from time import sleep
 from datetime import datetime
 from datetime import date
 from datetime import time
@@ -241,4 +241,4 @@ if __name__ == "__main__":
 
         #info for next loop:
         inRangeStatus = anyInRange
-        time.sleep(0.4)
+        sleep(0.4)
