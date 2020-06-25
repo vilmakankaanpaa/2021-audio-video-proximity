@@ -11,26 +11,26 @@ class Camera():
         self.folderPath = folderPath
         self.recording = False # not recording
 
-    def start_recording(videoName):
+    def start_recording(self, videoName):
         self.start_recording(self.folderPath + videoName + '.h264')
         self.recording = True
 
 
-    def stop_recording():
+    def stop_recording(self):
         self.stop_recording()
         self.recording = False
 
 
-    def start_preview():
+    def start_preview(self):
         # views preview of camera on the attached screen
         self.camera.start_preview()
 
 
-    def stop_preview():
+    def stop_preview(self):
         self.camera.stop_preview()
 
 
-    def capture_image(imageName):
+    def capture_image(self, imageName):
 
         self.camera.start_preview()
         # Note: it’s important to sleep for at least two seconds
