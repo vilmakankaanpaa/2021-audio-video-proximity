@@ -208,9 +208,11 @@ if __name__ == "__main__":
             # two consecutive checks are different
             #print("Status change of inRange:", anyInRange)
 
+        cameraIsRecording = camera.is_recording()
+
         if userDetected:
 
-            if recordingOn and (camera.is_recording() == False):
+            if recordingOn and not cameraIsRecording:
                 camera.start_recording(new_video_name())
 
             if usingAudio and not playingAudio:
@@ -223,7 +225,7 @@ if __name__ == "__main__":
 
         else:
 
-            if (camera.is_recording() == True):
+            if cameraIsRecording:
                 camera.stop_recording()
 
             if usingAudio and playingAudio:
