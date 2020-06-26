@@ -2,9 +2,7 @@
 import os
 import sys
 from time import sleep
-from datetime import datetime
-from datetime import date
-from datetime import time
+from datetime import datetime, date, time
 import spidev
 
 from audioplayer import AudioPlayer
@@ -15,13 +13,11 @@ import configs
 
 sys.excepthook = sys.__excepthook__
 
+""" Sensor stuff """
+
 # Spidev used to connect to and read the sensors
 spi = spidev.SpiDev()
 spi.open(0,0)
-
-"""
-TODO: audio and video status dicts
-"""
 
 def read_channel(channel):
   val = spi.xfer2([1,(8+channel)<<4,0])
@@ -45,14 +41,8 @@ def is_in_range(voltsValue, sensorIndex):
     else:
         return False
 
-def update_log(logger, startAudio=False, endAudio=False, activeSensors=[]):
-    timeNow = datetime.now()
-    timestr = timeNow.strftime("%Y-%m-%d %H:%M:%S")
-    """
-    TODO log readable values
-    """
-    data = [timestr, startAudio, endAudio] + activeSensors
-    logger._log_local(data)
+
+""" Sensor stuff end"""
 
 def play_audio(audioPlayer):
 
@@ -92,7 +82,7 @@ def play_video(videoPlayer):
 
     # video paused -> start playing
     # video is not started -> start playing
-    videoPlayer._play_video()
+    videoPlayer.play_video()
     startValue = True
 
     # if already playing -> dont do anything
@@ -108,7 +98,7 @@ def play_video(videoPlayer):
 
 
 def pause_video(videoPlayer):
-    videoPlayer._pause_video()
+    videoPlayer.pause_video()
     print('Pausing video')
 
 
@@ -122,39 +112,62 @@ def new_video_name():
     return (dateStr + 'T' + timestr)
 
 
+def update_log(logger, startAudio=False, endAudio=False, activeSensors=[]):
+    timeNow = datetime.now()
+    timestr = timeNow.strftime("%Y-%m-%d %H:%M:%S")
+    """
+    TODO log readable values
+    """
+    data = [timestr, startAudio, endAudio] + activeSensors
+    logger.log_ix(data)
+
+def print_configurations():
+
+    print('Audio on:', configs.USE_AUDIO)
+    print('Video on:', configs.USE_VIDEO)
+    print('Using video audio:', configs.VIDEO_AUDIO_ON)
+    print('Recording on:', configs.RECORDING_ON)
+
+    if configs.USE_AUDIO: print('Audio file in use:', configs.AUDIO_PATH)
+    if configs.USE_VIDEO_: print('Video file in use:'', configs.VIDEO_PATH)
+    if configs.RECORDING_ON: print('Recording to folder:', configs.RECORDINGS_FOLDER)
+
+
 if __name__ == "__main__":
 
-    print(os.getpid())
-    """ TODO: save the pid to temp file"""
+    print('Starting up monkeytunnel..')
+    print('pid:',os.getpid())
+    """ TODO: save the pid to temp file """
+    print_configurations()
 
+    # configurations for this run of the program
     usingAudio = configs.USE_AUDIO
     usingVideo = configs.USE_VIDEO
     recordingOn = configs.RECORDING_ON
+    loggingOn = configs.LOGGING_ON
 
     inRangeStatus = False
     userDetected = False
-
     sensorIndices = [0,1,2]
 
     if usingAudio:
         audioPlayer = AudioPlayer()
+        """Todo use player status attribute instead? This is messy"""
         playingAudio = False
-        print("Using audio")
 
     if usingVideo:
         videoPlayer = VideoPlayer(configs.VIDEO_AUDIO_ON)
-        videoPlayer._load_video(configs.VIDEO_PATH)
+        videoPlayer.load_video(configs.VIDEO_PATH)
+        """Todo use player status attribute instead? This is messy"""
         playingVideo = False
-        print("Using video. Video audio on:", configs.VIDEO_AUDIO_ON)
 
     if recordingOn:
         camera = Camera(configs.RECORDINGS_FOLDER)
-        print("Recording videos of interactions:", configs.RECORDING_ON)
 
     logger = Logger()
 
     prevAliveTime = datetime.now()
-    logger._log_alive()
+    logger.log_alive()
 
     while True:
 
@@ -163,33 +176,22 @@ if __name__ == "__main__":
 
         if timeDiff > 5:
             #print('Log alive!', diff)
-            logger._log_alive()
+            logger.log_alive()
             prevAliveTime = timeNow
 
-        # Sheets API has a quota so if there are too many requests within 100s they need to be postponed TODO!!
-        # Note on 03/06/20: I think the above TODO is old and everything works, but just in case it doesn't I'll
-        # leave this here to point to a potential problem.
-
-        # online logging intitated separate from sensor readings, so that if the quota is passed and data accumulated
-        # only locally, the waiting records will be logged as soon as possible whether there is activity going on
-        # or not
-        logger._log_drive(timeNow)
+        logger.log_drive(timeNow)
 
         sensorsInRange = [is_in_range(get_volts(i), i) for i in sensorIndices]
         anyInRange = any(sensorsInRange)
-        #print("Movement detected", sensorsInRange)
 
-        # if the audioPlayer has quit, spawn new
+        # if quit, spawn new
         if usingAudio and audioPlayer.status == 4:
             audioPlayer = AudioPlayer()
-        #print("audioPlayer status:", audioPlayer.status)
 
+        # if quit, spawn new
         if usingVideo and videoPlayer.status == 4:
             videoPlayer = VideoPlayer(configs.VIDEO_AUDIO_ON)
-            videoPlayer._load_video(configs.VIDEO_PATH)
-
-
-        """TODO: if videoplayer has quit, spawn new """
+            videoPlayer.load_video(configs.VIDEO_PATH)
 
         """TODO: change this to a numerical value to have freedom to choose the threshold"""
         # When two consecutive checks are same, set new value
@@ -203,20 +205,13 @@ if __name__ == "__main__":
                 print("All monkeys left")
             userDetected = False
 
-        #else:
-            # two consecutive checks are different
-            #print("Status change of inRange:", anyInRange)
-
         cameraIsRecording = camera.recording
 
         if userDetected:
 
-            """TODO log here"""
-
             if recordingOn and not cameraIsRecording:
                 fileName = new_video_name()
                 camera.start_recording(fileName)
-                print("Recording...")
 
             if usingAudio and not playingAudio:
                 audioStartValue, playingAudio = play_audio(audioPlayer) # if just started or not, if playing or not (of course is?? also, needed?)
@@ -224,15 +219,11 @@ if __name__ == "__main__":
 
             if usingVideo and not playingVideo:
                 videoStartValue, playingVideo = play_video(videoPlayer)
-                """ TODO: logging """
 
         else:
 
-            """TODO log here"""
-
             if cameraIsRecording:
                 camera.stop_recording()
-                print("Stopped recording")
 
             if usingAudio and playingAudio:
 
@@ -243,7 +234,6 @@ if __name__ == "__main__":
             if usingVideo and playingVideo:
                 pause_video(videoPlayer)
                 playingVideo = False
-                """TODO: logging"""
 
         #info for next loop:
         inRangeStatus = anyInRange
