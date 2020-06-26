@@ -10,14 +10,14 @@ from mpyg321.mpyg321 import MPyg321Player, PlayerStatus
 from time import sleep
 
 
-class MyPlayer(MPyg321Player):
-    
+class AudioPlayer(MPyg321Player):
+
     # Player status: 0 - ready, 1 - playing, 2 - paused, 3 - stopped, 4 - quitted
-    
+
     """We create a class extending the basic player to implement callbacks"""
     def onAnyStop(self):
         """Callback when the music stops for any reason"""
-        
+
         #print("The music has stopped")
 
     def onUserPause(self):

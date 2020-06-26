@@ -6,5 +6,5 @@ PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/gam
 
 cd /
 cd home/pi/sakis-video-tunnel
-python3 ir_distance.py
+python3 monkeytunnel.py
 cd /

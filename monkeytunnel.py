@@ -7,9 +7,9 @@ from datetime import date
 from datetime import time
 import spidev
 
-from sound_control import MyPlayer
+from audioplayer import AudioPlayer
 from videoplayer import VideoPlayer
-from sound_log import Logger
+from logger import Logger
 from camera import Camera
 import configs
 
@@ -137,7 +137,7 @@ if __name__ == "__main__":
     sensorIndices = [0,1,2]
 
     if usingAudio:
-        audioPlayer = MyPlayer()
+        audioPlayer = AudioPlayer()
         playingAudio = False
         print("Using audio")
 
@@ -181,7 +181,7 @@ if __name__ == "__main__":
 
         # if the audioPlayer has quit, spawn new
         if usingAudio and audioPlayer.status == 4:
-            audioPlayer = MyPlayer()
+            audioPlayer = AudioPlayer()
         #print("audioPlayer status:", audioPlayer.status)
 
         if usingVideo and videoPlayer.status == 4:
@@ -210,7 +210,7 @@ if __name__ == "__main__":
         cameraIsRecording = camera.recording
 
         if userDetected:
-            
+
             """TODO log here"""
 
             if recordingOn and not cameraIsRecording:
@@ -227,7 +227,7 @@ if __name__ == "__main__":
                 """ TODO: logging """
 
         else:
-            
+
             """TODO log here"""
 
             if cameraIsRecording:

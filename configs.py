@@ -1,9 +1,9 @@
-AUDIO_PATH = "music.mp3"
-VIDEO_PATH = "test_video_1.mp4"
+AUDIO_PATH = "audio/music.mp3"
+VIDEO_PATH = "video/test_video_1.mp4"
 USE_AUDIO = False # separate audio file
 USE_VIDEO = True
 VIDEO_AUDIO_ON = False
-RECORDING_ON = True
+RECORDING_ON = False
 RECORDINGS_FOLDER = "/home/pi/sakis-video-tunnel/camera-records/"
 G_LOG_FILE = "Monkey-logs"
 G_LOG_SHEET_MAIN = "main-logs"
