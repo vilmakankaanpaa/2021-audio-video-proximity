@@ -24,11 +24,13 @@ class Logger:
         self.tempdata = []
         self.prev_log_time = datetime.now()
 
+
         # use creds to create a client to interact with the Google Drive API
         scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
         self.creds = ServiceAccountCredentials.from_json_keyfile_name('client_secret.json', scope)
         self.client = gspread.authorize(self.creds)
         self.client.login()
+        print("logged in")
 
         self._connect_sheets() # logs in and connects to the sheet instances
 
@@ -67,7 +69,7 @@ class Logger:
         print('printing to local file', data)
         self.tempdata.append(data)
 
-        with open('log.csv', 'a', newline='') as logfile:
+        with open('local_log.csv', 'a', newline='') as logfile:
             logwriter = csv.writer(logfile, delimiter=',')
             logwriter.writerow(data)
 

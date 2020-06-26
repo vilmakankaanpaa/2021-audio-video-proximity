@@ -151,10 +151,10 @@ if __name__ == "__main__":
         camera = Camera(configs.RECORDINGS_FOLDER)
         print("Recording videos of interactions:", configs.RECORDING_ON)
 
-#    logger = Logger()
+    logger = Logger()
 
     prevAliveTime = datetime.now()
-#    logger._log_alive()
+    logger._log_alive()
 
     while True:
 
@@ -163,7 +163,7 @@ if __name__ == "__main__":
 
         if timeDiff > 5:
             #print('Log alive!', diff)
-#            logger._log_alive()
+            logger._log_alive()
             prevAliveTime = timeNow
 
         # Sheets API has a quota so if there are too many requests within 100s they need to be postponed TODO!!
@@ -173,9 +173,7 @@ if __name__ == "__main__":
         # online logging intitated separate from sensor readings, so that if the quota is passed and data accumulated
         # only locally, the waiting records will be logged as soon as possible whether there is activity going on
         # or not
-        """
-        logger._log_drive(timeNow) SKIP LOGGING TO DRIVE UNTIL CONNECTED TO API AGAIN
-        """
+        logger._log_drive(timeNow)
 
         sensorsInRange = [is_in_range(get_volts(i), i) for i in sensorIndices]
         anyInRange = any(sensorsInRange)
@@ -212,6 +210,8 @@ if __name__ == "__main__":
         cameraIsRecording = camera.recording
 
         if userDetected:
+            
+            """TODO log here"""
 
             if recordingOn and not cameraIsRecording:
                 fileName = new_video_name()
@@ -220,13 +220,15 @@ if __name__ == "__main__":
 
             if usingAudio and not playingAudio:
                 audioStartValue, playingAudio = play_audio(audioPlayer) # if just started or not, if playing or not (of course is?? also, needed?)
-#                update_log(logger, startAudio=audioStartValue, activeSensors=sensorsInRange)
+                update_log(logger, startAudio=audioStartValue, activeSensors=sensorsInRange)
 
             if usingVideo and not playingVideo:
                 videoStartValue, playingVideo = play_video(videoPlayer)
                 """ TODO: logging """
 
         else:
+            
+            """TODO log here"""
 
             if cameraIsRecording:
                 camera.stop_recording()
@@ -236,7 +238,7 @@ if __name__ == "__main__":
 
                 pause_audio(audioPlayer)
                 playingAudio = False # TODO: not used
-#                update_log(logger, endAudio=True, activeSensors=sensorsInRange)
+                #update_log(logger, endAudio=True, activeSensors=sensorsInRange)
 
             if usingVideo and playingVideo:
                 pause_video(videoPlayer)
