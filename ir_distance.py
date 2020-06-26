@@ -149,6 +149,7 @@ if __name__ == "__main__":
 
     if recordingOn:
         camera = Camera(configs.RECORDINGS_FOLDER)
+        print("Recording videos of interactions:", configs.RECORDING_ON)
 
 #    logger = Logger()
 
@@ -215,6 +216,7 @@ if __name__ == "__main__":
             if recordingOn and not cameraIsRecording:
                 fileName = new_video_name()
                 camera.start_recording(fileName)
+                print("Recording...")
 
             if usingAudio and not playingAudio:
                 audioStartValue, playingAudio = play_audio(audioPlayer) # if just started or not, if playing or not (of course is?? also, needed?)
@@ -228,6 +230,7 @@ if __name__ == "__main__":
 
             if cameraIsRecording:
                 camera.stop_recording()
+                print("Stopped recording")
 
             if usingAudio and playingAudio:
 
