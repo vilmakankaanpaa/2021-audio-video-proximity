@@ -157,7 +157,7 @@ if __name__ == "__main__":
     logger = Logger()
 
     prevAliveTime = datetime.now()
-    
+
     logger.log_alive()
     logger.log_tech_details()
 
@@ -230,6 +230,7 @@ if __name__ == "__main__":
             if logger.ix_id:
                 logger.log_interaction_end()
 
+        logger.update_ix_logs()
         #info for next loop:
         inRangeStatus = anyInRange
         sleep(0.4)
