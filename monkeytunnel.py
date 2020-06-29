@@ -1,4 +1,4 @@
-#!/usr/bin/python
+log_progrum_run_info#!/usr/bin/python
 import os
 import sys
 from time import sleep
@@ -102,14 +102,16 @@ def pause_video(videoPlayer):
     print('Pausing video')
 
 
-def new_video_name():
+def new_video_name(logger):
     """have to first create new folder per date, if using"""
     # options: datetime.isoformat(timeObject) OR timeObject.hour + .minute + .second
-    dateStr = date.isoformat(date.today())
+    """dateStr = date.isoformat(date.today())
     t = datetime.time(datetime.now())
-    timestr = str(t.hour)+'-'+str(t.minute)+'-'+str(t.second)
+    timestr = str(t.hour)+'-'+str(t.minute)+'-'+str(t.second)"""
 
-    return (dateStr + 'T' + timestr)
+    ixID, ixStart = logger.get_ix_info()
+    name = ixID + '_' + ixStart
+    return name
 
 
 def print_configurations():
@@ -140,16 +142,17 @@ if __name__ == "__main__":
     userDetected = False
     sensorIndices = [0,1,2]
 
+    """Todo use player status attribute instead? This is messy"""
+    playingAudio = False
+    playingVideo = False
+
     if usingAudio:
         audioPlayer = AudioPlayer()
-        """Todo use player status attribute instead? This is messy"""
-        playingAudio = False
+
 
     if usingVideo:
         videoPlayer = VideoPlayer(configs.VIDEO_AUDIO_ON)
         videoPlayer.load_video(configs.VIDEO_PATH)
-        """Todo use player status attribute instead? This is messy"""
-        playingVideo = False
 
     if recordingOn:
         camera = Camera(configs.RECORDINGS_FOLDER)
@@ -159,7 +162,7 @@ if __name__ == "__main__":
     prevAliveTime = datetime.now()
 
     logger.log_alive()
-    logger.log_tech_details()
+    logger.log_progrum_run_info()
 
     while True:
 
@@ -199,10 +202,14 @@ if __name__ == "__main__":
         if recordingOn:
             cameraIsRecording = camera.recording
 
+        
         if userDetected:
 
+            if not logger.ix_id:
+                logger.log_interaction_start()
+
             if recordingOn and not cameraIsRecording:
-                fileName = new_video_name()
+                fileName = new_video_name(logger)
                 camera.start_recording(fileName)
 
             if usingAudio and not playingAudio:
@@ -211,8 +218,7 @@ if __name__ == "__main__":
             if usingVideo and not playingVideo:
                 videoStartValue, playingVideo = play_video(videoPlayer)
 
-            if not logger.ix_id:
-                logger.log_interaction_start()
+            log_sensor_status(logger.ix_id, sensorsInRange, playingAudio, playingVideo, cameraIsRecording)
 
         else:
 
