@@ -1,4 +1,3 @@
-log_progrum_run_info#!/usr/bin/python
 import os
 import sys
 from time import sleep
@@ -145,6 +144,7 @@ if __name__ == "__main__":
     """Todo use player status attribute instead? This is messy"""
     playingAudio = False
     playingVideo = False
+    cameraIsRecording = False
 
     if usingAudio:
         audioPlayer = AudioPlayer()
@@ -162,7 +162,7 @@ if __name__ == "__main__":
     prevAliveTime = datetime.now()
 
     logger.log_alive()
-    logger.log_progrum_run_info()
+    logger.log_program_run_info()
 
     while True:
 
@@ -217,9 +217,7 @@ if __name__ == "__main__":
 
             if usingVideo and not playingVideo:
                 videoStartValue, playingVideo = play_video(videoPlayer)
-
-            log_sensor_status(logger.ix_id, sensorsInRange, playingAudio, playingVideo, cameraIsRecording)
-
+            
         else:
 
             if recordingOn and cameraIsRecording:

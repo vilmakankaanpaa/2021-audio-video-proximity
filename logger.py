@@ -2,7 +2,7 @@ import gspread
 import csv
 import sys
 from oauth2client.service_account import ServiceAccountCredentials
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 import http.client as httplib
 import uuid
 import configs
@@ -65,10 +65,10 @@ class Logger:
         if self.creds.access_token_expired:
             self.client.login()
 
-        self.ix_sheet = self.client.open(configs.DOCNAME).worksheet(config.IX_SHEET)
-        self.alive_sheet = self.client.open(configs.DOCNAME).worksheet(config.ALIVE_SHEET)
-        self.progrun_sheet = self.client.open(configs.DOCNAME).worksheet(config.PROGRUN_SHEET)
-        self.sensor_sheet = self.client.open(configs.DOCNAME.worksheet(config.SENSOR_SHEET)
+        self.ix_sheet = self.client.open(configs.DOCNAME).worksheet(configs.IX_SHEET)
+        self.alive_sheet = self.client.open(configs.DOCNAME).worksheet(configs.ALIVE_SHEET)
+        self.progrun_sheet = self.client.open(configs.DOCNAME).worksheet(configs.PROGRUN_SHEET)
+        self.sensor_sheet = self.client.open(configs.DOCNAME).worksheet(configs.SENSOR_SHEET)
 
 
     def internet_connected(self):
@@ -175,8 +175,6 @@ class Logger:
         self.ix_start = None
 
 
-"""TODO: integrate functions:""""
-
     def log_alive(self):
 
         if self.log_interval_okay():
@@ -209,7 +207,7 @@ class Logger:
 
 
     def log_sensor_status(self, ixID, sensorsInRange, playingAudio,
-        playingVideo, cameraIsRecording):
+                          playingVideo, cameraIsRecording):
 
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         sensor1 = sensorsInRange[0]
@@ -245,7 +243,7 @@ class Logger:
                 self.log_local(data, sheet='sensor_log.csv')
 
 
-    def log_progrum_run_info(self):
+    def log_program_run_info(self):
 
         # not testing for log interval because only done in beginning of program run - these details wond change
         print('Logging progrum run info')
