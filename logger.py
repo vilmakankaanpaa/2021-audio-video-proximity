@@ -4,6 +4,7 @@ import sys
 from oauth2client.service_account import ServiceAccountCredentials
 from datetime import datetime, timedelta
 import http.client as httplib
+import uuid
 import configs
 
 sys.excepthook = sys.__excepthook__
@@ -25,6 +26,8 @@ class Logger:
 
         self.tempdata = []
         self.prev_log_time = datetime.now()
+        self.ix_id = None
+        self.ix_start = None
 
         # use creds to create a client to interact with the Google Drive API
         scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
@@ -67,68 +70,55 @@ class Logger:
             print(e)
             return False
 
-    def log_ix(self, data):
-        # log interaction data: log locally to wait logging to google sheets
-        self.tempdata.append(data)
-        log_local(data)
 
+    def log_drive(self):
 
-    def log_local(self, data):
-        with open('local_log.csv', 'a', newline='') as logfile:
-            logwriter = csv.writer(logfile, delimiter=',')
-            logwriter.writerow(data)
-
-    def log_drive(self, time):
-        diff = (time - self.prev_log_time).total_seconds()
+        diff = (datetime.now() - self.prev_log_time).total_seconds()
         # Log online every two seconds
         log_interval = 2
         if diff >= log_interval:
 
             # If there is no internet connection only log locally
             if not self.internet_connected():
-                # I guess this row is useless as the prev_log_time shouldn't need
-                # this kind of weird updating. Can't debug now so if something breaks
-                # try uncommenting?
-                #self.prev_log_time = time + timedelta(0, 120)
-                with open('logfail.csv', 'a', newline='') as logfile:
-                    logwriter = csv.writer(logfile, delimiter=',')
-                    logwriter.writerow(['Logging to Google Drive failed: no Internet connection', time.strftime("%Y-%m-%d %H:%M:%S")])
+                log_local(['Logging to Google Drive failed: no Internet connection', timestamp.strftime("%Y-%m-%d %H:%M:%S")], sheet='logfail.csv')
                 return
 
-            # The number of rows to be logged at once was probably determined
-            # by the log_interval, frequency of sensor readings, and/or Google API quota.
-            # Thus might require tweaking if something changes!
             nof_rows = int(log_interval + log_interval / 2)
-            #print(nof_rows)
+
             try:
-                #print('Data to be logged before:', len(self.tempdata) )
                 self.connect_sheets()
                 for row in self.tempdata[0:nof_rows]:
                     self.ix_sheet_.append_row(row)
                 self.tempdata = self.tempdata[nof_rows:]
-                self.prev_log_time = time
-                #print('Data to be logged after:', len(self.tempdata) )
+                self.prev_log_time = timestamp
+
             except Exception as e:
-                print('Logging to Google Drive failed at', time)
-                print('Exception {}'.format(type(e).__name__))
-                # Failures to connect/write to the Google sheet are logged in logfail.csv
-                with open('logfail.csv', 'a', newline='') as logfile:
-                    logwriter = csv.writer(logfile, delimiter=',')
-                    logwriter.writerow(['Logging to Google Drive failed: {}'.format(type(e).__name__), time.strftime("%Y-%m-%d %H:%M:%S")])
+                log_local(['Logging to Google Drive failed: {}'.format(type(e).__name__), timestamp.strftime("%Y-%m-%d %H:%M:%S")], sheet='logfail.csv')
 
 
-    def log_alive(self):
-        time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        try:
-            self.connect_sheets()
-            print('Try to insert')
-            self.alive_sheet_.insert_row([time])
-            print('Insert successful')
-        except TypeError as e:
-            print('Error logging alive: weird buffering error:', e)
-        except:
-            print('Error logging alive: something else')
+    def log_interaction_start(self):
 
-    def log_main(self):
-        """TODO"""
-        pass
+        self.ix_id = str(uuid.uuid4())[0:6]
+        self.ix_start = datetime.now()
+
+    def log_interaction_end(self):
+
+        ID = self.ix_id
+        startime = self.ix_start
+        endtime = datetime.timeNow()
+        duration = (endtime - self.ix_start).total_seconds()
+        # id, starttime, endtime, duration
+        data = [ID, startime.strftime("%Y-%m-%d %H:%M:%S"), endtime.strftime("%Y-%m-%d %H:%M:%S"), duration]
+
+        log_local(data, sheet='local_ix_log.csv')
+
+        # reset
+        self.ix_id = None
+        self.ix_start = None
+
+
+def log_local(data, sheet):
+
+    with open(sheet, 'a', newline='') as logfile:
+        logwriter = csv.writer(logfile, delimiter=',')
+        logwriter.writerow(data)

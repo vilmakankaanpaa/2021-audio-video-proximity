@@ -167,7 +167,7 @@ if __name__ == "__main__":
     logger = Logger()
 
     prevAliveTime = datetime.now()
-    logger.log_alive()
+    #logger.log_alive()
 
     while True:
 
@@ -176,13 +176,12 @@ if __name__ == "__main__":
 
         if timeDiff > 5:
             #print('Log alive!', diff)
-            logger.log_alive()
+            #logger.log_alive()
             prevAliveTime = timeNow
-
-        logger.log_drive(timeNow)
 
         sensorsInRange = [is_in_range(get_volts(i), i) for i in sensorIndices]
         anyInRange = any(sensorsInRange)
+        # Log sensors in range
 
         # if quit, spawn new
         if usingAudio and audioPlayer.status == 4:
@@ -220,6 +219,9 @@ if __name__ == "__main__":
             if usingVideo and not playingVideo:
                 videoStartValue, playingVideo = play_video(videoPlayer)
 
+            # log: interaction started & what things went on? or this info on the program run info?
+            logger.log_interaction_start()
+
         else:
 
             if cameraIsRecording:
@@ -234,6 +236,8 @@ if __name__ == "__main__":
             if usingVideo and playingVideo:
                 pause_video(videoPlayer)
                 playingVideo = False
+
+            logger.log_interaction_end()
 
         #info for next loop:
         inRangeStatus = anyInRange
