@@ -39,8 +39,12 @@ class Logger:
         self.connect_sheets() # logs in and connects to the sheet instances
 
         # reset sheet rows if empty (since rows are appended and default sheet already has empty rows)
-        if 1 == len(self.ix_sheet_.get_all_values()):
-            self.ix_sheet_.resize(rows=1)
+        if len(self.ix_sheet_.get_all_values()) == 1:
+            self.ix_sheet_.resize(rows=1,cols=5)
+        if len(self.tech_sheet_.get_all_values()) == 1:
+            self.tech_sheet_.resize(rows=1,cols=8)
+        if len(self.alive_sheet_.get_all_values()) == 1:    
+            self.alive_sheet_.resize(rows=1,cols=1)
 
 
     def connect_sheets(self):
@@ -89,12 +93,12 @@ class Logger:
 
     def update_ix_logs(self):
 
-        if (len(self.tempdata) > 0) and log_interval_okay():
+        if (len(self.tempdata) > 0) and self.log_interval_okay():
             try:
                 self.log_ix_to_drive()
             except:
                 print(datetime.now(), " Could not log interaction to drive. Logging locally.")
-                self.log_local(data, sheet='local_ix_log.csv')
+                self.log_local(self.tempdata, sheet='local_ix_log.csv')
 
 
     def log_ix_to_drive(self):
@@ -102,9 +106,6 @@ class Logger:
         """
         nof_rows = int(log_interval + log_interval / 2)
 
-        for row in self.tempdata[0:nof_rows]:
-            self.ix_sheet_.append_row(row)
-        self.tempdata = self.tempdata[nof_rows:]
         """
 
         print('Trying to log ix to drive..')
@@ -114,23 +115,22 @@ class Logger:
             self.log_local(['Logging to Google Drive failed: no Internet connection', timestamp.strftime("%Y-%m-%d %H:%M:%S")], sheet='logfail.csv')
             raise
 
-        data = self.tempdata
-        rows = len(data)
+        nof_rows = len(self.tempdata) # change this if problems occur
+        data = self.tempdata[0:nof_rows]
 
         try:
             self.connect_sheets()
-            print('Trying to log ix end data. Data rows:', rows)
-            if rows > 1:
-                self.ix_sheet_.append_rows(data)
-            else:
-                self.ix_sheet_.append_row(data)
+            print('Trying to log ix end data. Data rows:', nof_rows)
+            for row in data:
+                self.ix_sheet_.append_row(row)
 
             self.prev_log_time = datetime.now()
-            self.tempdata = []
+            self.tempdata = self.tempdata[nof_rows:]
 
         except Exception as e:
             print('Logging to GDrive failed:', e)
-            log_local(['Logging to Google Drive failed: {}'.format(type(e).__name__), timestamp.strftime("%Y-%m-%d %H:%M:%S"), sheet], sheet='logfail.csv')
+            print('Data:', data)
+            self.log_local(['Logging to Google Drive failed: {}'.format(type(e).__name__), datetime.now().strftime("%Y-%m-%d %H:%M:%S"), sheet], sheet='logfail.csv')
             raise
 
 
@@ -159,7 +159,7 @@ class Logger:
 
     def log_alive(self):
 
-        log_interval_okay():
+        if self.log_interval_okay():
             print('Logging alive')
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             data = [timestamp]
@@ -190,17 +190,17 @@ class Logger:
         if not self.internet_connected():
             print('No internet connection.')
             self.log_local(['Logging to Google Drive failed: no Internet connection', timestamp.strftime("%Y-%m-%d %H:%M:%S")], sheet='logfail.csv')
+        else:
+            try:
+                self.connect_sheets()
+                self.tech_sheet_.append_row(data)
+                print('Tech at program start logged.')
 
-        try:
-            self.connect_sheets()
-            self.tech_sheet_.append_row(data)
-            print('Tech at program start logged.')
-
-        except Exception as e:
-            print('Logging to GDrive failed:', e)
-            log_local(['Logging to Google Drive failed: {}'.format(type(e).__name__), timestamp.strftime("%Y-%m-%d %H:%M:%S"), self.tech_sheet_], sheet='logfail.csv')
-            self.log_local(data, sheet='tech_log.csv')
-            print('Tech logged locally')
+            except Exception as e:
+                print('Logging to GDrive failed:', e)
+                log_local(['Logging to Google Drive failed: {}'.format(type(e).__name__), timestamp.strftime("%Y-%m-%d %H:%M:%S"), self.tech_sheet_], sheet='logfail.csv')
+                self.log_local(data, sheet='tech_log.csv')
+                print('Tech logged locally')
 
 
     def log_local(self, data, sheet):
