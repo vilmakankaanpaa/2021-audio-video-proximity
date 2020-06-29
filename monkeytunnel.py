@@ -211,8 +211,9 @@ if __name__ == "__main__":
 
         if userDetected:
 
-            if not logger.ix_id:
-                logger.log_interaction_start()
+            ixID = logger.ix_id
+            if not ixID:
+                ixID = logger.log_interaction_start()
 
             if recordingOn and not cameraIsRecording:
                 fileName = new_video_name(logger)
@@ -223,6 +224,11 @@ if __name__ == "__main__":
 
             if usingVideo and not playingVideo:
                 videoStartValue, playingVideo = play_video(videoPlayer)
+
+            if (datetime.now() - logger.prev_sensor_log).total_seconds() > 90:
+                logger.log_sensor_status(ixID, sensorsInRange, playingAudio,
+                                         playingVideo, cameraIsRecording)
+
 
         else:
 

@@ -20,9 +20,9 @@ class Logger:
         self.sensor_sheet = None
 
         self.tempdata = []
-        self.prev_log_time = datetime.now() #TODO use something else
+        self.prev_sensor_log = datetime.now() #TODO use something else
         self.log_timer = datetime.now()
-        self.nof_logs = 0
+        self.max_nof_rows = 100
         self.prev_internet_check = datetime.now()
         self.sensors_temp = []
 
@@ -89,27 +89,12 @@ class Logger:
 
     def reset_log_counters(self):
         self.log_timer = datetime.now()
-        self.nof_logs = 0
-
-
-    def log_interval_okay(self):
-
-        timestamp = datetime.now()
-        diff = int((datetime.now()-self.log_timer).total_seconds())
-        buffer = diff-self.nof_logs
-        print ('logs:', self.nof_logs, 'diff:', int(diff), 'buffer:', buffer)
-
-        log_interval = 2
-
-        if diff >= log_interval:
-            return True
-        else:
-            return False
+        self.max_nof_rows = 100
 
 
     def update_ix_logs(self):
 
-        if (len(self.tempdata) > 0) and self.log_interval_okay():
+        if (len(self.tempdata) > 0):
             try:
                 self.log_ix_to_drive()
             except:
@@ -125,7 +110,7 @@ class Logger:
             self.log_g_fail(reason)
             raise
 
-        nof_rows = len(self.tempdata) # change this if problems occur
+        nof_rows = self.max_nof_rows
         data = self.tempdata[0:nof_rows]
 
         try:
@@ -134,9 +119,8 @@ class Logger:
             for row in data:
                 self.ix_sheet.append_row(row)
 
-            self.prev_log_time = datetime.now()
             self.tempdata = self.tempdata[nof_rows:]
-            self.nof_logs = self.nof_logs + nof_rows
+            self.max_nof_rows = self.max_nof_rows - nof_rows
 
         except Exception as e:
             self.log_g_fail('{}'.format(type(e).__name__))
@@ -148,6 +132,8 @@ class Logger:
         self.ix_id = str(uuid.uuid4())[0:6]
         self.ix_date = date.isoformat(date.today())
         self.ix_start = datetime.now()
+
+        return self.ix_id
 
 
     def log_interaction_end(self):
@@ -172,7 +158,7 @@ class Logger:
 
     def log_alive(self):
 
-        if self.log_interval_okay():
+        if self.max_nof_rows > 0:
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             data = [timestamp]
 
@@ -185,8 +171,7 @@ class Logger:
             try:
                 self.connect_sheets()
                 self.alive_sheet.insert_row(data)
-                self.prev_log_time = datetime.now()
-                self.nof_logs = self.nof_logs + 1
+                self.max_nof_rows = self.max_nof_rows - 1
 
             except Exception as e:
                 self.log_g_fail('{}'.format(type(e).__name__))
@@ -204,29 +189,27 @@ class Logger:
             [ixID, timestamp, sensor1, sensor2, sensor3,
             playingAudio, playingVideo, cameraIsRecording])
 
-        nof_rows = len(self.sensors_temp)
+        nof_rows = self.max_nof_rows
         data = self.sensors_temp[0:nof_rows]
 
-        if self.log_interval_okay():
+        try:
+            self.internet_connected()
+        except:
+            reason = "No internet."
+            self.log_g_fail(reason)
+            raise
 
-            try:
-                self.internet_connected()
-            except:
-                reason = "No internet."
-                self.log_g_fail(reason)
-                raise
+        try:
+            self.connect_sheets()
+            for row in data:
+                self.sensor_sheet.append_row(row)
+            self.prev_sensor_log = datetime.now()
+            self.sensors_temp = self.sensors_temp[nof_rows:]
+            self.max_nof_rows = self.max_nof_rows - nof_rows
 
-            try:
-                self.connect_sheets()
-                for row in data:
-                    self.sensor_sheet.append_row(row)
-                self.prev_log_time = datetime.now()
-                self.sensors_temp = self.sensors_temp[nof_rows:]
-                self.nof_logs = self.nof_logs + nof_rows
-                
-            except Exception as e:
-                self.log_g_fail('{}'.format(type(e).__name__))
-                self.log_local(data, sheet='sensor_log.csv')
+        except Exception as e:
+            self.log_g_fail('{}'.format(type(e).__name__))
+            self.log_local(data, sheet='sensor_log.csv')
 
 
     def log_program_run_info(self):
