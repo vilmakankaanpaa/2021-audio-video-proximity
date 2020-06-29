@@ -6,5 +6,6 @@ VIDEO_AUDIO_ON = False
 RECORDING_ON = False
 RECORDINGS_FOLDER = "/home/pi/sakis-video-tunnel/camera-records/"
 G_LOG_FILE = "Monkey-logs"
-G_LOG_SHEET_MAIN = "main-logs"
+G_LOG_SHEET_IX = "main-logs"
 G_LOG_SHEET_ALIVE = "alive-logs"
+G_LOG_SHEET_TECH = "tech-logs"

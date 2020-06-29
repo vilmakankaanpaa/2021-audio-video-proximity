@@ -14,12 +14,14 @@ class Logger:
 
         # Name of the Google Sheets document and the worksheets inside of it
         self.DOCNAME = configs.G_LOG_FILE
-        self.MAINSHEET = configs.G_LOG_SHEET_MAIN
+        self.IXSHEET = configs.G_LOG_SHEET_IX
+        self.TECHSHEET = configs.G_LOG_SHEET_TECH
         self.ALIVESHEET = configs.G_LOG_SHEET_ALIVE
 
         # The actual connection instances (set by self._connect_sheets())
-        self.main_sheet_ = None
+        self.ix_sheet_ = None
         self.alive_sheet_ = None
+        self.tech_sheet_ = None
 
         self.tempdata = []
         self.prev_log_time = datetime.now()
@@ -33,21 +35,23 @@ class Logger:
         self._connect_sheets() # logs in and connects to the sheet instances
 
         # reset sheet rows if empty (since rows are appended and default sheet already has empty rows)
-        if 1 == len(self.main_sheet_.get_all_values()):
-            self.main_sheet_.resize(rows=1)
+        if 1 == len(self.ix_sheet_.get_all_values()):
+            self.ix_sheet_.resize(rows=1)
 
 
     def connect_sheets(self):
 
-        if not self.creds.access_token_expired and self.main_sheet_ and self.alive_sheet_:
-            #print('Logged in and G sheets are setup.')
-            return
+        if not self.creds.access_token_expired:
+            if self.ix_sheet_ and self.alive_sheet_ and self.tech_sheet_
+                #print('Logged in and G sheets are setup.')
+                return
 
         if self.creds.access_token_expired:
             self.client.login()
 
-        self.main_sheet_ = self.client.open(self.DOCNAME).worksheet(self.MAINSHEET)
+        self.ix_sheet_ = self.client.open(self.DOCNAME).worksheet(self.IXSHEET)
         self.alive_sheet_ = self.client.open(self.DOCNAME).worksheet(self.ALIVESHEET)
+        self.tech_sheet_ = self.client.open(self.DOCNAME).worksheet(self.TECHSHEET)
 
 
     def internet_connected(self):
@@ -100,7 +104,7 @@ class Logger:
                 #print('Data to be logged before:', len(self.tempdata) )
                 self.connect_sheets()
                 for row in self.tempdata[0:nof_rows]:
-                    self.main_sheet_.append_row(row)
+                    self.ix_sheet_.append_row(row)
                 self.tempdata = self.tempdata[nof_rows:]
                 self.prev_log_time = time
                 #print('Data to be logged after:', len(self.tempdata) )
