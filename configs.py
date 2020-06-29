@@ -1,4 +1,4 @@
-AUDIO_PATH = "audio/music.mp3"
+AUDIO_PATH = ""
 VIDEO_PATH = "video/test_video_1.mp4"
 USE_AUDIO = False # separate audio file
 USE_VIDEO = True

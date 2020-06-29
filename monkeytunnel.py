@@ -112,15 +112,6 @@ def new_video_name():
     return (dateStr + 'T' + timestr)
 
 
-def update_log(logger, startAudio=False, endAudio=False, activeSensors=[]):
-    timeNow = datetime.now()
-    timestr = timeNow.strftime("%Y-%m-%d %H:%M:%S")
-    """
-    TODO log readable values
-    """
-    data = [timestr, startAudio, endAudio] + activeSensors
-    logger.log_ix(data)
-
 def print_configurations():
 
     print('Audio on:', configs.USE_AUDIO)
@@ -129,7 +120,7 @@ def print_configurations():
     print('Recording on:', configs.RECORDING_ON)
 
     if configs.USE_AUDIO: print('Audio file in use:', configs.AUDIO_PATH)
-    if configs.USE_VIDEO: print('Video file in use:', configs.VIDEO_PATH) 
+    if configs.USE_VIDEO: print('Video file in use:', configs.VIDEO_PATH)
     if configs.RECORDING_ON: print('Recording to folder:', configs.RECORDINGS_FOLDER)
 
 
@@ -139,6 +130,7 @@ if __name__ == "__main__":
     print('pid:',os.getpid())
     """ TODO: save the pid to temp file """
     print_configurations()
+    log_tech_details()
 
     # configurations for this run of the program
     usingAudio = configs.USE_AUDIO
@@ -166,7 +158,8 @@ if __name__ == "__main__":
     logger = Logger()
 
     prevAliveTime = datetime.now()
-    #logger.log_alive()
+
+    logger.log_alive()
 
     while True:
 
@@ -175,7 +168,7 @@ if __name__ == "__main__":
 
         if timeDiff > 5:
             #print('Log alive!', diff)
-            #logger.log_alive()
+            logger.log_alive()
             prevAliveTime = timeNow
 
         sensorsInRange = [is_in_range(get_volts(i), i) for i in sensorIndices]
@@ -214,12 +207,10 @@ if __name__ == "__main__":
 
             if usingAudio and not playingAudio:
                 audioStartValue, playingAudio = play_audio(audioPlayer) # if just started or not, if playing or not (of course is?? also, needed?)
-                update_log(logger, startAudio=audioStartValue, activeSensors=sensorsInRange)
 
             if usingVideo and not playingVideo:
                 videoStartValue, playingVideo = play_video(videoPlayer)
 
-            # log: interaction started & what things went on? or this info on the program run info?
             if not logger.ix_id:
                 logger.log_interaction_start()
 
@@ -229,15 +220,13 @@ if __name__ == "__main__":
                 camera.stop_recording()
 
             if usingAudio and playingAudio:
-
                 pause_audio(audioPlayer)
                 playingAudio = False # TODO: not used
-                #update_log(logger, endAudio=True, activeSensors=sensorsInRange)
 
             if usingVideo and playingVideo:
                 pause_video(videoPlayer)
                 playingVideo = False
-            
+
             if logger.ix_id:
                 logger.log_interaction_end()
 
