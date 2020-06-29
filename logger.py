@@ -28,6 +28,7 @@ class Logger:
         self.prev_log_time = datetime.now()
         self.ix_id = None
         self.ix_start = None
+        self.test_phase = configs.TEST_PHASE
 
         # use creds to create a client to interact with the Google Drive API
         scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
@@ -107,8 +108,9 @@ class Logger:
         startime = self.ix_start
         endtime = datetime.now()
         duration = (endtime - self.ix_start).total_seconds()
+        phase = configs.TEST_PHASE
         # id, starttime, endtime, duration
-        data = [ID, startime.strftime("%Y-%m-%d %H:%M:%S"), endtime.strftime("%Y-%m-%d %H:%M:%S"), duration]
+        data = [ID, startime.strftime("%Y-%m-%d %H:%M:%S"), endtime.strftime("%Y-%m-%d %H:%M:%S"), duration, phase]
 
         log_local(data, sheet='local_ix_log.csv')
 
