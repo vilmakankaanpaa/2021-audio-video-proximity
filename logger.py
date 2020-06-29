@@ -44,6 +44,8 @@ class Logger:
 
 
     def connect_sheets(self):
+        
+        print('Connecting sheets..')
 
         if not self.creds.access_token_expired:
             if self.ix_sheet_ and self.alive_sheet_ and self.tech_sheet_:
@@ -59,6 +61,8 @@ class Logger:
 
 
     def internet_connected(self):
+        
+        print('Testing internet..')
 
         conn = httplib.HTTPConnection("www.google.fi", timeout=2)
         try:
@@ -77,33 +81,44 @@ class Logger:
         diff = (timestamp - self.prev_log_time).total_seconds()
         log_interval = 2
         if diff >= log_interval:
+            
+            print('Log interval fine. Trying to log.')
 
             if not self.internet_connected():
-                log_local(['Logging to Google Drive failed: no Internet connection', timestamp.strftime("%Y-%m-%d %H:%M:%S")], sheet='logfail.csv')
+                print('No internet connection.')
+                self.log_local(['Logging to Google Drive failed: no Internet connection', timestamp.strftime("%Y-%m-%d %H:%M:%S")], sheet='logfail.csv')
                 raise
 
             try:
                 self.connect_sheets()
+                
+                print(len(data))
                 if len(data) > 1:
-                    print('Logging to drive. More than 1 row in data.'')
+                    print('Logging to drive. More than 1 row in data.')
                     if append:
                         sheet.append_rows(data)
                     else:
                         sheet.insert_rows(data)
                 else:
+                    print('Logging to drive one row')
+                    print(data)
                     if append:
                         sheet.append_row(data)
                     else:
                         sheet.insert_row(data)
 
                 self.prev_log_time = datetime.now()
+                
+                return True
 
-            except:
-                print('Logging to GDrive failed.')
+            except Exception as e:
+                print('Logging to GDrive failed:', e)
                 log_local(['Logging to Google Drive failed: {}'.format(type(e).__name__), timestamp.strftime("%Y-%m-%d %H:%M:%S"), sheet], sheet='logfail.csv')
                 raise
 
-
+        else:
+            return False
+    
     def log_interaction_start(self):
 
         self.ix_id = str(uuid.uuid4())[0:6]
@@ -131,11 +146,13 @@ class Logger:
         """
 
         try:
-            log_to_drive(data=self.tempdata, sheet=self.ix_sheet_, append=True)
-            self.tempdata = []
+            print('Trying to log ix end data. Data:', data)
+            logged = self.log_to_drive(data=self.tempdata, sheet=self.ix_sheet_, append=True)
+            if logged:
+                self.tempdata = []
         except:
             print(datetime.now(), " Could not log interaction to drive. Logging locally.")
-            log_local(data, sheet='local_ix_log.csv')
+            self.log_local(data, sheet='local_ix_log.csv')
 
         # reset
         self.ix_id = None
@@ -144,26 +161,30 @@ class Logger:
 
     def log_alive(self):
 
+        print('Logging alive')
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         data = [timestamp]
         try:
-            log_row_to_drive(row=data, sheet=self.alive_sheet_, append=False)
+            self.log_to_drive(row=data, sheet=self.alive_sheet_, append=False)
+            print('alive logged to drive')
         except:
-            log_local(data, sheet='alive_log.csv')
+            self.log_local(data, sheet='alive_log.csv')
+            print('alive logged locally')
 
 
     def log_tech_details(self):
-
+        print('Logging tech')
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         data = [timestamp, configs.TEST_PHASE, configs.USE_VIDEO, configs.VIDEO_AUDIO_ON, configs.VIDEO_PATH, configs.USE_AUDIO, configs.AUDIO_PATH, configs.RECORDING_ON]
         try:
-            log_row_to_drive(row=data, sheet=self.tech_sheet_, append=True)
+            self.log_to_drive(row=data, sheet=self.tech_sheet_, append=True)
+            print('tech logged')
         except:
-            log_local(data, sheet='tech_log.csv')
+            self.log_local(data, sheet='tech_log.csv')
+            print('Tech logged locally')
 
+    def log_local(self, data, sheet):
 
-def log_local(data, sheet):
-
-    with open(sheet, 'a', newline='') as logfile:
-        logwriter = csv.writer(logfile, delimiter=',')
-        logwriter.writerow(data)
+        with open(sheet, 'a', newline='') as logfile:
+            logwriter = csv.writer(logfile, delimiter=',')
+            logwriter.writerow(data)

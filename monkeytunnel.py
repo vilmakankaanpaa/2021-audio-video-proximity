@@ -130,7 +130,6 @@ if __name__ == "__main__":
     print('pid:',os.getpid())
     """ TODO: save the pid to temp file """
     print_configurations()
-    log_tech_details()
 
     # configurations for this run of the program
     usingAudio = configs.USE_AUDIO
@@ -158,8 +157,9 @@ if __name__ == "__main__":
     logger = Logger()
 
     prevAliveTime = datetime.now()
-
+    
     logger.log_alive()
+    logger.log_tech_details()
 
     while True:
 
