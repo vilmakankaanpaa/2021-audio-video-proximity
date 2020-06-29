@@ -22,7 +22,8 @@ class Logger:
         self.tempdata = []
         self.prev_log_time = datetime.now() #TODO use something else
         self.log_timer = datetime.now()
-        self.prev_internet_check = None
+        self.nof_logs = 0
+        self.prev_internet_check = datetime.now()
         self.sensors_temp = []
 
         self.ix_id = None
@@ -220,7 +221,7 @@ class Logger:
                 for row in data:
                     self.sensor_sheet.append_row(row)
                 self.prev_log_time = datetime.now()
-                self.sensors_temp = [nof_rows:]
+                self.sensors_temp = self.sensors_temp[nof_rows:]
                 self.nof_logs = self.nof_logs + nof_rows
                 
             except Exception as e:
@@ -271,6 +272,6 @@ class Logger:
 
     def log_g_fail(self, reason):
         self.log_local(
-            [timestamp.strftime("%Y-%m-%d %H:%M:%S"),
+            [datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             'Logging to Google Drive failed.',
             reason], sheet='logfail.csv')

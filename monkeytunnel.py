@@ -174,7 +174,7 @@ if __name__ == "__main__":
             logger.log_alive()
             prevAliveTime = timeNow
 
-        logTimerDiff = (timeNow – logger.log_timer).total_seconds()
+        logTimerDiff = (timeNow-logger.log_timer).total_seconds()
 
         if logTimerDiff > 100:
             # reset log timer every 100s – quota for google is 100 requests per 100 seconds
