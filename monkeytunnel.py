@@ -129,7 +129,7 @@ def print_configurations():
     print('Recording on:', configs.RECORDING_ON)
 
     if configs.USE_AUDIO: print('Audio file in use:', configs.AUDIO_PATH)
-    if configs.USE_VIDEO_: print('Video file in use:'', configs.VIDEO_PATH)
+    if configs.USE_VIDEO: print('Video file in use:', configs.VIDEO_PATH) 
     if configs.RECORDING_ON: print('Recording to folder:', configs.RECORDINGS_FOLDER)
 
 
@@ -144,7 +144,6 @@ if __name__ == "__main__":
     usingAudio = configs.USE_AUDIO
     usingVideo = configs.USE_VIDEO
     recordingOn = configs.RECORDING_ON
-    loggingOn = configs.LOGGING_ON
 
     inRangeStatus = False
     userDetected = False
@@ -204,7 +203,8 @@ if __name__ == "__main__":
                 print("All monkeys left")
             userDetected = False
 
-        cameraIsRecording = camera.recording
+        if recordingOn:
+            cameraIsRecording = camera.recording
 
         if userDetected:
 
@@ -220,11 +220,12 @@ if __name__ == "__main__":
                 videoStartValue, playingVideo = play_video(videoPlayer)
 
             # log: interaction started & what things went on? or this info on the program run info?
-            logger.log_interaction_start()
+            if not logger.ix_id:
+                logger.log_interaction_start()
 
         else:
 
-            if cameraIsRecording:
+            if recordingOn and cameraIsRecording:
                 camera.stop_recording()
 
             if usingAudio and playingAudio:
@@ -236,8 +237,9 @@ if __name__ == "__main__":
             if usingVideo and playingVideo:
                 pause_video(videoPlayer)
                 playingVideo = False
-
-            logger.log_interaction_end()
+            
+            if logger.ix_id:
+                logger.log_interaction_end()
 
         #info for next loop:
         inRangeStatus = anyInRange

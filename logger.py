@@ -35,7 +35,7 @@ class Logger:
         self.client = gspread.authorize(self.creds)
         self.client.login()
 
-        self._connect_sheets() # logs in and connects to the sheet instances
+        self.connect_sheets() # logs in and connects to the sheet instances
 
         # reset sheet rows if empty (since rows are appended and default sheet already has empty rows)
         if 1 == len(self.ix_sheet_.get_all_values()):
@@ -45,7 +45,7 @@ class Logger:
     def connect_sheets(self):
 
         if not self.creds.access_token_expired:
-            if self.ix_sheet_ and self.alive_sheet_ and self.tech_sheet_
+            if self.ix_sheet_ and self.alive_sheet_ and self.tech_sheet_:
                 #print('Logged in and G sheets are setup.')
                 return
 
@@ -105,7 +105,7 @@ class Logger:
 
         ID = self.ix_id
         startime = self.ix_start
-        endtime = datetime.timeNow()
+        endtime = datetime.now()
         duration = (endtime - self.ix_start).total_seconds()
         # id, starttime, endtime, duration
         data = [ID, startime.strftime("%Y-%m-%d %H:%M:%S"), endtime.strftime("%Y-%m-%d %H:%M:%S"), duration]
