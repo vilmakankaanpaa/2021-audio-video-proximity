@@ -174,6 +174,12 @@ if __name__ == "__main__":
             logger.log_alive()
             prevAliveTime = timeNow
 
+        logTimerDiff = (timeNow – logger.log_timer).total_seconds()
+
+        if logTimerDiff > 100:
+            # reset log timer every 100s – quota for google is 100 requests per 100 seconds
+            logger.reset_log_counters()
+
         sensorsInRange = [is_in_range(get_volts(i), i) for i in sensorIndices]
         anyInRange = any(sensorsInRange)
         # Log sensors in range
@@ -202,7 +208,7 @@ if __name__ == "__main__":
         if recordingOn:
             cameraIsRecording = camera.recording
 
-        
+
         if userDetected:
 
             if not logger.ix_id:
@@ -217,7 +223,7 @@ if __name__ == "__main__":
 
             if usingVideo and not playingVideo:
                 videoStartValue, playingVideo = play_video(videoPlayer)
-            
+
         else:
 
             if recordingOn and cameraIsRecording:
