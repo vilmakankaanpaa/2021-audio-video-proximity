@@ -31,9 +31,10 @@ def get_volts(channel=0):
 def is_in_range(voltsValue, sensorIndex):
     # Threshold for every sensor: probably depends on the location
     # and have to be tested and adjusted
-    if sensorIndex == 1 and voltsValue > 0.71:
+    
+    if sensorIndex == 1 and voltsValue > 0.80:
         return True
-    elif sensorIndex == 2 and voltsValue > 0.42:
+    elif sensorIndex == 2 and voltsValue > 0.30:
         return True
     elif sensorIndex == 0 and voltsValue > 0.50:
         return True
@@ -79,26 +80,15 @@ def pause_audio(audioPlayer):
 
 def play_video(videoPlayer):
 
-    # video paused -> start playing
-    # video is not started -> start playing
     videoPlayer.play_video()
     startValue = True
-
-    # if already playing -> dont do anything
-    # startValue = False
-
-    # IN ANY CASE:
     playingVideo = True
-    """ TODO: redundant? """
-
-    print('Playing video')
 
     return startValue, playingVideo
 
 
 def pause_video(videoPlayer):
     videoPlayer.pause_video()
-    print('Pausing video')
 
 
 def new_video_name(logger):
@@ -130,7 +120,6 @@ if __name__ == "__main__":
     print('Starting up monkeytunnel..')
     print('pid:',os.getpid())
     """ TODO: save the pid to temp file """
-    print_configurations()
 
     # configurations for this run of the program
     usingAudio = configs.USE_AUDIO
@@ -149,7 +138,6 @@ if __name__ == "__main__":
     if usingAudio:
         audioPlayer = AudioPlayer()
 
-
     if usingVideo:
         videoPlayer = VideoPlayer(configs.VIDEO_AUDIO_ON)
         videoPlayer.load_video(configs.VIDEO_PATH)
@@ -163,7 +151,8 @@ if __name__ == "__main__":
 
     logger.log_alive()
     logger.log_program_run_info()
-
+    
+    sensorTimer = datetime.now()
     while True:
 
         timeNow = datetime.now()
@@ -179,10 +168,20 @@ if __name__ == "__main__":
         if logTimerDiff > 100:
             # reset log timer every 100s – quota for google is 100 requests per 100 seconds
             logger.reset_log_counters()
-
+        
+           
         sensorsInRange = [is_in_range(get_volts(i), i) for i in sensorIndices]
+        
+        if (datetime.now()-sensorTimer).total_seconds() > 2:
+            volts = []
+            for i in sensorIndices:
+                volts.append(get_volts(i))
+            print(volts) 
+            print(sensorsInRange)
+            sensorTimer = datetime.now()
+            
         anyInRange = any(sensorsInRange)
-        # Log sensors in range
+        #print('Sensors:', sensorsInRange)
 
         # if quit, spawn new
         if usingAudio and audioPlayer.status == 4:
@@ -199,6 +198,13 @@ if __name__ == "__main__":
             if not userDetected:
                 print("Monkey came in")
             userDetected = True
+            
+            volts = []
+            for i in sensorIndices:
+                volts.append(get_volts(i))
+            print(volts) 
+            print(sensorsInRange)
+            sensorTimer = datetime.now()
 
         elif anyInRange == False and inRangeStatus == False:
             if userDetected:
@@ -207,7 +213,6 @@ if __name__ == "__main__":
 
         if recordingOn:
             cameraIsRecording = camera.recording
-
 
         if userDetected:
 
@@ -225,10 +230,11 @@ if __name__ == "__main__":
             if usingVideo and not playingVideo:
                 videoStartValue, playingVideo = play_video(videoPlayer)
 
-            if (datetime.now() - logger.prev_sensor_log).total_seconds() > 90:
+            timeDifference = int((datetime.now() - logger.prev_sensor_log).total_seconds())
+            if timeDifference > 5:
+                print('Logging sensors, timediff:', timeDifference)
                 logger.log_sensor_status(ixID, sensorsInRange, playingAudio,
                                          playingVideo, cameraIsRecording)
-
 
         else:
 
