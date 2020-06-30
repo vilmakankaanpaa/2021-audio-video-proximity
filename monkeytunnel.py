@@ -129,30 +129,6 @@ def print_configurations():
     if configs.USE_VIDEO: print('Video file in use:', configs.VIDEO_PATH)
     if configs.RECORDING_ON: print('Recording to folder:', configs.RECORDINGS_FOLDER)
 
-def alivelog(timer):
-
-    # timer for logging alive
-    timeNow = datetime.now()
-    timeDiff = (timeNow - timer).total_seconds() / 60.0
-
-    if timeDiff > 5: # every 5 minutes
-        logger.log_alive()
-        timer = timeNow
-    return timer
-
-def sensorlog(timer, inRange, volts, ixID=None):
-
-    # timer for logging sensor data
-    timeNow = datetime.now()
-    timeDiff = (timeNow - timer).total_seconds()
-    if timeDiff > 3: # every 3 seconds
-        print(ixID)
-        i = 0
-        for i in range(3):
-            print(volts[i], inRange[i])
-        timer = datetime.now()
-
-    return timer
 
 if __name__ == "__main__":
 
@@ -185,20 +161,12 @@ if __name__ == "__main__":
         camera = Camera(configs.RECORDINGS_FOLDER)
 
     logger = Logger()
-
-    prevAliveTime = datetime.now()
-    sensorsLoggedTime = datetime.now()
-
-    logger.log_alive()
     logger.log_program_run_info()
 
     while True:
 
-        prevAliveTime = alivelog(prevAliveTime)
-
-        if (datetime.now()-logger.log_timer).total_seconds() > 100:
-            # reset log timer every 100s – quota for google is 100 requests per 100 seconds
-            logger.reset_log_counters()
+        logger.log_alive()
+        logger.check_quota_counter()
 
         sensorVolts, sensorsInRange = check_sensors()
         anyInRange = any(sensorsInRange)
@@ -233,8 +201,6 @@ if __name__ == "__main__":
             if not ixID:
                 ixID = logger.log_interaction_start()
 
-            sensorsLoggedTime = sensorlog(sensorsLoggedTime, sensorVolts, sensorsInRange, ixID)
-
             if recordingOn and not cameraIsRecording:
                 fileName = new_video_name(logger)
                 camera.start_recording(fileName)
@@ -245,11 +211,8 @@ if __name__ == "__main__":
             if usingVideo and not playingVideo:
                 videoStartValue, playingVideo = play_video(videoPlayer)
 
-            timeDifference = int((datetime.now() - logger.prev_sensor_log).total_seconds())
-            if timeDifference > 5:
-                print('Logging sensors, timediff:', timeDifference)
-                logger.log_sensor_status(ixID, sensorsInRange, playingAudio,
-                                         playingVideo, cameraIsRecording)
+            logger.log_sensor_status(inRange, volts, playingAudio, playingVideo,
+                                     cameraIsRecording, ixID)
 
         else:
 
@@ -267,7 +230,8 @@ if __name__ == "__main__":
             if logger.ix_id:
                 logger.log_interaction_end()
 
-            sensorsLoggedTime = sensorlog(sensorsLoggedTime, sensorVolts, sensorsInRange)
+            logger.log_sensor_status(inRange, volts, playingAudio, playingVideo,
+                                     cameraIsRecording)
 
         logger.update_ix_logs()
         #info for next loop:

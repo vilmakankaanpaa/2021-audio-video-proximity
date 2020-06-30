@@ -19,11 +19,13 @@ class Logger:
         self.progrun_sheet = None
         self.sensor_sheet = None
 
-        self.tempdata = []
-        self.prev_sensor_log = datetime.now() #TODO use something else
-        self.log_timer = datetime.now()
+        self.sensorlog_timer = datetime.now()
+        self.quota_timer = datetime.now()
+        self.alivelog_timer = datetime.now()
+        self.ie_check_timer = datetime.now()
+
         self.max_nof_rows = 100
-        self.prev_internet_check = datetime.now()
+        self.tempdata = []
         self.sensors_temp = []
 
         self.ix_id = None
@@ -52,11 +54,11 @@ class Logger:
             self.alive_sheet.resize(rows=1,cols=1)
 
         if len(self.sensor_sheet.get_all_values()) == 1:
-            self.sensor_sheet.resize(rows=1,cols=8)
+            self.sensor_sheet.resize(rows=1,cols=11)
 
 
     def connect_sheets(self):
-        
+
         print('Connecting to sheets')
 
         if not self.creds.access_token_expired:
@@ -75,10 +77,10 @@ class Logger:
 
     def internet_connected(self):
 
-        diff = int((datetime.now() - self.prev_internet_check).total_seconds())
+        diff = int((datetime.now() - self.ie_check_timer).total_seconds())
         if (diff > (4*60)): # every four minutes max
             print('Checking internet.')
-            self.prev_internet_check = datetime.now()
+            self.ie_check_timer = datetime.now()
             conn = httplib.HTTPConnection("www.google.fi", timeout=2)
             try:
                 conn.request("HEAD", "/")
@@ -90,9 +92,11 @@ class Logger:
                 raise
 
 
-    def reset_log_counters(self):
-        self.log_timer = datetime.now()
-        self.max_nof_rows = 100
+    def check_quota_counter(self):
+        # reset log timer every 100s – quota for google is 100 requests per 100 seconds
+        if (datetime.now()-self.quota_timer).total_seconds() > 100:
+            self.quota_timer = datetime.now()
+            self.max_nof_rows = 100
 
 
     def update_ix_logs(self):
@@ -105,7 +109,7 @@ class Logger:
 
 
     def log_ix_to_drive(self):
-        
+
         print('Logging ix to drive')
         try:
             self.internet_connected()
@@ -125,7 +129,7 @@ class Logger:
 
             for row in data:
                 self.ix_sheet.append_row(row)
-            
+
             if len(self.tempdata)==len(data):
                 self.tempdata = []
             else:
@@ -168,6 +172,10 @@ class Logger:
 
     def log_alive(self):
 
+        timeDiff = (datetime.now() - self.alivelog_timer).total_seconds() / 60
+        if timeDiff < 5: # log every 5 minutes
+            return
+
         if self.max_nof_rows > 0:
             print('Logging alive')
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -188,17 +196,24 @@ class Logger:
                 self.log_g_fail('{}'.format(type(e).__name__))
 
 
-    def log_sensor_status(self, ixID, sensorsInRange, playingAudio,
-                          playingVideo, cameraIsRecording):
+    def log_sensor_status(self, sensorsInRange, sensorVolts, playingAudio,
+                          playingVideo, cameraIsRecording, ixID=None):
 
-        print('About to log sensor data')
+        if (datetime.now() - self.sensorlog_timer).total_seconds() < 3:
+            return
+
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        sensor1 = sensorsInRange[0]
-        sensor2 = sensorsInRange[1]
-        sensor3 = sensorsInRange[2]
+        sensor1_r = sensorsInRange[0]
+        sensor2_r = sensorsInRange[1]
+        sensor3_r = sensorsInRange[2]
+
+        sensor1_v = sensorVolts[0]
+        sensor2_v = sensorVolts[1]
+        sensor3_v = sensorVolts[2]
+
         self.sensors_temp.append(
-            [ixID, timestamp, sensor1, sensor2, sensor3,
-            playingAudio, playingVideo, cameraIsRecording])
+            [ixID, timestamp, sensor1_r, sensor1_v, sensor2_r, sensor2_v,
+             sensor3_r, sensor3_v, playingAudio, playingVideo, cameraIsRecording])
 
         nof_rows = self.max_nof_rows
         if len(self.sensors_temp) > nof_rows:
@@ -216,13 +231,13 @@ class Logger:
             self.connect_sheets()
             for row in data:
                 self.sensor_sheet.append_row(row)
-                
-            self.prev_sensor_log = datetime.now()
+
+            self.sensorlog_timer = datetime.now()
             if len(data) == len(self.sensors_temp):
                 self.sensors_temp = []
             else:
                 self.sensors_temp = self.sensors_temp[nof_rows:]
-                
+
             self.max_nof_rows = self.max_nof_rows - len(data)
 
         except Exception as e:
