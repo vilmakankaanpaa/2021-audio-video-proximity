@@ -58,28 +58,26 @@ class Logger:
         pageSize=10, fields="nextPageToken, files(id, name)").execute()
         print(results)
 
-    def uploadFile(self, fileName):
+    def uploadFile(self):
 
         file_metadata = {
-            'name': fileName,
+            'name': 'gorilla.txt',
             'mimeType': '*/*',
-            'parents':[configs.RECORDINGS_FOLDER] #did not test yet
-        }
-        media = MediaFileUpload('test.txt', mimetype='*/*', resumable=True)
-        file = self.drive_service.files().create(
-            body=file_metadata, media_body=media, fields='id').execute()
+            'parents':['15-VeIBr0SVHk2_aWBVe_F2UmiXJw0tr7']
+            }
+        media = MediaFileUpload('gorilla.txt', mimetype='*/*', resumable=True)
+        file = self.drive_service.files().create(body=file_metadata, media_body=media, fields='id').execute()
         print ('File ID: ' + file.get('id'))
 
         self.grantPermissions(file.get('id'))
 
     def grantPermissions(self, fileId):
-        user_permission =
-        {
+        user_permission = {
             'type':'user',
             'role':'writer',
             'emailAddress':'vilma.kankaanpaa@aalto.fi'
-        }
-        logger.drive_service.permissions().create(
+            }
+        self.drive_service.permissions().create(
             fileId=fileId,body=user_permission,fields='id').execute()
 
     def reset_sheets(self):
