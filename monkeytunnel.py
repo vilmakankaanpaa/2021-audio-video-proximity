@@ -25,21 +25,36 @@ def read_channel(channel):
 
 def get_volts(channel=0):
     volts = (read_channel(channel)/1023.0)*3.3
-    #print("Voltage: %.2f V" % v)
     return volts
 
 def is_in_range(voltsValue, sensorIndex):
     # Threshold for every sensor: probably depends on the location
     # and have to be tested and adjusted
-    
-    if sensorIndex == 1 and voltsValue > 0.80:
+
+    if sensorIndex == 0 and voltsValue > 0.50:
+        # rightmost sensor when looking "at the screen"
+        return True
+    elif sensorIndex == 1 and voltsValue > 0.80:
+        # left of above
         return True
     elif sensorIndex == 2 and voltsValue > 0.30:
-        return True
-    elif sensorIndex == 0 and voltsValue > 0.50:
+        # left of above
         return True
     else:
         return False
+
+def check_sensors():
+
+    i = 0
+    sensorVolts = []
+    sensorResults = []
+    for i in range(3):
+        v = get_volts(i)
+        sensorVolts.append(v)
+        r = is_in_range(v, i)
+        sensorResults.append(r)
+
+    return sensorVolts, sensorResults
 
 
 """ Sensor stuff end"""
@@ -114,6 +129,30 @@ def print_configurations():
     if configs.USE_VIDEO: print('Video file in use:', configs.VIDEO_PATH)
     if configs.RECORDING_ON: print('Recording to folder:', configs.RECORDINGS_FOLDER)
 
+def alivelog(timer):
+
+    # timer for logging alive
+    timeNow = datetime.now()
+    timeDiff = (timeNow - timer).total_seconds() / 60.0
+
+    if timeDiff > 5: # every 5 minutes
+        logger.log_alive()
+        timer = timeNow
+    return timer
+
+def sensorlog(timer, inRange, volts, ixID=None):
+
+    # timer for logging sensor data
+    timeNow = datetime.now()
+    timeDiff = (timeNow - timer).total_seconds()
+    if timeDiff > 3: # every 3 seconds
+        print(ixID)
+        i = 0
+        for i in range(3):
+            print(volts[i], inRange[i])
+        timer = datetime.now()
+
+    return timer
 
 if __name__ == "__main__":
 
@@ -148,40 +187,21 @@ if __name__ == "__main__":
     logger = Logger()
 
     prevAliveTime = datetime.now()
+    sensorsLoggedTime = datetime.now()
 
     logger.log_alive()
     logger.log_program_run_info()
-    
-    sensorTimer = datetime.now()
+
     while True:
 
-        timeNow = datetime.now()
-        timeDiff = (timeNow - prevAliveTime).total_seconds() / 60.0
+        prevAliveTime = alivelog(prevAliveTime)
 
-        if timeDiff > 5:
-            #print('Log alive!', diff)
-            logger.log_alive()
-            prevAliveTime = timeNow
-
-        logTimerDiff = (timeNow-logger.log_timer).total_seconds()
-
-        if logTimerDiff > 100:
+        if (timeNow-logger.log_timer).total_seconds() > 100:
             # reset log timer every 100s – quota for google is 100 requests per 100 seconds
             logger.reset_log_counters()
-        
-           
-        sensorsInRange = [is_in_range(get_volts(i), i) for i in sensorIndices]
-        
-        if (datetime.now()-sensorTimer).total_seconds() > 2:
-            volts = []
-            for i in sensorIndices:
-                volts.append(get_volts(i))
-            print(volts) 
-            print(sensorsInRange)
-            sensorTimer = datetime.now()
-            
+
+        sensorVolts, sensorsInRange = check_sensors()
         anyInRange = any(sensorsInRange)
-        #print('Sensors:', sensorsInRange)
 
         # if quit, spawn new
         if usingAudio and audioPlayer.status == 4:
@@ -198,13 +218,6 @@ if __name__ == "__main__":
             if not userDetected:
                 print("Monkey came in")
             userDetected = True
-            
-            volts = []
-            for i in sensorIndices:
-                volts.append(get_volts(i))
-            print(volts) 
-            print(sensorsInRange)
-            sensorTimer = datetime.now()
 
         elif anyInRange == False and inRangeStatus == False:
             if userDetected:
@@ -219,6 +232,8 @@ if __name__ == "__main__":
             ixID = logger.ix_id
             if not ixID:
                 ixID = logger.log_interaction_start()
+
+            sensorsLoggedTime = sensorlog(sensorsLoggedTime, sensorVolts, sensorsInRange, ixID)
 
             if recordingOn and not cameraIsRecording:
                 fileName = new_video_name(logger)
@@ -251,6 +266,8 @@ if __name__ == "__main__":
 
             if logger.ix_id:
                 logger.log_interaction_end()
+
+            sensorsLoggedTime = sensorlog(sensorsLoggedTime, sensorVolts, sensorsInRange)
 
         logger.update_ix_logs()
         #info for next loop:
