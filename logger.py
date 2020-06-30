@@ -34,6 +34,7 @@ class Logger:
         self.ix_id = None
         self.ix_date = None
         self.ix_start = None
+        self.ix_recording = None
 
         # use creds to create a client to interact with the Google Drive API
         scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
@@ -48,7 +49,7 @@ class Logger:
     def reset_sheets(self):
         # reset sheet rows if empty (since rows are appended and default sheet already has empty rows)
         if len(self.ix_sheet.get_all_values()) == 1:
-            self.ix_sheet.resize(rows=1,cols=7)
+            self.ix_sheet.resize(rows=1,cols=8)
 
         if len(self.progrun_sheet.get_all_values()) == 1:
             self.progrun_sheet.resize(rows=1,cols=9)
@@ -162,6 +163,7 @@ class Logger:
         endtime = datetime.now()
         duration = (endtime - self.ix_start).total_seconds()
         phase = configs.TEST_PHASE
+        video = self.ix_recording
         # id, starttime, endtime, duration
         data = [self.pid, ID, date, startime.strftime("%Y-%m-%d %H:%M:%S"),
             endtime.strftime("%Y-%m-%d %H:%M:%S"), duration, phase]
@@ -172,6 +174,7 @@ class Logger:
         self.ix_id = None
         self.ix_date = None
         self.ix_start = None
+        self.ix_recording = None
 
 
     def log_alive(self):
@@ -215,7 +218,7 @@ class Logger:
         sensor1_v = ('%.2f' % sensorVolts[0])
         sensor2_v = ('%.2f' % sensorVolts[1])
         sensor3_v = ('%.2f' % sensorVolts[2])
-        
+
         print('IxID:', ixID)
         for i in range(3):
             print(sensorsInRange[i], sensorVolts[i])
@@ -288,6 +291,10 @@ class Logger:
 
     def get_ix_info(self):
         return self.ix_id, self.ix_start
+
+
+    def set_ix_recording_name(self, videoName):
+        self.ix_recording = videoName
 
 
     def log_local(self, data, sheet):

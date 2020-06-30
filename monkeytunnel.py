@@ -21,6 +21,7 @@ def new_video_name(logger):
 
     ixID, ixStart = logger.get_ix_info()
     name = ixID + '_' + ixStart
+    logger.set_ix_recording_name(name)
     return name
 
 def print_configurations():
@@ -38,14 +39,14 @@ def updateSensorReading(userDetected, sensorReading, anyInRange, sensorThreshold
 
     # When enough no of consecutive checks are same, set new value
     # sensorReading will vary between 0–threshold and the middle point will divide if false or true
-    
+
     if anyInRange:
         if sensorReading < (sensorThreshold*2): # max
             sensorReading = sensorReading + 1
     else:
         if sensorReading > 0: # 0 is min
             sensorReading = sensorReading - 1
-    
+
     if sensorReading > sensorThreshold and not userDetected:
         print("Monkey came in")
         userDetected = True
