@@ -211,7 +211,7 @@ if __name__ == "__main__":
             if usingVideo and not playingVideo:
                 videoStartValue, playingVideo = play_video(videoPlayer)
 
-            logger.log_sensor_status(inRange, volts, playingAudio, playingVideo,
+            logger.log_sensor_status(sensorsInRange, sensorVolts, playingAudio, playingVideo,
                                      cameraIsRecording, ixID)
 
         else:
@@ -230,7 +230,7 @@ if __name__ == "__main__":
             if logger.ix_id:
                 logger.log_interaction_end()
 
-            logger.log_sensor_status(inRange, volts, playingAudio, playingVideo,
+            logger.log_sensor_status(sensorsInRange, sensorVolts, playingAudio, playingVideo,
                                      cameraIsRecording)
 
         logger.update_ix_logs()
