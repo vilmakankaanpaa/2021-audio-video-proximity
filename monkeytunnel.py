@@ -3,7 +3,7 @@ import sys
 from time import sleep
 from datetime import datetime, date, time
 
-from sensors import check_sensors 
+from sensors import check_sensors
 from audioplayer import AudioPlayer
 from videoplayer import VideoPlayer
 from logger import Logger
@@ -34,6 +34,29 @@ def print_configurations():
     if configs.USE_VIDEO: print('Video file in use:', configs.VIDEO_PATH)
     if configs.RECORDING_ON: print('Recording to folder:', configs.RECORDINGS_FOLDER)
 
+def updateSensorReading(sensorReading, anyInRange, sensorThreshold):
+
+    # When enough no of consecutive checks are same, set new value
+    # sensorReading will vary between 0–threshold and the middle point will divide if false or true
+    if anyInRange:
+        if sensorReading < sensorThreshold: # max
+            ++sensorReading
+    else:
+        if sensorReading < 1: # 0 is min
+            --sensorReading
+
+    if sensorReading > sensorThreshold:
+        print("Monkey came in")
+        userDetected = True
+    elif sensorReading < sensorThreshold:
+        print("All monkeys left")
+        userDetected = False
+    else:
+        # don't do anything yet, keep values same
+        pass
+
+    return userDetected, sensorReading
+
 
 if __name__ == "__main__":
 
@@ -47,9 +70,10 @@ if __name__ == "__main__":
     usingVideo = configs.USE_VIDEO
     recordingOn = configs.RECORDING_ON
 
+    sensorThreshold = 3 # after 3 consecutive readings, change value of userDetected
+    sensorReading = sensorThreshold # this is the middle grounf between True and False
     inRangeStatus = False
     userDetected = False
-    sensorIndices = [0,1,2]
 
     """Todo use player status attribute instead? This is messy"""
     playingAudio = False
@@ -77,6 +101,8 @@ if __name__ == "__main__":
         sensorVolts, sensorsInRange = check_sensors()
         anyInRange = any(sensorsInRange)
 
+        userDetected, sensorReading = updateSensorReading(sensorReading, anyInRange, sensorThreshold)
+
         # if quit, spawn new
         if usingAudio and audioPlayer.status == 4:
             audioPlayer = AudioPlayer()
@@ -85,18 +111,6 @@ if __name__ == "__main__":
         if usingVideo and videoPlayer.status == 4:
             videoPlayer = VideoPlayer(configs.VIDEO_AUDIO_ON)
             videoPlayer.load_video(configs.VIDEO_PATH)
-
-        """TODO: change this to a numerical value to have freedom to choose the threshold"""
-        # When two consecutive checks are same, set new value
-        if anyInRange == True and inRangeStatus == True:
-            if not userDetected:
-                print("Monkey came in")
-            userDetected = True
-
-        elif anyInRange == False and inRangeStatus == False:
-            if userDetected:
-                print("All monkeys left")
-            userDetected = False
 
         if recordingOn:
             cameraIsRecording = camera.recording
