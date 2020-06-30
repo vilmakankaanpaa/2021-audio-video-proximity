@@ -62,7 +62,7 @@ class Logger:
 
     def connect_sheets(self):
 
-        print('Connecting to sheets')
+        #print('Connecting to sheets')
 
         if not self.creds.access_token_expired:
             if self.ix_sheet and self.alive_sheet and self.progrun_sheet and self.sensor_sheet:
@@ -195,6 +195,7 @@ class Logger:
                 self.connect_sheets()
                 self.alive_sheet.insert_row(data)
                 self.max_nof_rows = self.max_nof_rows - 1
+                self.alivelog_timer = datetime.now()
 
             except Exception as e:
                 self.log_g_fail('{}'.format(type(e).__name__))
@@ -211,9 +212,13 @@ class Logger:
         sensor2_r = sensorsInRange[1]
         sensor3_r = sensorsInRange[2]
 
-        sensor1_v = f"{sensorVolts[0]:.2f}"
-        sensor2_v = f"{sensorVolts[1]:.2f}"
-        sensor3_v = f"{sensorVolts[2]:.2f}"
+        sensor1_v = ('%.2f' % sensorVolts[0])
+        sensor2_v = ('%.2f' % sensorVolts[1])
+        sensor3_v = ('%.2f' % sensorVolts[2])
+        
+        print('IxID:', ixID)
+        for i in range(3):
+            print(sensorsInRange[i], sensorVolts[i])
 
         self.sensors_temp.append(
             [self.pid, ixID, timestamp, sensor1_r, sensor1_v, sensor2_r, sensor2_v,
@@ -252,7 +257,7 @@ class Logger:
     def log_program_run_info(self):
 
         # not testing for log interval because only done in beginning of program run - these details wond change
-        print('Logging progrum run info')
+        #print('Logging progrum run info')
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         data = [
             self.pid,
