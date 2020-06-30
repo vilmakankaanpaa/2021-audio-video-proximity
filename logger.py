@@ -11,7 +11,10 @@ sys.excepthook = sys.__excepthook__
 
 class Logger:
 
-    def __init__(self):
+    def __init__(self, pid):
+
+        # program run id to match data from same run easily
+        self.pid = str(pid) + str(uuid.uuid4())[0:4]
 
         # The actual connection instances (set by self._connect_sheets())
         self.ix_sheet = None
@@ -45,16 +48,16 @@ class Logger:
     def reset_sheets(self):
         # reset sheet rows if empty (since rows are appended and default sheet already has empty rows)
         if len(self.ix_sheet.get_all_values()) == 1:
-            self.ix_sheet.resize(rows=1,cols=6)
+            self.ix_sheet.resize(rows=1,cols=7)
 
         if len(self.progrun_sheet.get_all_values()) == 1:
-            self.progrun_sheet.resize(rows=1,cols=8)
+            self.progrun_sheet.resize(rows=1,cols=9)
 
         if len(self.alive_sheet.get_all_values()) == 1:
-            self.alive_sheet.resize(rows=1,cols=1)
+            self.alive_sheet.resize(rows=1,cols=2)
 
         if len(self.sensor_sheet.get_all_values()) == 1:
-            self.sensor_sheet.resize(rows=1,cols=11)
+            self.sensor_sheet.resize(rows=1,cols=12)
 
 
     def connect_sheets(self):
@@ -152,6 +155,7 @@ class Logger:
 
     def log_interaction_end(self):
 
+        pid = self.pid
         ID = self.ix_id
         date = self.ix_date
         startime = self.ix_start
@@ -159,7 +163,7 @@ class Logger:
         duration = (endtime - self.ix_start).total_seconds()
         phase = configs.TEST_PHASE
         # id, starttime, endtime, duration
-        data = [ID, date, startime.strftime("%Y-%m-%d %H:%M:%S"),
+        data = [self.pid, ID, date, startime.strftime("%Y-%m-%d %H:%M:%S"),
             endtime.strftime("%Y-%m-%d %H:%M:%S"), duration, phase]
 
         self.tempdata.append(data)
@@ -179,7 +183,7 @@ class Logger:
         if self.max_nof_rows > 0:
             print('Logging alive')
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            data = [timestamp]
+            data = [self.pid, timestamp]
 
             try:
                 self.internet_connected()
@@ -207,12 +211,12 @@ class Logger:
         sensor2_r = sensorsInRange[1]
         sensor3_r = sensorsInRange[2]
 
-        sensor1_v = sensorVolts[0]
-        sensor2_v = sensorVolts[1]
-        sensor3_v = sensorVolts[2]
+        sensor1_v = f"{sensorVolts[0]:.2f}"
+        sensor2_v = f"{sensorVolts[1]:.2f}"
+        sensor3_v = f"{sensorVolts[2]:.2f}"
 
         self.sensors_temp.append(
-            [ixID, timestamp, sensor1_r, sensor1_v, sensor2_r, sensor2_v,
+            [self.pid, ixID, timestamp, sensor1_r, sensor1_v, sensor2_r, sensor2_v,
              sensor3_r, sensor3_v, playingAudio, playingVideo, cameraIsRecording])
 
         nof_rows = self.max_nof_rows
@@ -251,6 +255,7 @@ class Logger:
         print('Logging progrum run info')
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         data = [
+            self.pid,
             timestamp,
             configs.TEST_PHASE,
             configs.USE_VIDEO,

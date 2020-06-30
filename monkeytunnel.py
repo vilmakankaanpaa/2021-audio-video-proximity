@@ -133,7 +133,8 @@ def print_configurations():
 if __name__ == "__main__":
 
     print('Starting up monkeytunnel..')
-    print('pid:',os.getpid())
+    pid = os.getpid()
+    print('pid:',pid)
     """ TODO: save the pid to temp file """
 
     # configurations for this run of the program
@@ -160,7 +161,7 @@ if __name__ == "__main__":
     if recordingOn:
         camera = Camera(configs.RECORDINGS_FOLDER)
 
-    logger = Logger()
+    logger = Logger(pid)
     logger.log_program_run_info()
 
     while True:
