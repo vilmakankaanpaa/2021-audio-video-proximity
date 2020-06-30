@@ -42,39 +42,38 @@ class Logger:
         # use creds to create a client to interact with the Google Drive API
         scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
         self.creds = ServiceAccountCredentials.from_json_keyfile_name('client_secret.json', scope)
+
+        # Authorize access to Google Sheets
         self.client = gspread.authorize(self.creds)
         self.client.login()
-        
+
+        # Authorize access to Google Drive
         self.drive_service = build('drive', 'v3', http=self.creds.authorize(Http()))
-        print('authorized drive')
-        
 
         self.connect_sheets() # logs in and connects to the sheet instances
         self.reset_sheets()
-        
+
     def listDriveFiles(self):
         results = self.drive_service.files().list(
         pageSize=10, fields="nextPageToken, files(id, name)").execute()
         print(results)
 
-    def uploadFile(self):
-        
+    def uploadFile(self, fileName):
+
         file_metadata = {
-        'name': 'test.txt',
-        'mimeType': '*/*',
-        'parents':['15-VeIBr0SVHk2_aWBVe_F2UmiXJw0tr7'
-            ],
-        'permissions':['type=user', 'role=owner'],
-        'permissionIds':[],
+            'name': fileName,
+            'mimeType': '*/*',
+            'parents':[configs.RECORDINGS_FOLDER] #did not test yet
         }
-        media = MediaFileUpload('test.txt',
-                                mimetype='*/*',
-                                resumable=True)
-        file = self.drive_service.files().create(body=file_metadata, media_body=media, fields='id').execute()
+        media = MediaFileUpload('test.txt', mimetype='*/*', resumable=True)
+        file = self.drive_service.files().create(
+            body=file_metadata, media_body=media, fields='id').execute()
         print ('File ID: ' + file.get('id'))
-    
+
+        self.grantPermissions(file.get('id'))
+
     def grantPermissions(self, fileId):
-        user_permission = 
+        user_permission =
         {
             'type':'user',
             'role':'writer',
