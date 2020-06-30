@@ -35,7 +35,6 @@ def is_in_range(voltsValue, sensorIndex):
 
 def check_sensors():
 
-    i = 0
     sensorVolts = []
     sensorResults = []
     for i in range(3):
