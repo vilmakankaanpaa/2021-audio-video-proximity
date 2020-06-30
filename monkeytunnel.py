@@ -34,21 +34,22 @@ def print_configurations():
     if configs.USE_VIDEO: print('Video file in use:', configs.VIDEO_PATH)
     if configs.RECORDING_ON: print('Recording to folder:', configs.RECORDINGS_FOLDER)
 
-def updateSensorReading(sensorReading, anyInRange, sensorThreshold):
+def updateSensorReading(userDetected, sensorReading, anyInRange, sensorThreshold):
 
     # When enough no of consecutive checks are same, set new value
     # sensorReading will vary between 0–threshold and the middle point will divide if false or true
+    
     if anyInRange:
-        if sensorReading < sensorThreshold: # max
-            ++sensorReading
+        if sensorReading < (sensorThreshold*2): # max
+            sensorReading = sensorReading + 1
     else:
-        if sensorReading < 1: # 0 is min
-            --sensorReading
-
-    if sensorReading > sensorThreshold:
+        if sensorReading > 0: # 0 is min
+            sensorReading = sensorReading - 1
+    
+    if sensorReading > sensorThreshold and not userDetected:
         print("Monkey came in")
         userDetected = True
-    elif sensorReading < sensorThreshold:
+    elif sensorReading < sensorThreshold and userDetected:
         print("All monkeys left")
         userDetected = False
     else:
@@ -72,7 +73,6 @@ if __name__ == "__main__":
 
     sensorThreshold = 3 # after 3 consecutive readings, change value of userDetected
     sensorReading = sensorThreshold # this is the middle grounf between True and False
-    inRangeStatus = False
     userDetected = False
 
     """Todo use player status attribute instead? This is messy"""
@@ -101,7 +101,8 @@ if __name__ == "__main__":
         sensorVolts, sensorsInRange = check_sensors()
         anyInRange = any(sensorsInRange)
 
-        userDetected, sensorReading = updateSensorReading(sensorReading, anyInRange, sensorThreshold)
+        userDetected, sensorReading = updateSensorReading(
+            userDetected, sensorReading, anyInRange, sensorThreshold)
 
         # if quit, spawn new
         if usingAudio and audioPlayer.status == 4:
@@ -156,6 +157,5 @@ if __name__ == "__main__":
                                      cameraIsRecording)
 
         logger.update_ix_logs()
-        #info for next loop:
-        inRangeStatus = anyInRange
+
         sleep(0.4)
