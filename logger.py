@@ -203,7 +203,7 @@ class Logger:
     def log_sensor_status(self, sensorsInRange, sensorVolts, playingAudio,
                           playingVideo, cameraIsRecording, ixID=None):
 
-        if (datetime.now() - self.sensorlog_timer).total_seconds() < 3:
+        if (datetime.now() - self.sensorlog_timer).total_seconds() < 2:
             return
 
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
