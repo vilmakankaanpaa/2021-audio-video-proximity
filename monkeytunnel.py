@@ -12,8 +12,6 @@ import configs
 
 sys.excepthook = sys.__excepthook__
 
-""" Sensor stuff """
-
 # Spidev used to connect to and read the sensors
 spi = spidev.SpiDev()
 spi.open(0,0)
@@ -55,55 +53,6 @@ def check_sensors():
         sensorResults.append(r)
 
     return sensorVolts, sensorResults
-
-
-""" Sensor stuff end"""
-
-def play_audio(audioPlayer):
-
-    # Player status: 0 - ready; 1 - playing; 2 - paused; 3 - stopped; 4 - quit
-    playerStatus = audioPlayer.status
-
-    startValue = False # record start of sound play for logging
-
-    if playerStatus == 2:
-        # currently paused
-        audioPlayer.resume()
-        startValue = True
-        """
-        TODO: is this correct log?
-        """
-        print('Resuming audio')
-    elif playerStatus != 1:
-        # currently not paused and not playing -> start
-        print('Starting audio')
-        startValue = True
-        audioPlayer.play_song(configs.AUDIO_PATH)
-    else:
-        pass
-
-    playingAudio = True
-    """ TODO: redundant? """
-
-    return startValue, playingAudio
-
-
-def pause_audio(audioPlayer):
-    audioPlayer.pause()
-    print('Pausing audio')
-
-
-def play_video(videoPlayer):
-
-    videoPlayer.play_video()
-    startValue = True
-    playingVideo = True
-
-    return startValue, playingVideo
-
-
-def pause_video(videoPlayer):
-    videoPlayer.pause_video()
 
 
 def new_video_name(logger):
@@ -207,10 +156,12 @@ if __name__ == "__main__":
                 camera.start_recording(fileName)
 
             if usingAudio and not playingAudio:
-                audioStartValue, playingAudio = play_audio(audioPlayer) # if just started or not, if playing or not (of course is?? also, needed?)
+                audioPlayer.play_audio()
+                playingAudio = True
 
             if usingVideo and not playingVideo:
-                videoStartValue, playingVideo = play_video(videoPlayer)
+                videoPlayer.play_video()
+                playingVideo = True
 
             logger.log_sensor_status(sensorsInRange, sensorVolts, playingAudio, playingVideo,
                                      cameraIsRecording, ixID)
@@ -221,11 +172,11 @@ if __name__ == "__main__":
                 camera.stop_recording()
 
             if usingAudio and playingAudio:
-                pause_audio(audioPlayer)
+                audioPlayer.pause_audio()
                 playingAudio = False # TODO: not used
 
             if usingVideo and playingVideo:
-                pause_video(videoPlayer)
+                videoPlayer.pause_video()
                 playingVideo = False
 
             if logger.ix_id:

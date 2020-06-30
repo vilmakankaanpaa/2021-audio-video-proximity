@@ -14,28 +14,18 @@ class AudioPlayer(MPyg321Player):
 
     # Player status: 0 - ready, 1 - playing, 2 - paused, 3 - stopped, 4 - quitted
 
-    """We create a class extending the basic player to implement callbacks"""
-    def onAnyStop(self):
-        """Callback when the music stops for any reason"""
+    def play_audio(self):
 
-        #print("The music has stopped")
+        # Player status: 0 - ready; 1 - playing; 2 - paused; 3 - stopped; 4 - quit
 
-    def onUserPause(self):
-        """Callback when user pauses the music"""
-        #print("The music has paused")
+        if self.status == 2: # paused
+            self.resume()
 
-    def onUserResume(self):
-        """Callback when user resumes the music"""
-        #print("The music has resumed")
-
-    def onUserStop(self):
-        """Callback when user stops music"""
-        #print("The music has stopped (by user)")
-
-    def onMusicEnd(self):
-        """Callback when music ends"""
-        self.status = PlayerStatus.INSTANCIATED
-        #print("The music has ended")
+        elif self.status != 1:
+            # currently not paused and not playing -> start
+            self.play_song(configs.AUDIO_PATH)
+        else:
+            pass
 
 
 # Just an example
