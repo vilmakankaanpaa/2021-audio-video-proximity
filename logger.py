@@ -4,6 +4,9 @@ import sys
 from oauth2client.service_account import ServiceAccountCredentials
 from datetime import datetime, timedelta, date
 import http.client as httplib
+from httplib2 import Http
+from apiclient.discovery import build
+from apiclient.http import MediaFileUpload, MediaIoBaseDownload
 import uuid
 import configs
 
@@ -41,10 +44,44 @@ class Logger:
         self.creds = ServiceAccountCredentials.from_json_keyfile_name('client_secret.json', scope)
         self.client = gspread.authorize(self.creds)
         self.client.login()
+        
+        self.drive_service = build('drive', 'v3', http=self.creds.authorize(Http()))
+        print('authorized drive')
+        
 
         self.connect_sheets() # logs in and connects to the sheet instances
         self.reset_sheets()
+        
+    def listDriveFiles(self):
+        results = self.drive_service.files().list(
+        pageSize=10, fields="nextPageToken, files(id, name)").execute()
+        print(results)
 
+    def uploadFile(self):
+        
+        file_metadata = {
+        'name': 'test.txt',
+        'mimeType': '*/*',
+        'parents':['15-VeIBr0SVHk2_aWBVe_F2UmiXJw0tr7'
+            ],
+        'permissions':['type=user', 'role=owner'],
+        'permissionIds':[],
+        }
+        media = MediaFileUpload('test.txt',
+                                mimetype='*/*',
+                                resumable=True)
+        file = self.drive_service.files().create(body=file_metadata, media_body=media, fields='id').execute()
+        print ('File ID: ' + file.get('id'))
+    
+    def grantPermissions(self, fileId):
+        user_permission = 
+        {
+            'type':'user',
+            'role':'writer',
+            'emailAddress':'vilma.kankaanpaa@aalto.fi'
+        }
+        logger.drive_service.permissions().create(
+            fileId=fileId,body=user_permission,fields='id').execute()
 
     def reset_sheets(self):
         # reset sheet rows if empty (since rows are appended and default sheet already has empty rows)
