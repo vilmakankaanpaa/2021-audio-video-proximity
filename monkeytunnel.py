@@ -20,7 +20,7 @@ def new_video_name(logger):
     timestr = str(t.hour)+'-'+str(t.minute)+'-'+str(t.second)"""
 
     ixID, ixStart = logger.get_ix_info()
-    name = ixID + '_' + ixStart
+    name = ixID + '_' + (ixStart).strftime("%Y-%m-%d_%H:%M:%S")
     logger.set_ix_recording_name(name)
     return name
 

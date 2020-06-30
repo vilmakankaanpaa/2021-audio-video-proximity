@@ -166,7 +166,7 @@ class Logger:
         video = self.ix_recording
         # id, starttime, endtime, duration
         data = [self.pid, ID, date, startime.strftime("%Y-%m-%d %H:%M:%S"),
-            endtime.strftime("%Y-%m-%d %H:%M:%S"), duration, phase]
+            endtime.strftime("%Y-%m-%d %H:%M:%S"), duration, phase, video]
 
         self.tempdata.append(data)
 
