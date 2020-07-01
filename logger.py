@@ -85,9 +85,10 @@ class Logger:
 
 
     def uploadRecording(self, fileName):
+        
 
         try:
-            internet_connected()
+            self.internet_connected()
         except:
             print('Not connected to internet, could not upload file.')
             raise
