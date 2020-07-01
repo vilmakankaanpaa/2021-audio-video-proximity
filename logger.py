@@ -53,6 +53,19 @@ class Logger:
         self.connect_sheets() # logs in and connects to the sheet instances
         self.reset_sheets()
 
+
+    def createNewFolder(self, name):
+
+        file_metadata = {
+            'name': name,
+            'mimeType': 'application/vnd.google-apps.folder'
+            }
+
+        file = self.drive_service.files().create(body=file_metadata,
+                                            fields='id').execute()
+        print('Created folder {} with id {}.'.format(name, file.get('id')))
+
+
     def deleteDriveFile(self, resourceId):
 
         try:
@@ -72,23 +85,20 @@ class Logger:
 
         upload_details = {
             'name':fileName,
-            'mimeType': '*/*',
             'folderId': configs.GDRIVE_FOLDER_ID,
-            'filepath': configs.RECORDINGS_PATH + fileName,
-            'grantAccessTo': configs.GDRIVE_USER_EMAIL,
-            'resumable': False
+            'filePath': configs.RECORDINGS_PATH + fileName,
+            'grantAccessTo': configs.GDRIVE_USER_EMAIL
             }
 
         file_metadata = {
             'name': upload_details['name'],
-            'mimeType': upload_details['mimeType'],
+            'mimeType': '*/*',
             'parents':[upload_details['folderId']]
             }
 
         media = MediaFileUpload(
-            upload_details['path'],
-            upload_details['mimeType'],
-            resumable=upload_details['resumable']
+            upload_details['filePath'],
+            upload_details['mimeType']
             )
 
         try:
@@ -97,13 +107,16 @@ class Logger:
                 media_body=media,
                 fields='id').execute()
 
+            print('Uploaded file {} with id {}.'.format(
+                    upload_details['name'], file.get('id')))
+
         except Exception as e:
             print(e)
 
         # in case the file would not be uploaded to your own folder that you
         # share with the service account, you need to make sure to grant access
         # to your own account
-        self.grantPermissions(file.get('id'), metadata)
+        self.grantPermissions(file.get('id'), upload_details)
 
 
     def grantPermissions(self, fileId, metadata):
