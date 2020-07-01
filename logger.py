@@ -53,35 +53,57 @@ class Logger:
         self.connect_sheets() # logs in and connects to the sheet instances
         self.reset_sheets()
 
+    def deleteDriveFile(self, resourceId):
+
+        try:
+            self.drive_service.delete(resourceId).execute()
+            print('Deleted resource with id {}'.format(resourceId))
+        except Exception as e:
+            print('Deletion failed:', e)
+
+
     def listDriveFiles(self):
         results = self.drive_service.files().list(
         pageSize=10, fields="nextPageToken, files(id, name)").execute()
         print(results)
 
-    def uploadFile(self, fileName, path):
-        
-        metadata = {
+
+    def uploadFile(self, fileName):
+
+        upload_details = {
             'name':fileName,
             'mimeType': '*/*',
-            'folderId': configs.RECORDINGS_FOLDER,
-            'path': path,
-            'grantAccessTo': 'vilma.kankaanpaa@aalto.fi'
+            'folderId': configs.GDRIVE_FOLDER_ID,
+            'filepath': configs.RECORDINGS_PATH + fileName,
+            'grantAccessTo': configs.GDRIVE_USER_EMAIL,
+            'resumable': False
             }
 
         file_metadata = {
-            'name': metadata['name'],
-            'mimeType': metadata['mimeType'],
-            'parents':[metadata['folderId']]
+            'name': upload_details['name'],
+            'mimeType': upload_details['mimeType'],
+            'parents':[upload_details['folderId']]
             }
-        print(file_metadata)
-        
-        media = MediaFileUpload(metadata['path'], metadata['mimeType'], resumable=False)
+
+        media = MediaFileUpload(
+            upload_details['path'],
+            upload_details['mimeType'],
+            resumable=upload_details['resumable']
+            )
+
         try:
-            file = self.drive_service.files().create(body=file_metadata, media_body=media, fields='id').execute()
-            print ('File ID: ' + file.get('id'))
-            self.grantPermissions(file.get('id'), metadata)
+            file = self.drive_service.files().create(
+                body=file_metadata,
+                media_body=media,
+                fields='id').execute()
+
         except Exception as e:
             print(e)
+
+        # in case the file would not be uploaded to your own folder that you
+        # share with the service account, you need to make sure to grant access
+        # to your own account
+        self.grantPermissions(file.get('id'), metadata)
 
 
     def grantPermissions(self, fileId, metadata):
@@ -92,6 +114,7 @@ class Logger:
             }
         self.drive_service.permissions().create(
             fileId=fileId,body=user_permission,fields='id').execute()
+
 
     def reset_sheets(self):
         # reset sheet rows if empty (since rows are appended and default sheet already has empty rows)
