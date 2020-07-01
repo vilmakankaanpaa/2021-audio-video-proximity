@@ -6,7 +6,7 @@ from datetime import datetime, timedelta, date
 import http.client as httplib
 from httplib2 import Http
 from apiclient.discovery import build
-from apiclient.http import MediaFileUpload, MediaIoBaseDownload
+from apiclient.http import MediaFileUpload
 import uuid
 import configs
 
@@ -58,24 +58,37 @@ class Logger:
         pageSize=10, fields="nextPageToken, files(id, name)").execute()
         print(results)
 
-    def uploadFile(self):
+    def uploadFile(self, fileName, path):
+        
+        metadata = {
+            'name':fileName,
+            'mimeType': '*/*',
+            'folderId': configs.RECORDINGS_FOLDER,
+            'path': path,
+            'grantAccessTo': 'vilma.kankaanpaa@aalto.fi'
+            }
 
         file_metadata = {
-            'name': 'gorilla.txt',
-            'mimeType': '*/*',
-            'parents':['15-VeIBr0SVHk2_aWBVe_F2UmiXJw0tr7']
+            'name': metadata['name'],
+            'mimeType': metadata['mimeType'],
+            'parents':[metadata['folderId']]
             }
-        media = MediaFileUpload('gorilla.txt', mimetype='*/*', resumable=True)
-        file = self.drive_service.files().create(body=file_metadata, media_body=media, fields='id').execute()
-        print ('File ID: ' + file.get('id'))
+        print(file_metadata)
+        
+        media = MediaFileUpload(metadata['path'], metadata['mimeType'], resumable=False)
+        try:
+            file = self.drive_service.files().create(body=file_metadata, media_body=media, fields='id').execute()
+            print ('File ID: ' + file.get('id'))
+            self.grantPermissions(file.get('id'), metadata)
+        except Exception as e:
+            print(e)
 
-        self.grantPermissions(file.get('id'))
 
-    def grantPermissions(self, fileId):
+    def grantPermissions(self, fileId, metadata):
         user_permission = {
             'type':'user',
             'role':'writer',
-            'emailAddress':'vilma.kankaanpaa@aalto.fi'
+            'emailAddress':metadata['grantAccessTo']
             }
         self.drive_service.permissions().create(
             fileId=fileId,body=user_permission,fields='id').execute()
