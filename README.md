@@ -41,3 +41,6 @@ gspread==3.1.0
 oauth2client==4.1.3
 csv ?
 httplib2=0.14.0
+google-auth==1.18.0
+google-auth-oauthlib==0.4.1
+google-api-python-client
