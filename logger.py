@@ -54,16 +54,24 @@ class Logger:
         self.reset_sheets()
 
 
-    def createNewFolder(self, name):
+    def createNewFolder(self, folderName):
+
+        upload_details = {
+            'name':folderName,
+            'parentFolderId': configs.GDRIVE_FOLDER_ID
+            }
 
         file_metadata = {
-            'name': name,
+            'name': upload_details['name'],
             'mimeType': 'application/vnd.google-apps.folder'
+            'parents':[upload_details['parentFolderId']]
             }
 
         file = self.drive_service.files().create(body=file_metadata,
                                             fields='id').execute()
         print('Created folder {} with id {}.'.format(name, file.get('id')))
+
+        # No need to grant access if the folder is under the folder owned by you (?)
 
 
     def deleteDriveFile(self, resourceId):
@@ -98,7 +106,7 @@ class Logger:
 
         media = MediaFileUpload(
             upload_details['filePath'],
-            upload_details['mimeType']
+            mimetype='*/*'
             )
 
         try:
