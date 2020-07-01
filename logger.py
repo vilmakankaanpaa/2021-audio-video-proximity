@@ -61,15 +61,15 @@ class Logger:
             'parentFolderId': configs.GDRIVE_FOLDER_ID
             }
 
-        file_metadata = {
+        folder_metadata = {
             'name': upload_details['name'],
-            'mimeType': 'application/vnd.google-apps.folder'
-            'parents':[upload_details['parentFolderId']]
+            'mimeType': 'application/vnd.google-apps.folder',
+            'parents': [upload_details['parentFolderId']]
             }
 
-        file = self.drive_service.files().create(body=file_metadata,
+        folder = self.drive_service.files().create(body=folder_metadata,
                                             fields='id').execute()
-        print('Created folder {} with id {}.'.format(name, file.get('id')))
+        print('Created folder {} with id {}.'.format(upload_details['name'], folder.get('id')))
 
         # No need to grant access if the folder is under the folder owned by you (?)
 
@@ -77,7 +77,7 @@ class Logger:
     def deleteDriveFile(self, resourceId):
 
         try:
-            self.drive_service.delete(resourceId).execute()
+            self.drive_service.files().delete(fileId=resourceId).execute()
             print('Deleted resource with id {}'.format(resourceId))
         except Exception as e:
             print('Deletion failed:', e)
