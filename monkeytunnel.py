@@ -12,17 +12,6 @@ import configs
 
 sys.excepthook = sys.__excepthook__
 
-def new_video_name(logger):
-    """have to first create new folder per date, if using"""
-    # options: datetime.isoformat(timeObject) OR timeObject.hour + .minute + .second
-    """dateStr = date.isoformat(date.today())
-    t = datetime.time(datetime.now())
-    timestr = str(t.hour)+'-'+str(t.minute)+'-'+str(t.second)"""
-
-    ixID, ixStart = logger.get_ix_info()
-    name = ixID + '_' + (ixStart).strftime("%Y-%m-%d_%H:%M:%S")
-    logger.set_ix_recording_name(name)
-    return name
 
 def print_configurations():
 
@@ -33,7 +22,8 @@ def print_configurations():
 
     if configs.USE_AUDIO: print('Audio file in use:', configs.AUDIO_PATH)
     if configs.USE_VIDEO: print('Video file in use:', configs.VIDEO_PATH)
-    if configs.RECORDING_ON: print('Recording to folder:', configs.RECORDINGS_FOLDER)
+    if configs.RECORDING_ON: print('Recording to folder:', configs.RECORDINGS_PATH)
+
 
 def updateSensorReading(userDetected, sensorReading, anyInRange, sensorThreshold):
 
@@ -76,7 +66,6 @@ if __name__ == "__main__":
     sensorReading = sensorThreshold # this is the middle grounf between True and False
     userDetected = False
 
-    """Todo use player status attribute instead? This is messy"""
     playingAudio = False
     playingVideo = False
     cameraIsRecording = False
@@ -89,7 +78,7 @@ if __name__ == "__main__":
         videoPlayer.load_video(configs.VIDEO_PATH)
 
     if recordingOn:
-        camera = Camera(configs.RECORDINGS_FOLDER)
+        camera = Camera(configs.RECORDINGS_PATH)
 
     logger = Logger(pid)
     logger.log_program_run_info()
