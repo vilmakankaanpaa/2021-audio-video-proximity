@@ -18,7 +18,7 @@ class DriveService:
         self.alive_sheet = None
         self.progrun_sheet = None
         self.sensor_sheet = None
-        
+
         self.nof_rows_left = 100
         self.quota_timer = datetime.now()
 
@@ -120,11 +120,19 @@ class DriveService:
             print('Deletion failed:', e)
 
 
-    def getDriveFiles(self):
+    def getDriveContents(self):
         results = self.drive_service.files().list(
             pageSize=10, fields="nextPageToken, files(id, name)").execute()
         return results
 
+    def listDriveContents(self):
+
+        results = getDriveContents()
+        files = {}
+        for item in results['files']:
+            files[item['name']] = item['id']
+
+        return files
 
     def uploadFile(self, fileName, folderId):
 
@@ -193,24 +201,24 @@ class DriveService:
         #print('Datatolog:', dataToLog)
 
         self._connect_sheets()
-                
+
         if sheet == 'ix':
             for row in dataToLog:
                 self.ix_sheet.append_row(row)
-                
+
         elif sheet == 'alive':
             for row in dataToLog:
                 self.alive_sheet.append_row(row)
-                
+
         elif sheet == 'progrun':
             for row in dataToLog:
                 print('Row:', row)
                 self.progrun_sheet.append_row(row)
-                
+
         elif sheet == 'sensors':
             for row in dataToLog:
                 self.sensor_sheet.append_row(row)
-                
+
         else:
             print('No such sheet defined')
 
@@ -220,5 +228,5 @@ class DriveService:
         if truncated:
             dataLeft = data[rowLimit:]
         #print('Datarows left {}'.format(len(dataLeft)))
-        
+
         return dataLeft
