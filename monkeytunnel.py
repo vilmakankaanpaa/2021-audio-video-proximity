@@ -52,7 +52,7 @@ def updateSensorReading(userDetected, sensorReading, anyInRange, sensorThreshold
 
 if __name__ == "__main__":
 
-    print(datetime.isoformat(datetime.now))
+    print(datetime.isoformat(datetime.now()))
     print('Starting up monkeytunnel..')
     pid = os.getpid()
     print('pid:',pid)
