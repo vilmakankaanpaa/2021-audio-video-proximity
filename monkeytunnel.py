@@ -70,6 +70,8 @@ if __name__ == "__main__":
     playingVideo = False
     cameraIsRecording = False
 
+    uploadTimer = datetime.now()
+
     if usingAudio:
         audioPlayer = AudioPlayer()
 
@@ -152,7 +154,8 @@ if __name__ == "__main__":
 
         logger.update_ix_logs()
 
-        # TODO: set a time when to do this
-        logger.uploadRecordings()
+        # TODO: change this. Now log every 30 minutes
+        if ((datetime.now()-uploadTimer).total_seconds() / 60) > 30:
+            logger.uploadRecordings()
 
         sleep(0.4)
