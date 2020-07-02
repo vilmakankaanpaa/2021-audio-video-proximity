@@ -34,7 +34,7 @@ class DriveService:
         # Authorize access to Google Drive
         print('Authorizing to google drive..')
         self.drive_service = build('drive', 'v3', http=self.creds.authorize(Http()))
-        self._connect_sheets()
+        self._open_sheets()
         self._reset_sheets()
 
 
@@ -54,23 +54,17 @@ class DriveService:
             self.sensor_sheet.resize(rows=1,cols=12)
 
 
-    def _connect_sheets(self):
-
-        #print('Connecting to sheets..')
-
-        if not self.creds.access_token_expired:
-            if self.ix_sheet and self.alive_sheet and self.progrun_sheet and self.sensor_sheet:
-                # TODO: do this better
-                #print('Logged in and G sheets are setup.')
-                return
-
-        if self.creds.access_token_expired:
-            self.client.login()
+    def _open_sheets(self):
 
         self.ix_sheet = self.client.open(configs.DOCNAME).worksheet(configs.IX_SHEET)
         self.alive_sheet = self.client.open(configs.DOCNAME).worksheet(configs.ALIVE_SHEET)
         self.progrun_sheet = self.client.open(configs.DOCNAME).worksheet(configs.PROGRUN_SHEET)
         self.sensor_sheet = self.client.open(configs.DOCNAME).worksheet(configs.SENSOR_SHEET)
+
+    def _connect_sheets(self):
+        if self.creds.access_token_expired:
+            self.client.login()
+            self._open_sheets()
 
     def _connect_drive(self):
         if self.creds.access_token_expired:
