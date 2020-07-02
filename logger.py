@@ -102,9 +102,11 @@ class Logger:
             self.internet_connected()
         except:
             print('Not connected to internet, could not upload files.')
-            raise
+            reason = "Could not upload files, no internet."
+            self.log_g_fail(reason)
+            return
 
-        folderId = getFolderIdToday()
+        folderId = self.getFolderIdToday()
 
         uploadedFiles = []
         for video in self.recordings_temp:
@@ -117,8 +119,7 @@ class Logger:
 
             except Exception as e:
                 print('Could not upload file: {}'.format(e))
-                # TODO log
-                raise
+                self.log_g_fail('{}'.format(type(e).__name__))
 
         for video in uploadedFiles:
             self.recordings_temp.remove(video)
@@ -226,9 +227,6 @@ class Logger:
         elif ixOngoing and passedTime < 1:
             return
 
-        # TODO: use also temp log for these and upload
-        # less often? Move the timer there?
-
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         sensor1_r = sensorsInRange[0]
         sensor2_r = sensorsInRange[1]
@@ -246,7 +244,10 @@ class Logger:
             [self.pid, ixID, timestamp, sensor1_r, sensor1_v, sensor2_r, sensor2_v,
              sensor3_r, sensor3_v, playingAudio, playingVideo, cameraIsRecording])
 
-        self.update_sensor_logs()
+        if not ixOngoing:
+            # do logging to drive here to not slow down
+            # the interaction with video and to log a bit less frequently
+            self.update_sensor_logs()
 
 
     def update_sensor_logs(self):
