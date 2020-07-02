@@ -31,8 +31,7 @@ class Logger:
         self.ix_date = None
         self.ix_start = None
         self.ix_recording = None
-        self.ix_folder_date = None
-        self.ix_folder_id = None
+        self.ix_folder_today = None
 
         self.gdrive = DriveService()
 
@@ -41,7 +40,7 @@ class Logger:
 
         diff = int((datetime.now() - self.ie_check_timer).total_seconds())
         if (diff > (4*60)): # every four minutes max
-            print('Checking internet.')
+            #print('Checking internet.')
             self.ie_check_timer = datetime.now()
             conn = httplib.HTTPConnection("www.google.fi", timeout=2)
             try:
@@ -75,6 +74,31 @@ class Logger:
         print('Removed file at', path)
 
 
+    def getFolderIdToday(self):
+
+        if self.ix_folder_today:
+            return self.ix_folder_today
+
+        dateToday = date.isoformat(date.today())
+
+        contents = self.gdrive.listDriveContents()
+        try:
+            folderId = contents[dateToday]
+        except:
+            print('No folder for today yet. (Exception)')
+            raise
+
+        if not folderId:
+            print('No folder for today yet. (Value is None)')
+            raise
+
+        print('Folder found.')
+
+        # folderId = self.gdrive.createNewFolder(folderName=today)
+        # self.ix_folder_today = folderId
+        # return self.ix_folder_today
+
+
     def uploadRecordings(self):
 
         if len(self.recordings_temp) == 0:
@@ -87,14 +111,7 @@ class Logger:
             print('Not connected to internet, could not upload files.')
             raise
 
-
-        today = date.isoformat(date.today())
-        if self.ix_folder_date != today:
-            # create new, get id
-            self.ix_folder_id = self.gdrive.createNewFolder(folderName=today)
-            self.ix_folder_date = today
-
-        folderId = self.ix_folder_id
+        folderId = getFolderIdToday()
 
         uploadedFiles = []
         for video in self.recordings_temp:
@@ -190,7 +207,7 @@ class Logger:
 
         try:
             self.test_ie_for_logging()
-            print('Logging alive to drive.')
+            #print('Logging alive to drive.')
             data = self.gdrive.logToDrive(data, 'alive')
 
             if len(data) > 0:

@@ -137,7 +137,7 @@ class DriveService:
 
     def listDriveContents(self):
 
-        results = getDriveContents()
+        results = self.getDriveContents()
         files = {}
         for item in results['files']:
             files[item['name']] = item['id']
@@ -224,7 +224,6 @@ class DriveService:
 
         elif sheet == 'progrun':
             for row in dataToLog:
-                print('Row:', row)
                 self.progrun_sheet.append_row(row)
 
         elif sheet == 'sensors':
