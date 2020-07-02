@@ -82,21 +82,14 @@ class Logger:
         dateToday = date.isoformat(date.today())
 
         contents = self.gdrive.listDriveContents()
+
         try:
             folderId = contents[dateToday]
         except:
-            print('No folder for today yet. (Exception)')
-            raise
+            folderId = self.gdrive.createNewFolder(folderName=dateToday)
 
-        if not folderId:
-            print('No folder for today yet. (Value is None)')
-            raise
-
-        print('Folder found.')
-
-        # folderId = self.gdrive.createNewFolder(folderName=today)
-        # self.ix_folder_today = folderId
-        # return self.ix_folder_today
+        self.ix_folder_today = folderId
+        return folderId
 
 
     def uploadRecordings(self):
