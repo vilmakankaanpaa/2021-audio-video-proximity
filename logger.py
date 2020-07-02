@@ -119,7 +119,8 @@ class Logger:
         return self.ix_recording
 
     def handle_recording(self):
-        self.recordings_temp.append(self.ix_recording)
+        name = self.ix_recording + '.h264'
+        self.recordings_temp.append(name)
 
 
     def test_ie_for_logging(self):
