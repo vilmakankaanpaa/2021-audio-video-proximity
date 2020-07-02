@@ -72,6 +72,10 @@ class DriveService:
         self.progrun_sheet = self.client.open(configs.DOCNAME).worksheet(configs.PROGRUN_SHEET)
         self.sensor_sheet = self.client.open(configs.DOCNAME).worksheet(configs.SENSOR_SHEET)
 
+    def _connect_drive(self):
+        if self.creds.access_token_expired:
+            self.drive_service = build('drive', 'v3', http=self.creds.authorize(Http()))
+
 
     def _reduce_nof_rows_left(self, amount):
         self.nof_rows_left = (self.nof_rows_left - amount)
@@ -90,6 +94,8 @@ class DriveService:
 
 
     def createNewFolder(self, folderName):
+
+        self._connect_drive()
 
         upload_details = {
             'name':folderName,
@@ -113,6 +119,8 @@ class DriveService:
 
     def deleteDriveResource(self, resourceId):
 
+        self._connect_drive()
+
         try:
             self.drive_service.files().delete(fileId=resourceId).execute()
             print('Gdrive: Deleted resource with id {}'.format(resourceId))
@@ -121,6 +129,8 @@ class DriveService:
 
 
     def getDriveContents(self):
+
+        self._connect_drive()
         results = self.drive_service.files().list(
             pageSize=10, fields="nextPageToken, files(id, name)").execute()
         return results
@@ -135,6 +145,8 @@ class DriveService:
         return files
 
     def uploadFile(self, fileName, folderId):
+
+        self._connect_drive()
 
         upload_details = {
             'name':fileName,
