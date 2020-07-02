@@ -1,5 +1,6 @@
-import csv
 import sys
+import os
+import csv
 from datetime import datetime, timedelta, date
 import http.client as httplib
 import uuid
@@ -68,9 +69,10 @@ class Logger:
             reason], sheet='logfail.csv')
 
 
-    def deleteLocalFile(self, fileName):
-        #TODO
-        pass
+    def deleteLocalVideo(self, fileName):
+        path = configs.RECORDINGS_PATH + fileName
+        os.remove(path)
+        print('Removed file at', path)
 
 
     def uploadRecordings(self):
@@ -101,7 +103,7 @@ class Logger:
                 print('Uploading file {}'.format(video))
                 self.gdrive.uploadFile(video, folderId)
                 uploadedFiles.append(video)
-                self.deleteLocalFile(video)
+                self.deleteLocalVideo(video)
 
             except Exception as e:
                 print('Could not upload file: {}'.format(e))
@@ -112,9 +114,13 @@ class Logger:
             self.recordings_temp.remove(video)
 
 
-    def new_video_name(self):
+    def new_recording_name(self):
         self.ix_recording = self.ix_id + '_' + (self.ix_start).strftime("%Y-%m-%d_%H:%M:%S")
         return self.ix_recording
+
+    def handle_recording(self):
+        self.recordings_temp.append(self.ix_recording)
+
 
     def test_ie_for_logging(self):
         try:
@@ -180,7 +186,7 @@ class Logger:
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         data = [self.pid, timestamp]
         data = [data] # for gdrive.logToDrive this needs to be in [[row1],[row2],..] format
-        
+
         try:
             self.test_ie_for_logging()
             print('Logging alive to drive.')
@@ -256,9 +262,9 @@ class Logger:
             configs.AUDIO_PATH,
             configs.RECORDING_ON
             ]
-        
+
         data = [data] # for gdrive.logToDrive this needs to be in [[row1],[row2],..] format
-        
+
         try:
             self.test_ie_for_logging()
             #print('Logging progrum run info to drive.')

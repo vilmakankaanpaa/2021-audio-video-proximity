@@ -120,7 +120,7 @@ if __name__ == "__main__":
                 ixID = logger.log_interaction_start()
 
             if recordingOn and not cameraIsRecording:
-                fileName = logger.new_video_name()
+                fileName = logger.new_recording_name()
                 camera.start_recording(fileName)
 
             if usingAudio and not playingAudio:
@@ -136,6 +136,7 @@ if __name__ == "__main__":
 
             if recordingOn and cameraIsRecording:
                 camera.stop_recording()
+                logger.handle_recording()
 
             if usingAudio and playingAudio:
                 audioPlayer.pause_audio()
@@ -150,5 +151,8 @@ if __name__ == "__main__":
                                      cameraIsRecording)
 
         logger.update_ix_logs()
+
+        # TODO: set a time when to do this
+        logger.uploadRecordings()
 
         sleep(0.4)
