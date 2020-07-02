@@ -71,27 +71,18 @@ class Logger:
         pass
 
 
-    def uploadVideoBatch(self):
+    def uploadRecordings(self):
 
-        if len(self.recordings_temp) > 0:
-            for video in self.recordings_temp:
-
-                try:
-                    self.uploadRecording(video)
-                    self.recordings_temp.remove(video)
-                except:
-                    print('Could not load video{}'.format(video))
-                    # TODO: log
-
-
-    def uploadRecording(self, fileName):
-        
+        if len(self.recordings_temp) == 0:
+            print('No recordings to upload.')
+            return
 
         try:
             self.internet_connected()
         except:
-            print('Not connected to internet, could not upload file.')
+            print('Not connected to internet, could not upload files.')
             raise
+
 
         today = date.isoformat(date.today())
         if self.ix_folder_date != today:
@@ -99,15 +90,20 @@ class Logger:
             self.ix_folder_id = self.gdrive.createNewFolder(folderName=today)
             self.ix_folder_date = today
 
-        folderId = self.ix_folder_id
+        folderId = self.ix_folder_id            
 
-        try:
-            self.gdrive.uploadFile(fileName, folderId)
-            self.deleteLocalFile(fileName)
+        for video in self.recordings_temp:
 
-        except Exception as e:
-            print('Could not upload file: {}'.format(e))
-            raise
+            try:
+                print('Uploading file {}'.format(video))
+                self.gdrive.uploadFile(video, folderId)
+                self.recordings_temp.remove(video)
+                self.deleteLocalFile(video)
+
+            except Exception as e:
+                print('Could not upload file: {}'.format(e))
+                # TODO log
+                raise
 
 
     def new_video_name(self):
