@@ -68,6 +68,7 @@ class Logger:
 
 
     def deleteLocalFile(self, fileName):
+        #TODO
         pass
 
 
@@ -90,8 +91,8 @@ class Logger:
             self.ix_folder_id = self.gdrive.createNewFolder(folderName=today)
             self.ix_folder_date = today
 
-        folderId = self.ix_folder_id            
-        
+        folderId = self.ix_folder_id
+
         uploadedFiles = []
         for video in self.recordings_temp:
 
@@ -105,9 +106,10 @@ class Logger:
                 print('Could not upload file: {}'.format(e))
                 # TODO log
                 raise
-        
+
         for video in uploadedFiles:
             self.recordings_temp.remove(video)
+
 
     def new_video_name(self):
         self.ix_recording = self.ix_id + '_' + (self.ix_start).strftime("%Y-%m-%d_%H:%M:%S")

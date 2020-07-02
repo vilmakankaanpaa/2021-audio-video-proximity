@@ -7,9 +7,15 @@ from time import sleep
 class Camera():
 
     def __init__(self, folderPath):
+
         self.camera = PiCamera()
         self.folderPath = folderPath
-        self.recording = False # not recording
+        self.recording = False
+
+
+    def isRecording(self):
+        return self.recording
+
 
     def start_recording(self, videoName):
         self.camera.start_recording(self.folderPath + videoName + '.h264')
@@ -31,7 +37,6 @@ class Camera():
 
 
     def capture_image(self, imageName):
-
         self.camera.start_preview()
         # Note: it’s important to sleep for at least two seconds
         # before capturing an image, because this gives the camera’s

@@ -86,7 +86,7 @@ if __name__ == "__main__":
     while True:
 
         logger.log_alive()
-        logger.check_quota_counter()
+        logger.gdrive.check_quota_counter()
 
         sensorVolts, sensorsInRange = check_sensors()
         anyInRange = any(sensorsInRange)
@@ -94,17 +94,23 @@ if __name__ == "__main__":
         userDetected, sensorReading = updateSensorReading(
             userDetected, sensorReading, anyInRange, sensorThreshold)
 
-        # if quit, spawn new
-        if usingAudio and audioPlayer.status == 4:
-            audioPlayer = AudioPlayer()
-
-        # if quit, spawn new
-        if usingVideo and videoPlayer.status == 4:
-            videoPlayer = VideoPlayer(configs.VIDEO_AUDIO_ON)
-            videoPlayer.load_video(configs.VIDEO_PATH)
 
         if recordingOn:
-            cameraIsRecording = camera.recording
+            cameraIsRecording = camera.isRecording()
+
+        if usingAudio:
+            playingAudio = audioPlayer.isPlaying()
+            if not playingAudio and audioPlayer.hasQuit():
+                # if quit, spawn new
+                audioPlayer = AudioPlayer()
+
+        if usingVideo:
+            playingVideo = videoPlayer.isPlaying()
+            if not playingVideo and videoPlayer.hasQuit():
+                # if quit, spawn new
+                videoPlayer = VideoPlayer(configs.VIDEO_AUDIO_ON)
+                videoPlayer.load_video(configs.VIDEO_PATH)
+
 
         if userDetected:
 
@@ -113,16 +119,14 @@ if __name__ == "__main__":
                 ixID = logger.log_interaction_start()
 
             if recordingOn and not cameraIsRecording:
-                fileName = new_video_name(logger)
+                fileName = logger.new_video_name()
                 camera.start_recording(fileName)
 
             if usingAudio and not playingAudio:
                 audioPlayer.play_audio()
-                playingAudio = True
 
             if usingVideo and not playingVideo:
                 videoPlayer.play_video()
-                playingVideo = True
 
             logger.log_sensor_status(sensorsInRange, sensorVolts, playingAudio, playingVideo,
                                      cameraIsRecording, ixID)
@@ -134,11 +138,9 @@ if __name__ == "__main__":
 
             if usingAudio and playingAudio:
                 audioPlayer.pause_audio()
-                playingAudio = False # TODO: not used
 
             if usingVideo and playingVideo:
                 videoPlayer.pause_video()
-                playingVideo = False
 
             if logger.ix_id:
                 logger.log_interaction_end()

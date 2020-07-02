@@ -13,6 +13,22 @@ class VideoPlayer():
         self.audio = useVideoAudio
         self.status = 0
 
+
+    def isPlaying(self):
+
+        if self.status == 2:
+            return True
+        else:
+            return False
+
+
+    def hasQuit(self):
+        if self.status == 4:
+            return True
+        else:
+            return False
+
+
     def load_video(self, videoPath):
         # load video first to simplify the usage in the code -> does not start playing the video until told so.
         self.currentVideoPath = videoPath
