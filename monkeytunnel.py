@@ -52,10 +52,11 @@ def updateSensorReading(userDetected, sensorReading, anyInRange, sensorThreshold
 
 if __name__ == "__main__":
 
+    print(datetime.isoformat(datetime.now))
     print('Starting up monkeytunnel..')
     pid = os.getpid()
     print('pid:',pid)
-    """ TODO: save the pid to temp file """
+    # TODO: save the pid to temp file
 
     # configurations for this run of the program
     usingAudio = configs.USE_AUDIO
@@ -131,8 +132,8 @@ if __name__ == "__main__":
             if usingVideo and not playingVideo:
                 videoPlayer.play_video()
 
-            logger.log_sensor_status(sensorsInRange, sensorVolts, playingAudio, playingVideo,
-                                     cameraIsRecording, ixID)
+            logger.log_sensor_status(sensorsInRange, sensorVolts, playingAudio,
+                                        playingVideo, cameraIsRecording, ixID)
 
         else:
 
@@ -149,12 +150,12 @@ if __name__ == "__main__":
             if logger.ix_id:
                 logger.log_interaction_end()
 
-            logger.log_sensor_status(sensorsInRange, sensorVolts, playingAudio, playingVideo,
-                                     cameraIsRecording)
+            logger.log_sensor_status(sensorsInRange, sensorVolts, playingAudio,
+                                        playingVideo, cameraIsRecording)
 
         logger.update_ix_logs()
 
-        # TODO: change this. Now log every 30 minutes
+        # TODO: change this. log after 22
         if ((datetime.now()-uploadTimer).total_seconds() / 60) > 30:
             logger.uploadRecordings()
 
