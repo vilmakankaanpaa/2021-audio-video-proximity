@@ -205,7 +205,15 @@ class Logger:
     def log_sensor_status(self, sensorsInRange, sensorVolts, playingAudio,
                           playingVideo, cameraIsRecording, ixID=None):
 
-        if (datetime.now() - self.sensorlog_timer).total_seconds() < 2:
+        ixOngoing = False
+        if ixID:
+            ixOngoing = True
+
+        passedTime = (datetime.now() - self.sensorlog_timer).total_seconds()
+
+        if not ixOngoing and passedTime < 60:
+            return
+        elif ixOngoing and passedTime < 1:
             return
 
         # TODO: use also temp log for these and upload
