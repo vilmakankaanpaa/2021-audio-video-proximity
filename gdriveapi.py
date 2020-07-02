@@ -56,6 +56,7 @@ class DriveService:
 
     def _open_sheets(self):
 
+        print('Opening google sheets..')
         self.ix_sheet = self.client.open(configs.DOCNAME).worksheet(configs.IX_SHEET)
         self.alive_sheet = self.client.open(configs.DOCNAME).worksheet(configs.ALIVE_SHEET)
         self.progrun_sheet = self.client.open(configs.DOCNAME).worksheet(configs.PROGRUN_SHEET)
@@ -63,11 +64,13 @@ class DriveService:
 
     def _connect_sheets(self):
         if self.creds.access_token_expired:
+            print('Access token had expired. Logging into Google Sheets.')
             self.client.login()
             self._open_sheets()
 
     def _connect_drive(self):
         if self.creds.access_token_expired:
+            print('Access token had expired. Connecting to Google Drive.')
             self.drive_service = build('drive', 'v3', http=self.creds.authorize(Http()))
 
 

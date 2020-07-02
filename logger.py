@@ -40,7 +40,7 @@ class Logger:
 
         diff = int((datetime.now() - self.ie_check_timer).total_seconds())
         if (diff > (4*60)): # every four minutes max
-            #print('Checking internet.')
+            print('Checking internet.')
             self.ie_check_timer = datetime.now()
             conn = httplib.HTTPConnection("www.google.fi", timeout=2)
             try:
@@ -236,9 +236,9 @@ class Logger:
         sensor2_v = ('%.2f' % sensorVolts[1])
         sensor3_v = ('%.2f' % sensorVolts[2])
 
-        print('IxID:', ixID)
-        for i in range(3):
-            print(sensorsInRange[i], sensorVolts[i])
+        #print('IxID:', ixID)
+        #for i in range(3):
+        #    print(sensorsInRange[i], sensorVolts[i])
 
         self.sensors_temp.append(
             [self.pid, ixID, timestamp, sensor1_r, sensor1_v, sensor2_r, sensor2_v,
@@ -254,6 +254,7 @@ class Logger:
 
         data = self.sensors_temp
         if len(data) > 0:
+            print('Updating sensor logs')
             try:
                 self.test_ie_for_logging()
                 #print('Logging sensor data to drive.')
