@@ -18,14 +18,7 @@ class DriveService:
         self.alive_sheet = None
         self.progrun_sheet = None
         self.sensor_sheet = None
-
-        self.sheets = {
-            'ix': self.ix_sheet,
-            'alive': self.alive_sheet,
-            'progrun': self.progrun_sheet,
-            'sensors': self.sensor_sheet
-        }
-
+        
         self.nof_rows_left = 100
         self.quota_timer = datetime.now()
 
@@ -63,7 +56,7 @@ class DriveService:
 
     def _connect_sheets(self):
 
-        print('Connecting to sheets..')
+        #print('Connecting to sheets..')
 
         if not self.creds.access_token_expired:
             if self.ix_sheet and self.alive_sheet and self.progrun_sheet and self.sensor_sheet:
@@ -81,7 +74,8 @@ class DriveService:
 
 
     def _reduce_nof_rows_left(self, amount):
-        self.nof_rows_left = self.nof_rows_left-amount
+        self.nof_rows_left = (self.nof_rows_left - amount)
+        print('Nof rows left {}.'.format(self.nof_rows_left))
         return self.nof_rows_left
 
 
@@ -92,6 +86,7 @@ class DriveService:
             self.quota_timer = datetime.now()
             self.nof_rows_left = 100
             timeLeft = 0
+            print('Quota updated to 100')
 
 
     def createNewFolder(self, folderName):
@@ -177,14 +172,14 @@ class DriveService:
             }
         self.drive_service.permissions().create(
             fileId=fileId,body=user_permission,fields='id').execute()
-        print('Gdrive: Permission to resource granted.')
+        #print('Gdrive: Permission to resource granted.')
 
 
     def logToDrive(self, data, sheet):
 
-        print('Gdrive: Logging to drive, to {}'.format(sheet))
+        #print('Gdrive: Logging to drive, to {}'.format(sheet))
         rowLimit = self.nof_rows_left
-
+        #print('Rowlimit {}'.format(rowLimit))
         if rowLimit == 0:
             return data
 
@@ -194,15 +189,36 @@ class DriveService:
         if len(data) > rowLimit:
             dataToLog = data[0:rowLimit]
             truncated = True
+        #print('Data:', data)
+        #print('Datatolog:', dataToLog)
 
         self._connect_sheets()
-        for row in dataToLog:
-            self.sheets[sheet].append_row(row)
+                
+        if sheet == 'ix':
+            for row in dataToLog:
+                self.ix_sheet.append_row(row)
+                
+        elif sheet == 'alive':
+            for row in dataToLog:
+                self.alive_sheet.append_row(row)
+                
+        elif sheet == 'progrun':
+            for row in dataToLog:
+                print('Row:', row)
+                self.progrun_sheet.append_row(row)
+                
+        elif sheet == 'sensors':
+            for row in dataToLog:
+                self.sensor_sheet.append_row(row)
+                
+        else:
+            print('No such sheet defined')
 
         self._reduce_nof_rows_left(len(dataToLog))
 
         dataLeft = []
         if truncated:
             dataLeft = data[rowLimit:]
-
+        #print('Datarows left {}'.format(len(dataLeft)))
+        
         return dataLeft

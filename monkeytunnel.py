@@ -82,11 +82,12 @@ if __name__ == "__main__":
 
     logger = Logger(pid)
     logger.log_program_run_info()
+    logger.log_alive(start=True)
 
     while True:
 
         logger.log_alive()
-        logger.gdrive.check_quota_counter()
+        logger.gdrive.check_quota_timer()
 
         sensorVolts, sensorsInRange = check_sensors()
         anyInRange = any(sensorsInRange)

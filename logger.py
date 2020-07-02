@@ -56,7 +56,8 @@ class Logger:
         print('Logging to local file:',sheet)
         with open(sheet, 'a', newline='') as logfile:
             logwriter = csv.writer(logfile, delimiter=',')
-            logwriter.writerow(data)
+            for row in data:
+                logwriter.writerow(row)
 
 
     def log_g_fail(self, reason):
@@ -113,7 +114,7 @@ class Logger:
 
     def new_video_name(self):
         self.ix_recording = self.ix_id + '_' + (self.ix_start).strftime("%Y-%m-%d_%H:%M:%S")
-
+        return self.ix_recording
 
     def test_ie_for_logging(self):
         try:
@@ -170,15 +171,16 @@ class Logger:
                 self.log_local(data, sheet='local_ix_log.csv')
 
 
-    def log_alive(self):
+    def log_alive(self, start=False):
 
         timeDiff = (datetime.now() - self.alivelog_timer).total_seconds() / 60
-        if timeDiff < 5: # log every 5 minutes
+        if timeDiff < 5 and not start: # log every 5 minutes
             return
 
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         data = [self.pid, timestamp]
-
+        data = [data] # for gdrive.logToDrive this needs to be in [[row1],[row2],..] format
+        
         try:
             self.test_ie_for_logging()
             print('Logging alive to drive.')
@@ -228,7 +230,7 @@ class Logger:
         if len(data) > 0:
             try:
                 self.test_ie_for_logging()
-                print('Logging sensor data to drive.')
+                #print('Logging sensor data to drive.')
                 self.sensors_temp = self.gdrive.logToDrive(data, 'sensors')
                 self.sensorlog_timer = datetime.now()
 
@@ -254,10 +256,12 @@ class Logger:
             configs.AUDIO_PATH,
             configs.RECORDING_ON
             ]
-
+        
+        data = [data] # for gdrive.logToDrive this needs to be in [[row1],[row2],..] format
+        
         try:
             self.test_ie_for_logging()
-            print('Logging progrum run info to drive.')
+            #print('Logging progrum run info to drive.')
             dataLeft = self.gdrive.logToDrive(data, 'progrun')
 
             if len(dataLeft) > 0:
