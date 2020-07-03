@@ -275,5 +275,5 @@ class Logger:
                 print('Could not upload program data due to too small quota.')
 
         except Exception as e:
-            filemanager.log_g_fail('{}'.format(type(e).__name__))
+            self.log_g_fail('{}'.format(type(e).__name__))
             filemanager.log_local(data, sheet='progrun_log.csv')
