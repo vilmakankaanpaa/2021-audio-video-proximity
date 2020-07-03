@@ -60,13 +60,6 @@ class VideoPlayer():
         return diff
 
 
-    def screensaver(self):
-        # pause = True > black screen, no need to be actually playing it...
-        self.player.load(self.screensaverPath, pause=True)
-        self.screensaverOn = True
-        self.status = 3
-
-
     def play_video(self):
 
         if self. screensaverOn:
@@ -86,3 +79,10 @@ class VideoPlayer():
     def stop_video(self):
         self.player.quit()
         self.status = 4
+
+
+    def hide(hide=True):
+        if hide:
+            self.player.hide_video()
+        else:
+            self.player.show_video()

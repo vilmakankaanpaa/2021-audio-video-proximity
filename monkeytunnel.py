@@ -130,8 +130,9 @@ if __name__ == "__main__":
             if usingAudio and not playingAudio:
                 audioPlayer.play_audio()
 
-            if usingVideo and (not playingVideo or videoPlayer.screensaver_on()):
+            if usingVideo and not playingVideo: # or videoPlayer.screensaver_on()):
                 # Puts on the main video on and stops screensaver
+                videoPlayer.hide(False)
                 videoPlayer.play_video()
 
             logger.log_sensor_status(sensorsInRange, sensorVolts, playingAudio,
@@ -148,10 +149,11 @@ if __name__ == "__main__":
             if usingVideo and playingVideo:
                 # pause the video first. After some time, start screensaver
                 videoPlayer.pause_video()
+                videoPlayer.hide(True)
 
-            if usingVideo and not playingVideo and not videoPlayer.screensaver_on():
-                if videoPlayer.paused_time() > 2:
-                    videoPlayer.screensaver()
+            #if usingVideo and not playingVideo and not videoPlayer.screensaver_on():
+            #    if videoPlayer.paused_time() > 2:
+            #        videoPlayer.screensaver()
 
             if logger.ix_id:
                 logger.log_interaction_end()
