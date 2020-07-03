@@ -3,6 +3,14 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# credentials to Google Drive and Sheets
 client_secret.json
+
+# Local log files used in case of error to log to Google Drive
 *.csv
+
+# Recordings of the camera module
 camera-records
+
+# Mainly output.txt file
+*.txt
