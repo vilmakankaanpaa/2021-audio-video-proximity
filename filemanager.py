@@ -18,7 +18,8 @@ def delete_local_video(fileName):
     print('Removed file at', path)
 
 
-def list_local_files(directory):
-    for root, dirs, files in os.walk('./' + directory):
-        for filename in files:
-            print(filename)
+def list_recordings():
+    videos = []
+    for filename in os.listdir(configs.RECORDINGS_PATH):
+        videos.append(filename)
+    return videos
