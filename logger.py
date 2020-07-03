@@ -68,31 +68,31 @@ class Logger:
             reason], sheet='logfail.csv')
 
 
-    def deleteLocalVideo(self, fileName):
+    def delete_local_video(self, fileName):
         path = configs.RECORDINGS_PATH + fileName
         os.remove(path)
         print('Removed file at', path)
 
 
-    def getFolderIdToday(self):
+    def get_folder_id_today(self):
 
         if self.ix_folder_today:
             return self.ix_folder_today
 
         dateToday = date.isoformat(date.today())
 
-        contents = self.gdrive.listDriveContents()
+        contents = self.gdrive.list_drive_contents()
 
         try:
             folderId = contents[dateToday]
         except:
-            folderId = self.gdrive.createNewFolder(folderName=dateToday)
+            folderId = self.gdrive.create_new_folder(folderName=dateToday)
 
         self.ix_folder_today = folderId
         return folderId
 
 
-    def uploadRecordings(self):
+    def upload_recordings(self):
 
         if len(self.recordings_temp) == 0:
             print('No recordings to upload.')
@@ -106,16 +106,16 @@ class Logger:
             self.log_g_fail(reason)
             return
 
-        folderId = self.getFolderIdToday()
+        folderId = self.get_folder_id_today()
 
         uploadedFiles = []
         for video in self.recordings_temp:
 
             try:
                 print('Uploading file {}'.format(video))
-                self.gdrive.uploadFile(video, folderId)
+                self.gdrive.upload_file(video, folderId)
                 uploadedFiles.append(video)
-                self.deleteLocalVideo(video)
+                self.delete_local_video(video)
 
             except Exception as e:
                 print('Could not upload file: {}'.format(e))
@@ -182,7 +182,7 @@ class Logger:
             try:
                 self.test_ie_for_logging()
                 print('Logging interaction to drive.')
-                self.tempdata = self.gdrive.logToDrive(data, 'ix')
+                self.tempdata = self.gdrive.log_to_drive(data, 'ix')
 
             except Exception as e:
                 self.log_g_fail('{}'.format(type(e).__name__))
@@ -202,7 +202,7 @@ class Logger:
         try:
             self.test_ie_for_logging()
             #print('Logging alive to drive.')
-            data = self.gdrive.logToDrive(data, 'alive')
+            data = self.gdrive.log_to_drive(data, 'alive')
 
             if len(data) > 0:
                 print('Could not upload program data due to too small quota.')
@@ -258,7 +258,7 @@ class Logger:
             try:
                 self.test_ie_for_logging()
                 #print('Logging sensor data to drive.')
-                self.sensors_temp = self.gdrive.logToDrive(data, 'sensors')
+                self.sensors_temp = self.gdrive.log_to_drive(data, 'sensors')
                 self.sensorlog_timer = datetime.now()
 
             except Exception as e:
@@ -289,7 +289,7 @@ class Logger:
         try:
             self.test_ie_for_logging()
             #print('Logging progrum run info to drive.')
-            dataLeft = self.gdrive.logToDrive(data, 'progrun')
+            dataLeft = self.gdrive.log_to_Drive(data, 'progrun')
 
             if len(dataLeft) > 0:
                 print('Could not upload program data due to too small quota.')

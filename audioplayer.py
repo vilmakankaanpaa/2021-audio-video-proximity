@@ -10,7 +10,7 @@ class AudioPlayer(MPyg321Player):
     # 3 - stopped
     # 4 - has quit
 
-    def isPlaying(self):
+    def is_playing(self):
 
         if self.status == 1: # playing
             return True
@@ -18,7 +18,7 @@ class AudioPlayer(MPyg321Player):
             return False
 
 
-    def hasQuit(self):
+    def has_quit(self):
 
         if self.status == 4: # has quit
             return True

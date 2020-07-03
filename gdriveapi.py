@@ -90,7 +90,7 @@ class DriveService:
             print('Quota updated to 100')
 
 
-    def createNewFolder(self, folderName):
+    def create_new_folder(self, folderName):
 
         self._connect_drive()
 
@@ -114,7 +114,7 @@ class DriveService:
         return folder.get('id')
 
 
-    def deleteDriveResource(self, resourceId):
+    def delete_drive_resource(self, resourceId):
 
         self._connect_drive()
 
@@ -125,23 +125,23 @@ class DriveService:
             print('Deletion failed:', e)
 
 
-    def getDriveContents(self):
+    def get_drive_contents(self):
 
         self._connect_drive()
         results = self.drive_service.files().list(
             pageSize=10, fields="nextPageToken, files(id, name)").execute()
         return results
 
-    def listDriveContents(self):
+    def list_drive_contents(self):
 
-        results = self.getDriveContents()
+        results = self.get_drive_contents()
         files = {}
         for item in results['files']:
             files[item['name']] = item['id']
 
         return files
 
-    def uploadFile(self, fileName, folderId):
+    def upload_file(self, fileName, folderId):
 
         self._connect_drive()
 
@@ -178,10 +178,10 @@ class DriveService:
         # in case the file would not be uploaded to your own folder that you
         # share with the service account, you need to make sure to grant access
         # to your own account
-        self.grantPermissions(file.get('id'), upload_details)
+        self.grant_permissions(file.get('id'), upload_details)
 
 
-    def grantPermissions(self, fileId, metadata):
+    def grant_permissions(self, fileId, metadata):
         user_permission = {
             'type':'user',
             'role':'writer',
@@ -192,7 +192,7 @@ class DriveService:
         #print('Gdrive: Permission to resource granted.')
 
 
-    def logToDrive(self, data, sheet):
+    def log_to_drive(self, data, sheet):
 
         #print('Gdrive: Logging to drive, to {}'.format(sheet))
         rowLimit = self.nof_rows_left

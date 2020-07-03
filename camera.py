@@ -13,7 +13,7 @@ class Camera():
         self.recording = False
 
 
-    def isRecording(self):
+    def is_recording(self):
         return self.recording
 
 
