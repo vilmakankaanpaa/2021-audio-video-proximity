@@ -202,6 +202,7 @@ class Logger:
 
         passedTime = (datetime.now() - self.sensorlog_timer).total_seconds()
 
+        # log only at these intervals
         if not ixOngoing and passedTime < 60:
             return
         elif ixOngoing and passedTime < 1:
@@ -224,10 +225,7 @@ class Logger:
             [self.pid, ixID, timestamp, sensor1_r, sensor1_v, sensor2_r, sensor2_v,
              sensor3_r, sensor3_v, playingAudio, playingVideo, cameraIsRecording])
 
-        if not ixOngoing:
-            # do logging to drive here to not slow down
-            # the interaction with video and to log a bit less frequently
-            self.update_sensor_logs()
+        self.update_sensor_logs()
 
 
     def update_sensor_logs(self):
@@ -264,7 +262,7 @@ class Logger:
             configs.RECORDING_ON]
 
         data = [data] # for gdrive.logToDrive this needs to be in [[row1],[row2],..] format
-        
+
         try:
             self.test_ie_for_logging()
             #print('Logging progrum run info to drive.')
