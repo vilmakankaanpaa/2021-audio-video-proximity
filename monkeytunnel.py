@@ -141,7 +141,6 @@ if __name__ == "__main__":
 
             if recordingOn and cameraIsRecording:
                 camera.stop_recording()
-                logger.handle_recording()
 
             if usingAudio and playingAudio:
                 audioPlayer.pause_audio()

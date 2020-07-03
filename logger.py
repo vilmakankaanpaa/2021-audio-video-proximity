@@ -25,7 +25,6 @@ class Logger:
         self.max_nof_rows = 100
         self.tempdata = []
         self.sensors_temp = []
-        self.recordings_temp = []
 
         self.ix_id = None
         self.ix_date = None
@@ -80,7 +79,12 @@ class Logger:
 
     def upload_recordings(self):
 
-        if len(self.recordings_temp) == 0:
+        records = filemanager.list_recordings()
+        # if there are files in folder left from previous day in the local dir,
+        # the date-folder will end up being wrong but this is not really
+        # an issue since there wont be that many videos..
+
+        if len(records) == 0:
             print('No recordings to upload.')
             return
 
@@ -93,31 +97,21 @@ class Logger:
             return
 
         folderId = self.get_folder_id_today()
-
         uploadedFiles = []
-        for video in self.recordings_temp:
-
+        for filename in records:
             try:
-                print('Uploading file {}'.format(video))
-                self.gdrive.upload_file(video, folderId)
-                uploadedFiles.append(video)
-                filemanager.delete_local_video(video)
+                print('Uploading file {}'.format(filename))
+                self.gdrive.upload_file(filename, folderId)
+                filemanager.delete_local_video(filename)
 
             except Exception as e:
                 print('Could not upload file: {}'.format(e))
                 self.log_g_fail('{}'.format(type(e).__name__))
 
-        for video in uploadedFiles:
-            self.recordings_temp.remove(video)
-
 
     def new_recording_name(self):
         self.ix_recording = self.ix_id + '_' + (self.ix_start).strftime("%Y-%m-%d_%H:%M:%S")
         return self.ix_recording
-
-    def handle_recording(self):
-        name = self.ix_recording + '.h264'
-        self.recordings_temp.append(name)
 
 
     def test_ie_for_logging(self):
