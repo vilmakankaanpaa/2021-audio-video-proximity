@@ -74,9 +74,8 @@ if __name__ == "__main__":
     uploadTimer = datetime.now()
 
     # Put screensaver on regardless if using video
-    videoPlayer = VideoPlayer(mainVideoPath=configs.VIDEO_PATH,
-                                useVideoAudio=configs.VIDEO_AUDIO_ON,
-                                screensaverOn=True)
+    videoPlayer = VideoPlayer(videoPath=configs.VIDEO_PATH,
+                                useVideoAudio=configs.VIDEO_AUDIO_ON)
 
     if usingAudio:
         audioPlayer = AudioPlayer()
@@ -113,8 +112,7 @@ if __name__ == "__main__":
         if not playingVideo and videoPlayer.has_quit():
             # if quit, spawn new
             videoPlayer = VideoPlayer(videoPath=configs.VIDEO_PATH,
-                            useVideoAudio=configs.VIDEO_AUDIO_ON,
-                            screensaverOn=True)
+                            useVideoAudio=configs.VIDEO_AUDIO_ON)
 
 
         if userDetected:
@@ -130,9 +128,7 @@ if __name__ == "__main__":
             if usingAudio and not playingAudio:
                 audioPlayer.play_audio()
 
-            if usingVideo and not playingVideo: # or videoPlayer.screensaver_on()):
-                # Puts on the main video on and stops screensaver
-                videoPlayer.hide(False)
+            if usingVideo and not playingVideo:
                 videoPlayer.play_video()
 
             logger.log_sensor_status(sensorsInRange, sensorVolts, playingAudio,
@@ -147,13 +143,7 @@ if __name__ == "__main__":
                 audioPlayer.pause_audio()
 
             if usingVideo and playingVideo:
-                # pause the video first. After some time, start screensaver
                 videoPlayer.pause_video()
-                videoPlayer.hide(True)
-
-            #if usingVideo and not playingVideo and not videoPlayer.screensaver_on():
-            #    if videoPlayer.paused_time() > 2:
-            #        videoPlayer.screensaver()
 
             if logger.ix_id:
                 logger.log_interaction_end()
