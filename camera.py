@@ -2,14 +2,14 @@
 # https://projects.raspberrypi.org/en/projects/getting-started-with-picamera/4
 from picamera import PiCamera
 from time import sleep
+import filemanager
 
 
 class Camera():
 
-    def __init__(self, folderPath):
+    def __init__(self):
 
         self.camera = PiCamera()
-        self.folderPath = folderPath
         self.recording = False
 
 
@@ -18,7 +18,10 @@ class Camera():
 
 
     def start_recording(self, videoName):
-        self.camera.start_recording(self.folderPath + videoName + '.h264')
+        # this will determine whether the usb can be opened
+        _, pathdir = filemanager.list_recordings()
+
+        self.camera.start_recording(pathdir + videoName + '.h264')
         self.recording = True
 
 
@@ -41,6 +44,7 @@ class Camera():
         # Note: it’s important to sleep for at least two seconds
         # before capturing an image, because this gives the camera’s
         # sensor time to sense the light levels.
+        path = '/home/pi/sakis-video-tunnel/'
         sleep(5)
-        self.camera.capture(self.folderPath + imageName + '.jpg')
+        self.camera.capture(path + imageName + '.jpg')
         self.camera.stop_preview()

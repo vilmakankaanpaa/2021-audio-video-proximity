@@ -7,7 +7,8 @@ RECORDING_ON = True # record interaction with camera module
 # files to use
 AUDIO_PATH = 'None'
 VIDEO_PATH = 'video/test_video_1.mp4'
-RECORDINGS_PATH = 'camera-records/'
+RECORDINGS_PATH = 'USB/camera-records/'
+RECORDINGS_PATH_2 = 'camera-records/'
 SCREENSAVER_PATH = 'video/black.mp4'
 
 # Google sheets API parameters for logging data

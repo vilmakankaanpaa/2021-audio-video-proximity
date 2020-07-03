@@ -82,7 +82,7 @@ if __name__ == "__main__":
         audioPlayer = AudioPlayer()
 
     if recordingOn:
-        camera = Camera(folderPath=configs.RECORDINGS_PATH)
+        camera = Camera()
 
     logger = Logger(pid)
     logger.log_program_run_info()

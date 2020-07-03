@@ -79,7 +79,7 @@ class Logger:
 
     def upload_recordings(self):
 
-        records = filemanager.list_recordings()
+        records, _ = filemanager.list_recordings()
         # if there are files in folder left from previous day in the local dir,
         # the date-folder will end up being wrong but this is not really
         # an issue since there wont be that many videos..
