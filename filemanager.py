@@ -3,6 +3,7 @@ import os
 import csv
 import configs
 
+sys.excepthook = sys.__excepthook__
 
 def log_local(data, sheet):
     print('Logging to local file:',sheet)
@@ -25,7 +26,7 @@ def delete_local_video(fileName):
 
 def list_recordings():
     videos = []
-    path = None
+    pathdir = None
     try:
         for filename in os.listdir(configs.RECORDINGS_PATH):
             videos.append(filename)
