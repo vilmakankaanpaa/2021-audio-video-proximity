@@ -151,7 +151,7 @@ if __name__ == "__main__":
                 videoPlayer.pause_video()
 
             if usingVideo and not playingVideo and not videoPlayer.screensaver_on():
-                if paused_time() > 3:
+                if videoPlayer.paused_time() > 3:
                     videoPlayer.screensaver()
 
             if logger.ix_id:

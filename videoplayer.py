@@ -10,12 +10,12 @@ from configs import SCREENSAVER_PATH
 # https://python-omxplayer-wrapper.readthedocs.io/en/latest/omxplayer/#module-omxplayer.player
 class VideoPlayer():
 
-    def __init__(self, videoPath,  useVideoAudio, screensaverOn):
+    def __init__(self, mainVideoPath,  useVideoAudio, screensaverOn):
 
         # 0 - no video, 1 - video ready, 2 - playing video, 3 - paused, 4 - quit
 
         self.audio = useVideoAudio
-        self.mainVideoPath = videoPath
+        self.mainVideoPath = mainVideoPath
         self.screensaverPath = SCREENSAVER_PATH
         self.screensaverOn = False
         """
@@ -30,8 +30,7 @@ class VideoPlayer():
         else:
             self.player = OMXPlayer(self.mainVideoPath, args="-o alsa:hw:1,0 --no-osd --aspect-mode fill --loop")
 
-        self.player.pause()
-        self.status = 3
+        self.status = 2
 
         if not self.audio:
             self.player.mute()
