@@ -4,6 +4,7 @@ from omxplayer.player import OMXPlayer
 from pathlib import Path
 from time import sleep
 from datetime import datetime
+from configs import SCREENSAVER_PATH
 
 
 # https://python-omxplayer-wrapper.readthedocs.io/en/latest/omxplayer/#module-omxplayer.player
@@ -15,7 +16,7 @@ class VideoPlayer():
 
         self.audio = useVideoAudio
         self.mainVideoPath = videoPath
-        self.screensaverPath = 'video/black.mp4'
+        self.screensaverPath = SCREENSAVER_PATH
         self.screensaverOn = False
         """
         -o              audio output
