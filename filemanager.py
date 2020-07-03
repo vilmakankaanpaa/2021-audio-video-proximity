@@ -27,13 +27,14 @@ def delete_local_video(fileName):
 def list_recordings():
     videos = []
     pathdir = None
+    
     try:
         for filename in os.listdir(configs.RECORDINGS_PATH):
             videos.append(filename)
-            pathdir = configs.RECORDINGS_PATH
+        pathdir = configs.RECORDINGS_PATH
     except:
         for filename in os.listdir(configs.RECORDINGS_PATH_2):
             videos.append(filename)
-            pathdir = configs.RECORDINGS_PATH_2
+        pathdir = configs.RECORDINGS_PATH_2
 
     return videos, pathdir

@@ -261,15 +261,14 @@ class Logger:
             configs.VIDEO_PATH,
             configs.USE_AUDIO,
             configs.AUDIO_PATH,
-            configs.RECORDING_ON
-            ]
+            configs.RECORDING_ON]
 
         data = [data] # for gdrive.logToDrive this needs to be in [[row1],[row2],..] format
-
+        
         try:
             self.test_ie_for_logging()
             #print('Logging progrum run info to drive.')
-            dataLeft = self.gdrive.log_to_Drive(data, 'progrun')
+            dataLeft = self.gdrive.log_to_drive(data, 'progrun')
 
             if len(dataLeft) > 0:
                 print('Could not upload program data due to too small quota.')
