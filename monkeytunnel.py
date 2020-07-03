@@ -150,7 +150,7 @@ if __name__ == "__main__":
                 videoPlayer.pause_video()
 
             if usingVideo and not playingVideo and not videoPlayer.screensaver_on():
-                if videoPlayer.paused_time() > 3:
+                if videoPlayer.paused_time() > 2:
                     videoPlayer.screensaver()
 
             if logger.ix_id:
@@ -161,9 +161,9 @@ if __name__ == "__main__":
 
         logger.update_ix_logs()
 
-        #if (datetime.now().hour > 23):
-            # TODO: check videos in folder
-        if ((datetime.now()-uploadTimer).total_seconds() / 60) > 5:
+        if (datetime.now().hour > 23):
+        #if ((datetime.now()-uploadTimer).total_seconds() / 60) > 5:
             logger.upload_recordings()
+            uploadTimer = datetime.now()
 
         sleep(0.4)
