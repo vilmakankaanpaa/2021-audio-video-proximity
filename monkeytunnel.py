@@ -63,7 +63,7 @@ if __name__ == "__main__":
     usingVideo = configs.USE_VIDEO
     recordingOn = configs.RECORDING_ON
 
-    sensorThreshold = 3 # after 3 consecutive readings, change value of userDetected
+    sensorThreshold = 2 # after this number of consecutive readings, change value of userDetected
     sensorReading = sensorThreshold # this is the middle grounf between True and False
     userDetected = False
 
@@ -162,8 +162,9 @@ if __name__ == "__main__":
 
         logger.update_ix_logs()
 
-        # TODO: change this. log after 22
-        if ((datetime.now()-uploadTimer).total_seconds() / 60) > 30:
+        #if (datetime.now().hour > 23):
+            # TODO: check videos in folder
+        if ((datetime.now()-uploadTimer).total_seconds() / 60) > 5:
             logger.upload_recordings()
 
         sleep(0.4)
