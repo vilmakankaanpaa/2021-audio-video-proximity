@@ -25,7 +25,7 @@ def print_configurations():
     if configs.RECORDING_ON: print('Recording to folder:', configs.RECORDINGS_PATH)
 
 
-def updateSensorReading(userDetected, sensorReading, anyInRange, sensorThreshold):
+def update_sensor_reading(userDetected, sensorReading, anyInRange, sensorThreshold):
 
     # When enough no of consecutive checks are same, set new value
     # sensorReading will vary between 0–threshold and the middle point will divide if false or true
@@ -73,15 +73,16 @@ if __name__ == "__main__":
 
     uploadTimer = datetime.now()
 
+    # Put screensaver on regardless if using video
+    videoPlayer = VideoPlayer(mainVideoPath=configs.VIDEO_PATH,
+                                useVideoAudio=configs.VIDEO_AUDIO_ON,
+                                screensaverOn=True)
+
     if usingAudio:
         audioPlayer = AudioPlayer()
 
-    if usingVideo:
-        videoPlayer = VideoPlayer(configs.VIDEO_AUDIO_ON)
-        videoPlayer.load_video(configs.VIDEO_PATH)
-
     if recordingOn:
-        camera = Camera(configs.RECORDINGS_PATH)
+        camera = Camera(folderPath=configs.RECORDINGS_PATH)
 
     logger = Logger(pid)
     logger.log_program_run_info()
@@ -95,25 +96,25 @@ if __name__ == "__main__":
         sensorVolts, sensorsInRange = check_sensors()
         anyInRange = any(sensorsInRange)
 
-        userDetected, sensorReading = updateSensorReading(
+        userDetected, sensorReading = update_sensor_reading(
             userDetected, sensorReading, anyInRange, sensorThreshold)
 
-
         if recordingOn:
-            cameraIsRecording = camera.isRecording()
+            cameraIsRecording = camera.is_recording()
 
         if usingAudio:
-            playingAudio = audioPlayer.isPlaying()
-            if not playingAudio and audioPlayer.hasQuit():
+            playingAudio = audioPlayer.is_playing()
+            if not playingAudio and audioPlayer.has_quit():
                 # if quit, spawn new
                 audioPlayer = AudioPlayer()
 
-        if usingVideo:
-            playingVideo = videoPlayer.isPlaying()
-            if not playingVideo and videoPlayer.hasQuit():
-                # if quit, spawn new
-                videoPlayer = VideoPlayer(configs.VIDEO_AUDIO_ON)
-                videoPlayer.load_video(configs.VIDEO_PATH)
+
+        playingVideo = videoPlayer.is_playing()
+        if not playingVideo and videoPlayer.has_quit():
+            # if quit, spawn new
+            videoPlayer = VideoPlayer(videoPath=configs.VIDEO_PATH,
+                            useVideoAudio=configs.VIDEO_AUDIO_ON,
+                            screensaverOn=True)
 
 
         if userDetected:
@@ -129,7 +130,8 @@ if __name__ == "__main__":
             if usingAudio and not playingAudio:
                 audioPlayer.play_audio()
 
-            if usingVideo and not playingVideo:
+            if usingVideo and (not playingVideo or videoPlayer.screensaver_on()):
+                # Puts on the main video on and stops screensaver
                 videoPlayer.play_video()
 
             logger.log_sensor_status(sensorsInRange, sensorVolts, playingAudio,
@@ -145,7 +147,12 @@ if __name__ == "__main__":
                 audioPlayer.pause_audio()
 
             if usingVideo and playingVideo:
+                # pause the video first. After some time, start screensaver
                 videoPlayer.pause_video()
+
+            if usingVideo and not playingVideo and not videoPlayer.screensaver_on():
+                if paused_time() > 3:
+                    videoPlayer.screensaver()
 
             if logger.ix_id:
                 logger.log_interaction_end()
@@ -157,6 +164,6 @@ if __name__ == "__main__":
 
         # TODO: change this. log after 22
         if ((datetime.now()-uploadTimer).total_seconds() / 60) > 30:
-            logger.uploadRecordings()
+            logger.upload_recordings()
 
         sleep(0.4)

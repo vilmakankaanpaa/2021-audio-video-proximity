@@ -3,96 +3,86 @@
 from omxplayer.player import OMXPlayer
 from pathlib import Path
 from time import sleep
+from datetime import datetime
 
-# 0 - no video, 1 - video ready, 2 - playing video, 3 - paused, 4 - quit
+
+# https://python-omxplayer-wrapper.readthedocs.io/en/latest/omxplayer/#module-omxplayer.player
 class VideoPlayer():
 
-    def __init__(self, useVideoAudio):
-        self.player = None
-        self.currentVideoPath = None
+    def __init__(self, videoPath,  useVideoAudio, screensaverOn):
+
+        # 0 - no video, 1 - video ready, 2 - playing video, 3 - paused, 4 - quit
+
         self.audio = useVideoAudio
-        self.status = 0
-
-
-    def isPlaying(self):
-
-        if self.status == 2:
-            return True
-        else:
-            return False
-
-
-    def hasQuit(self):
-        if self.status == 4:
-            return True
-        else:
-            return False
-
-
-    def load_video(self, videoPath):
-        # load video first to simplify the usage in the code -> does not start playing the video until told so.
-        self.currentVideoPath = videoPath
-
+        self.mainVideoPath = videoPath
+        self.screensaverPath = 'video/black.mp4'
+        self.screensaverOn = False
         """
         -o              audio output
         --no-osd        do not show status info on screen
         --aspect-mode   aspect of the video on screen
         --loop          continuously play the video
         """
-        self.player = OMXPlayer(self.currentVideoPath, args="-o alsa:hw:1,0 --no-osd --aspect-mode fill --loop")
+        if screensaverOn:
+            self.player = OMXPlayer(self.screensaverPath, args="-o alsa:hw:1,0 --no-osd --aspect-mode fill --loop")
+            self.screensaverOn = True
+        else:
+            self.player = OMXPlayer(self.mainVideoPath, args="-o alsa:hw:1,0 --no-osd --aspect-mode fill --loop")
 
         self.player.pause()
+        self.status = 3
 
         if not self.audio:
             self.player.mute()
 
-        self.status = 1
+        self.pauseTimer = None
+
+
+    def is_playing(self):
+
+        if self.status == 2:
+            return True
+        else:
+            return False
+
+    def screensaver_on(self):
+        return self.screensaverOn
+
+    def has_quit(self):
+        if self.status == 4:
+            return True
+        else:
+            return False
+
+
+    def paused_time(self):
+        diff = (datetime.now() - self.pauseTimer).total_seconds()
+        return diff
+
+
+    def screensaver(self):
+        # pause = True > black screen, no need to be actually playing it...
+        self.player.load(self.screensaverPath, pause=True)
+        self.screensaverOn = True
+        self.status = 3
+
 
     def play_video(self):
-        self.player.play()
+
+        if self. screensaverOn:
+            self.player.load(self.mainVideoPath, pause=False)
+            self.screensaverOn = False
+        else:
+            self.player.play()
         self.status = 2
+
 
     def pause_video(self):
         self.player.pause()
         self.status = 3
+        self.pauseTimer = datetime.now()
+
 
     def stop_video(self):
         self.player.quit()
         self.status = 4
-
-
-""" Advcanced:
-
-from omxplayer.player import OMXPlayer
-from pathlib import Path
-from time import sleep
-import logging
-logging.basicConfig(level=logging.INFO)
-
-
-VIDEO_1_PATH = "../tests/media/test_media_1.mp4"
-player_log = logging.getLogger("Player 1")
-
-player = OMXPlayer(VIDEO_1_PATH,
-        dbus_name='org.mpris.MediaPlayer2.omxplayer1')
-player.playEvent += lambda _: player_log.info("Play")
-player.pauseEvent += lambda _: player_log.info("Pause")
-player.stopEvent += lambda _: player_log.info("Stop")
-
-# it takes about this long for omxplayer to warm up and start displaying a picture on a rpi3
-sleep(2.5)
-
-player.set_position(5)
-player.pause()
-
-
-sleep(2)
-
-player.set_aspect_mode('stretch')
-player.set_video_pos(0, 0, 200, 200)
-player.play()
-
-sleep(5)
-
-player.quit()
-"""
