@@ -1,12 +1,12 @@
 import sys
 import os
-import csv
-from datetime import datetime, timedelta, date
-import http.client as httplib
 import uuid
+import http.client as httplib
+from datetime import datetime, timedelta, date
 
 import configs
 from gdriveapi import DriveService
+import filemanager
 
 sys.excepthook = sys.__excepthook__
 
@@ -52,26 +52,12 @@ class Logger:
                 raise e
 
 
-    def log_local(self, data, sheet):
-        print('Logging to local file:',sheet)
-        with open(sheet, 'a', newline='') as logfile:
-            logwriter = csv.writer(logfile, delimiter=',')
-            for row in data:
-                logwriter.writerow(row)
-
-
     def log_g_fail(self, reason):
         print('Logging to GDrive failed:', reason)
-        self.log_local(
+        filemanager.log_local(
             [datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             'Logging to Google Drive failed.',
             reason], sheet='logfail.csv')
-
-
-    def delete_local_video(self, fileName):
-        path = configs.RECORDINGS_PATH + fileName
-        os.remove(path)
-        print('Removed file at', path)
 
 
     def get_folder_id_today(self):
@@ -115,7 +101,7 @@ class Logger:
                 print('Uploading file {}'.format(video))
                 self.gdrive.upload_file(video, folderId)
                 uploadedFiles.append(video)
-                self.delete_local_video(video)
+                filemanager.delete_local_video(video)
 
             except Exception as e:
                 print('Could not upload file: {}'.format(e))
@@ -186,7 +172,7 @@ class Logger:
 
             except Exception as e:
                 self.log_g_fail('{}'.format(type(e).__name__))
-                self.log_local(data, sheet='local_ix_log.csv')
+                filemanager.log_local(data, sheet='local_ix_log.csv')
 
 
     def log_alive(self, start=False):
@@ -263,7 +249,7 @@ class Logger:
 
             except Exception as e:
                 self.log_g_fail('{}'.format(type(e).__name__))
-                self.log_local(data, sheet='sensor_log.csv')
+                filemanager.log_local(data, sheet='sensor_log.csv')
 
 
     def log_program_run_info(self):
@@ -295,5 +281,5 @@ class Logger:
                 print('Could not upload program data due to too small quota.')
 
         except Exception as e:
-            self.log_g_fail('{}'.format(type(e).__name__))
-            self.log_local(data, sheet='progrun_log.csv')
+            filemanager.log_g_fail('{}'.format(type(e).__name__))
+            filemanager.log_local(data, sheet='progrun_log.csv')
