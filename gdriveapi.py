@@ -64,13 +64,15 @@ class DriveService:
 
     def _connect_sheets(self):
         if self.creds.access_token_expired:
-            print('Access token had expired. Logging into Google Sheets.')
+            print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    'Access token had expired. Logging into Google Sheets.')
             self.client.login()
             self._open_sheets()
 
     def _connect_drive(self):
         if self.creds.access_token_expired:
-            print('Access token had expired. Connecting to Google Drive.')
+            print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    'Access token had expired. Connecting to Google Drive.')
             self.drive_service = build('drive', 'v3', http=self.creds.authorize(Http()))
 
 
@@ -87,7 +89,8 @@ class DriveService:
             self.quota_timer = datetime.now()
             self.nof_rows_left = 100
             timeLeft = 0
-            print('Quota updated to 100')
+            print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                'Quota updated to 100')
 
 
     def create_new_folder(self, folderName):
@@ -107,7 +110,9 @@ class DriveService:
 
         folder = self.drive_service.files().create(body=folder_metadata,
                                             fields='id').execute()
-        print('Gdrive: Created folder {} with id {}.'.format(upload_details['name'], folder.get('id')))
+        print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                'Gdrive: Created folder {} with id {}.'.format(
+                    upload_details['name'], folder.get('id')))
 
         # No need to grant access if the folder is under the folder owned by you
 

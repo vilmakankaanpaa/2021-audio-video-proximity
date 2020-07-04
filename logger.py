@@ -39,7 +39,8 @@ class Logger:
 
         diff = int((datetime.now() - self.ie_check_timer).total_seconds())
         if (diff > (4*60)): # every four minutes max
-            print('Checking internet.')
+            print(datetime.now()strftime("%Y-%m-%d %H:%M:%S"),
+                    'Checking internet.')
             self.ie_check_timer = datetime.now()
             conn = httplib.HTTPConnection("www.google.fi", timeout=2)
             try:
@@ -52,7 +53,7 @@ class Logger:
 
 
     def log_g_fail(self, reason):
-        print('Logging to GDrive failed:', reason)
+        print(datetime.now(), 'Logging to GDrive failed:', reason)
         filemanager.log_local(
             [datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             'Logging to Google Drive failed.',
@@ -85,13 +86,15 @@ class Logger:
         # an issue since there wont be that many videos..
 
         if len(records) == 0:
-            print('No recordings to upload.')
+            print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    'No recordings to upload.')
             return
 
         try:
             self.internet_connected()
         except:
-            print('Not connected to internet, could not upload files.')
+            print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                 'Not connected to internet, could not upload files.')
             reason = "Could not upload files, no internet."
             self.log_g_fail(reason)
             return
@@ -100,7 +103,8 @@ class Logger:
         uploadedFiles = []
         for filename in records:
             try:
-                print('Uploading file {}'.format(filename))
+                print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                        'Uploading file {}'.format(filename))
                 self.gdrive.upload_file(filename, folderId)
                 filemanager.delete_local_video(filename)
 
@@ -161,7 +165,8 @@ class Logger:
         if (len(data) > 0):
             try:
                 self.test_ie_for_logging()
-                print('Logging interaction to drive.')
+                print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                        'Logging interaction to drive.')
                 self.tempdata = self.gdrive.log_to_drive(data, 'ix')
 
             except Exception as e:
@@ -232,7 +237,8 @@ class Logger:
 
         data = self.sensors_temp
         if len(data) > 0:
-            print('Updating sensor logs')
+            print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    'Updating sensor logs')
             try:
                 self.test_ie_for_logging()
                 #print('Logging sensor data to drive.')
