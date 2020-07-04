@@ -39,7 +39,7 @@ class Logger:
 
         diff = int((datetime.now() - self.ie_check_timer).total_seconds())
         if (diff > (4*60)): # every four minutes max
-            print(datetime.now()strftime("%Y-%m-%d %H:%M:%S"),
+            print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                     'Checking internet.')
             self.ie_check_timer = datetime.now()
             conn = httplib.HTTPConnection("www.google.fi", timeout=2)
