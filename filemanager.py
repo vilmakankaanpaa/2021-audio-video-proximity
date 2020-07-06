@@ -14,17 +14,13 @@ def log_local(data, sheet):
         for row in data:
             logwriter.writerow(row)
 
-def delete_local_video(fileName):
-    records, pathdir = list_recordings()
-    try:
-        index = records.index(fileName)
-    except:
-        print('Cannot remove local file: no such file.')
-        return
+def delete_local_file(path):
 
-    path = pathdir + fileName
-    os.remove(path)
-    print('Removed file at', path)
+    if os.path.exists(path):
+        os.remove(path)
+        print('Removed file at', path)
+    else:
+        print('Could not delete local file at {}, it does not exist'.format(path))
 
 def list_recordings():
     videos = []

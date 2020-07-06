@@ -131,7 +131,9 @@ class DriveService:
 
 
     def get_drive_contents(self):
-
+        # NOTE! Sometimes resources are not found because this lists the
+        # content only in the first page – it might not be on the first page.
+        # TODO: update it to
         self._connect_drive()
         results = self.drive_service.files().list(
             pageSize=10, fields="nextPageToken, files(id, name)").execute()
@@ -146,9 +148,9 @@ class DriveService:
 
         return files
 
-    def upload_file(self, fileName, folderId):
 
-        self._connect_drive()
+    def upload_video_file(self, fileName, folderId):
+        # For purpose of uploading recordings
 
         upload_details = {
             'name':fileName,
@@ -156,6 +158,28 @@ class DriveService:
             'localFilePath': configs.RECORDINGS_PATH + fileName,
             'grantAccessTo': configs.GDRIVE_USER_EMAIL
             }
+
+        self._upload_file(upload_details)
+
+
+    def upload_general_file(self, fileName):
+        # For the purpose of uploading local log files like logfail.csv
+
+        upload_details = {
+            'name': datetime.now().strftime("%m-%d_%H-%M") + '_' + fileName,
+            'folderId': configs.GDRIVE_FOLDER_ID_LOGS,
+            'localFilePath': configs.root + fileName,
+            'grantAccessTo': configs.GDRIVE_USER_EMAIL
+        }
+
+        self._upload_file(upload_details)
+
+
+    def _upload_file(self, details):
+        # general module to upload any file to specified folder in Google Drive
+        # NOTE: the app needs to have shared access to that folder
+
+        self._connect_drive()
 
         file_metadata = {
             'name': upload_details['name'],
@@ -183,10 +207,10 @@ class DriveService:
         # in case the file would not be uploaded to your own folder that you
         # share with the service account, you need to make sure to grant access
         # to your own account
-        self.grant_permissions(file.get('id'), upload_details)
+        self._grant_permissions(file.get('id'), upload_details)
 
 
-    def grant_permissions(self, fileId, metadata):
+    def _grant_permissions(self, fileId, metadata):
         user_permission = {
             'type':'user',
             'role':'writer',

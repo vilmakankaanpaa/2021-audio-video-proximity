@@ -57,7 +57,18 @@ class Logger:
         filemanager.log_local(
             [datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             'Logging to Google Drive failed.',
-            reason], sheet='logfail.csv')
+            reason], sheet=configs.local_fail_log)
+
+
+    def upload_logfiles(self):
+
+        logfiles = [configs.local_fail_log, configs.local_ix_log,
+                configs.local_sensor_log, configs.local_program_log]
+
+        for file in logfiles:
+            if os.path.exists(file):
+                self.gdrive.upload_general_file(file)
+                filemanager.delete_local_file(file)
 
 
     def get_folder_id_today(self):
@@ -101,13 +112,13 @@ class Logger:
 
         folderId = self.get_folder_id_today()
         uploadedFiles = []
-        records, _ = filemanager.list_recordings()
+        records, directory = filemanager.list_recordings()
         for filename in records:
             try:
                 print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                         'Uploading file {}'.format(filename))
-                self.gdrive.upload_file(filename, folderId)
-                filemanager.delete_local_video(filename)
+                self.gdrive.upload_video_file(filename, folderId)
+                filemanager.delete_local_file(directory + filename)
 
             except Exception as e:
                 print('Could not upload file: {}'.format(e))
@@ -172,7 +183,7 @@ class Logger:
 
             except Exception as e:
                 self.log_g_fail('{}'.format(type(e).__name__))
-                filemanager.log_local(data, sheet='local_ix_log.csv')
+                filemanager.log_local(data, sheet=configs.local_ix_log)
 
 
     def log_alive(self, start=False):
@@ -248,7 +259,7 @@ class Logger:
 
             except Exception as e:
                 self.log_g_fail('{}'.format(type(e).__name__))
-                filemanager.log_local(data, sheet='sensor_log.csv')
+                filemanager.log_local(data, sheet=configs.local_sensor_log)
 
 
     def log_program_run_info(self):
@@ -280,4 +291,4 @@ class Logger:
 
         except Exception as e:
             self.log_g_fail('{}'.format(type(e).__name__))
-            filemanager.log_local(data, sheet='progrun_log.csv')
+            filemanager.log_local(data, sheet=configs.local_program_log)
