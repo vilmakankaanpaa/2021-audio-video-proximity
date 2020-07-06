@@ -66,10 +66,16 @@ class Logger:
                 configs.local_sensor_log, configs.local_program_log,
                 configs.local_status_log]
 
+        uploadStartTime = datetime.now()
+
         for file in logfiles:
             if os.path.exists(file):
                 self.gdrive.upload_general_file(file)
                 filemanager.delete_local_file(file)
+
+        duration = round((datetime.now() - uploadStartTime).total_seconds() / 60, 2)
+        print('Uploading logfiles duration {}'.format(duration))
+        self.log_status_info('Uploading logfiles duration {}'.format(duration))
 
 
     def get_folder_id_today(self):
@@ -119,6 +125,8 @@ class Logger:
         if max_nof_uploads > 0:
             until = max_nof_uploads
 
+        uploadStartTime = datetime.now()
+
         for i in range(until):
             filename = records[i]
             try:
@@ -130,6 +138,10 @@ class Logger:
             except Exception as e:
                 print('Could not upload file: {}'.format(e))
                 self.log_g_fail('{}'.format(type(e).__name__))
+
+        duration = round((datetime.now() - uploadStartTime).total_seconds() / 60, 2)
+        print('Uploading {} recordings duration {}'.format(until, duration))
+        self.log_status_info('Uploading {} recordings duration {}'.format(until, duration))
 
 
     def new_recording_name(self):
