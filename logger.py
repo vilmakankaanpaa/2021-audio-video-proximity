@@ -89,14 +89,14 @@ class Logger:
         return folderId
 
 
-    def upload_recordings(self):
+    def upload_recordings(self, max_nof_uploads=0):
 
         nof_records = filemanager.nof_recordings()
         # if there are files in folder left from previous day in the local dir,
         # the date-folder will end up being wrong but this is not really
         # an issue since there wont be that many videos..
 
-        if len(nof_records) == 0:
+        if nof_records == 0:
             print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                     'No recordings to upload.')
             return
@@ -113,7 +113,13 @@ class Logger:
         folderId = self.get_folder_id_today()
         uploadedFiles = []
         records, directory = filemanager.list_recordings()
-        for filename in records:
+
+        until = len(records)
+        if max_nof_uploads > 0:
+            until = max_nof_uploads
+
+        for i in range(until):
+            filename = records[i]
             try:
                 print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                         'Uploading file {}'.format(filename))

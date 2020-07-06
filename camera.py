@@ -24,6 +24,8 @@ class Camera():
         self.camera.start_recording(pathdir + videoName + '.h264')
         self.recording = True
 
+        return pathdir
+
 
     def stop_recording(self):
         self.camera.stop_recording()

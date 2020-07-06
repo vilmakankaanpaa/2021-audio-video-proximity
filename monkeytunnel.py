@@ -72,7 +72,10 @@ if __name__ == "__main__":
     playingVideo = False
     cameraIsRecording = False
 
+    camDirectory = None
+
     uploadTimer = datetime.now()
+    diskTimer = datetime.now()
 
     if usingVideo:
         videoPlayer = VideoPlayer(videoPath=configs.VIDEO_PATH,
@@ -87,8 +90,6 @@ if __name__ == "__main__":
     logger = Logger(pid)
     logger.log_program_run_info()
     logger.log_alive(start=True)
-
-    diskTimer = datetime.now()
 
     while True:
 
@@ -117,7 +118,6 @@ if __name__ == "__main__":
                 videoPlayer = VideoPlayer(videoPath=configs.VIDEO_PATH,
                             useVideoAudio=configs.VIDEO_AUDIO_ON)
 
-
         if userDetected:
 
             ixID = logger.ix_id
@@ -126,7 +126,7 @@ if __name__ == "__main__":
 
             if recordingOn and not cameraIsRecording:
                 fileName = logger.new_recording_name()
-                camera.start_recording(fileName)
+                camDirectory = camera.start_recording(fileName)
 
             if usingAudio and not playingAudio:
                 audioPlayer.play_audio()
@@ -156,16 +156,30 @@ if __name__ == "__main__":
 
         logger.update_ix_logs()
 
-        if (datetime.now() - diskTimer).total_seconds() > 10:
-            freeSpace = check_disk_space(configs.external_disk)
-            print(freeSpace)
+        if camDirectory == configs.RECORDINGS_PATH_2:
+            # TODO
+            #logger.errorlog('Camera recording to PI local folder!')
+            pass
+
+        if (datetime.now() - diskTimer).total_seconds() > 60:
+            if camDirectory == configs.RECORDINGS_PATH:
+                freeSpace = check_disk_space(configs.external_disk)
+                print(freeSpace)
+                if freeSpace < 0.04:
+                    # if space is scarce, we need to upload some
+                    # files and not wait until nighttime
+                    #TODO:
+                    #logger.errorlog('Disk space getting small! Uploading files already.')
+                    logger.upload_recordings(max_nof_uploads=5)
+            else:
+                #TODO check pi space
             diskTimer = datetime.now()
 
         if (datetime.now().hour == 23):
-            #if ((datetime.now()-uploadTimer).total_seconds() / 60) > 2:
-            #if (datetime.now()-uploadTimer).total_seconds() / 60 > 19:
-                # during this hour, only check 3 times if any videos to upload
+            if (datetime.now()-uploadTimer).total_seconds() / 60 > 19:
+                # during this hour, only check 3 times if any videos / logfiles to upload
                 logger.upload_recordings()
+                logger.upload_logfiles()
                 uploadTimer = datetime.now()
 
         sleep(0.4)
