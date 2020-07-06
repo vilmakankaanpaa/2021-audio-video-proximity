@@ -33,12 +33,12 @@ def list_recordings():
 
     try:
         dirContent = os.listdir(configs.RECORDINGS_PATH)
+        print('Size of dir:', len(dirContent))
         if len(dirContent) == 0:
             # there is nothing in the folder while there should be at least test.txt
             # --> could not read directory
             raise
         for filename in dirContent:
-            print('Size of dir:', len(dirContent))
             if filename.endswith('.h264'):
                 videos.append(filename)
         pathdir = configs.RECORDINGS_PATH
