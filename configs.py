@@ -8,7 +8,7 @@ RECORDING_ON = True # record interaction with camera module
 root = '/home/pi/sakis-video-tunnel/'
 AUDIO_PATH = 'None'
 VIDEO_PATH = root + 'video/test_video_1.mp4'
-RECORDINGS_PATH = root + 'USB/camera-records/'
+RECORDINGS_PATH = '/mnt/kingston/camera-records/'
 RECORDINGS_PATH_2 = root + 'camera-records/'
 SCREENSAVER_PATH = root + 'video/black.mp4'
 
