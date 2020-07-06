@@ -19,7 +19,7 @@ class Camera():
 
     def start_recording(self, videoName):
         # this will determine whether the usb can be opened
-        _, pathdir = filemanager.list_recordings()
+        pathdir = filemanager.get_directory_for_recordings()
 
         self.camera.start_recording(pathdir + videoName + '.h264')
         self.recording = True
