@@ -1,18 +1,22 @@
 #!/bin/sh
-# launcher.sh
 
-PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/games:/usr/games
+### BEGIN INIT INFO
+# Provides:          noip
+# Required-Start:    $remote_fs $syslog
+# Required-Stop:     $remote_fs $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Simple script to start a program at boot
+### END INIT INFO
 
 # mount usb stick here - automatic mounting did not ...
-# ...work for getting permissions for python
-# sudo mount /dev/sda1 /home/pi/sakis-video-tunnel/USB
+# ...work for getting permissions for python program
+sudo mount /dev/sda1 /home/pi/sakis-video-tunnel/USB
 
-# kill omxplayer from previous run if on!
-killall "omxplayer.bin"
-pkill -9 python3
+# move the mouse to different location, because at the start it would be on
+# the left corner and would trigger the task bar and leave it there
+xdotool mousemove 100 100
 
-cd /
-cd home/pi/sakis-video-tunnel
-python3 monkeytunnel.py >> output.txt
-cd /
-
+# start the monkeytunnel program
+cd /home/pi/sakis-video-tunnel
+sudo python3 monkeytunnel.py >> output.txt
