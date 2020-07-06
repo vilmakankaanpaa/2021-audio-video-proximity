@@ -74,7 +74,6 @@ class Logger:
                 filemanager.delete_local_file(file)
 
         duration = round((datetime.now() - uploadStartTime).total_seconds() / 60, 2)
-        print('Uploading logfiles duration {}'.format(duration))
         self.log_status_info('Uploading logfiles duration {}'.format(duration))
 
 
@@ -137,8 +136,8 @@ class Logger:
                 filename = records[i]
 
             try:
-                print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                        'Uploading file {}'.format(filename))
+                #print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                #        'Uploading file {}'.format(filename))
                 self.gdrive.upload_video_file(filename, folderId)
                 filemanager.delete_local_file(directory + filename)
 
@@ -147,7 +146,6 @@ class Logger:
                 self.log_g_fail('{}'.format(type(e).__name__))
 
         duration = round((datetime.now() - uploadStartTime).total_seconds() / 60, 2)
-        print('Uploading {} recordings duration {}'.format(until, duration))
         self.log_status_info('Uploading {} recordings duration {}'.format(until, duration))
 
 

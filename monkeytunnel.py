@@ -178,10 +178,11 @@ if __name__ == "__main__":
             ensure_disk_space(logger, camDirectory)
             diskTimer = datetime.now()
 
-        if (datetime.now().hour == 23):
-            if (datetime.now()-uploadTimer).total_seconds() / 60 > 19:
-                # during this hour, only check 3 times if any videos / logfiles to upload
-                logger.log_status_info('Starting to upload camera recordings for today.')
+        h = datetime.now().hour
+        if (h == 22 or h == 23):
+            if (datetime.now()-uploadTimer).total_seconds() / 60 > 25:
+                # during these hours, only check about 4 times if any videos / logfiles to upload
+                logger.log_status_info('Starting to upload files from today.')
                 logger.upload_recordings()
                 logger.upload_logfiles()
                 uploadTimer = datetime.now()
