@@ -74,8 +74,8 @@ if __name__ == "__main__":
 
     uploadTimer = datetime.now()
 
-    # Put screensaver on regardless if using video
-    videoPlayer = VideoPlayer(videoPath=configs.VIDEO_PATH,
+    if usingVideo:
+        videoPlayer = VideoPlayer(videoPath=configs.VIDEO_PATH,
                                 useVideoAudio=configs.VIDEO_AUDIO_ON)
 
     if usingAudio:
@@ -87,7 +87,7 @@ if __name__ == "__main__":
     logger = Logger(pid)
     logger.log_program_run_info()
     logger.log_alive(start=True)
-    
+
     diskTimer = datetime.now()
 
     while True:
@@ -110,11 +110,11 @@ if __name__ == "__main__":
                 # if quit, spawn new
                 audioPlayer = AudioPlayer()
 
-
-        playingVideo = videoPlayer.is_playing()
-        if not playingVideo and videoPlayer.has_quit():
-            # if quit, spawn new
-            videoPlayer = VideoPlayer(videoPath=configs.VIDEO_PATH,
+        if usingVideo:
+            playingVideo = videoPlayer.is_playing()
+            if not playingVideo and videoPlayer.has_quit():
+                # if quit, spawn new
+                videoPlayer = VideoPlayer(videoPath=configs.VIDEO_PATH,
                             useVideoAudio=configs.VIDEO_AUDIO_ON)
 
 
@@ -155,12 +155,12 @@ if __name__ == "__main__":
                                         playingVideo, cameraIsRecording)
 
         logger.update_ix_logs()
-        
+
         if (datetime.now() - diskTimer).total_seconds() > 10:
             freeSpace = check_disk_space(configs.external_disk)
             print(freeSpace)
             diskTimer = datetime.now()
-        
+
         if (datetime.now().hour == 23):
             #if ((datetime.now()-uploadTimer).total_seconds() / 60) > 2:
             #if (datetime.now()-uploadTimer).total_seconds() / 60 > 19:

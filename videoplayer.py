@@ -4,7 +4,6 @@ from omxplayer.player import OMXPlayer
 from pathlib import Path
 from time import sleep
 from datetime import datetime
-from configs import SCREENSAVER_PATH
 
 
 # https://python-omxplayer-wrapper.readthedocs.io/en/latest/omxplayer/#module-omxplayer.player
@@ -22,7 +21,7 @@ class VideoPlayer():
         --aspect-mode   aspect of the video on screen
         --loop          continuously play the video
         """
-        
+
         self.player = OMXPlayer(self.videoPath, args="-o alsa:hw:1,0 --no-osd --aspect-mode fill --loop")
         self.pause_video()
 
