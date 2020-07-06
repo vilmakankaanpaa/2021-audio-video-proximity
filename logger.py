@@ -113,7 +113,7 @@ class Logger:
         except:
             print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                  'Not connected to internet, could not upload files.')
-            reason = "Could not upload files, no internet."
+            reason = "Could not upload video files, no internet."
             self.log_g_fail(reason)
             return
 
@@ -128,7 +128,14 @@ class Logger:
         uploadStartTime = datetime.now()
 
         for i in range(until):
+
             filename = records[i]
+
+            if filename == self.ix_recording:
+                # skip if currently being recorded!
+                ++i
+                filename = records[i]
+
             try:
                 print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                         'Uploading file {}'.format(filename))
