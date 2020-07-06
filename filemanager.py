@@ -1,6 +1,8 @@
 import sys
 import os
 import csv
+import shutil
+from datetime import datetime
 import configs
 
 sys.excepthook = sys.__excepthook__
@@ -53,3 +55,15 @@ def list_recordings():
     print(datetime.isoformat(datetime.now()),'Videos:', videos)
 
     return videos, pathdir
+
+
+def check_disk_space(disk):
+    total, used, free = shutil.disk_usage(disk)
+
+    print("Total: %d GiB" % (total // (2**30)))
+    print("Used: %d GiB" % (used // (2**30)))
+    print("Free: %d GiB" % (free // (2**30)))
+    
+    relative = free/total
+    
+    return round(relative, 2)
