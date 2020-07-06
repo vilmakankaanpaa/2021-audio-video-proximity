@@ -50,6 +50,22 @@ def update_sensor_reading(userDetected, sensorReading, anyInRange, sensorThresho
 
     return userDetected, sensorReading
 
+def ensure_disk_space(logger, camDirectory):
+
+    if camDirectory == configs.RECORDINGS_PATH:
+        freeSpace = check_disk_space(configs.external_disk)
+        print('Directory {}, free: {}'.format(camDirectory, freeSpace))
+        if freeSpace < 0.04: # 28GB USB stick
+            # if space is scarce, we need to upload some
+            # files and not wait until nighttime
+            logger.log_status_info('Disk space getting small! Uploading files already.')
+            logger.upload_recordings(max_nof_uploads=5)
+    else:
+        logger.log_status_info('Camera recording to PI local folder!')
+        freeSpace = check_disk_space(configs.root)
+        if freeSpace < 0.06: # 7.8GB total usable on Pi
+            logger.upload_recordings() # so small space, need to get all out
+
 
 if __name__ == "__main__":
 
@@ -87,7 +103,7 @@ if __name__ == "__main__":
     if recordingOn:
         camera = Camera()
 
-    logger = Logger(pid)
+    global logger = Logger(pid)
     logger.log_program_run_info()
     logger.log_alive(start=True)
 
@@ -156,28 +172,14 @@ if __name__ == "__main__":
 
         logger.update_ix_logs()
 
-        if camDirectory == configs.RECORDINGS_PATH_2:
-            # TODO
-            #logger.errorlog('Camera recording to PI local folder!')
-            pass
-
         if (datetime.now() - diskTimer).total_seconds() > 60:
-            if camDirectory == configs.RECORDINGS_PATH:
-                freeSpace = check_disk_space(configs.external_disk)
-                print(freeSpace)
-                if freeSpace < 0.04:
-                    # if space is scarce, we need to upload some
-                    # files and not wait until nighttime
-                    #TODO:
-                    #logger.errorlog('Disk space getting small! Uploading files already.')
-                    logger.upload_recordings(max_nof_uploads=5)
-            else:
-                #TODO check pi space
+            ensure_disk_space(camDirectory)
             diskTimer = datetime.now()
 
         if (datetime.now().hour == 23):
             if (datetime.now()-uploadTimer).total_seconds() / 60 > 19:
                 # during this hour, only check 3 times if any videos / logfiles to upload
+                logger.log_status_info('Starting to upload camera recordings for today.')
                 logger.upload_recordings()
                 logger.upload_logfiles()
                 uploadTimer = datetime.now()

@@ -18,6 +18,7 @@ class DriveService:
         self.alive_sheet = None
         self.progrun_sheet = None
         self.sensor_sheet = None
+        self.status_sheet
 
         self.nof_rows_left = 100
         self.quota_timer = datetime.now()
@@ -53,6 +54,9 @@ class DriveService:
         if len(self.sensor_sheet.get_all_values()) == 1:
             self.sensor_sheet.resize(rows=1,cols=12)
 
+        if len(self.status_sheet.get_all_values()) == 1:
+            self.status_sheet.resize(rows=1, cols=3)
+
 
     def _open_sheets(self):
 
@@ -61,11 +65,14 @@ class DriveService:
         self.alive_sheet = self.client.open(configs.DOCNAME).worksheet(configs.ALIVE_SHEET)
         self.progrun_sheet = self.client.open(configs.DOCNAME).worksheet(configs.PROGRUN_SHEET)
         self.sensor_sheet = self.client.open(configs.DOCNAME).worksheet(configs.SENSOR_SHEET)
+        self.status_sheet = self.client.open(configs.DOCNAME).worksheet(configs.STATUS_SHEET)
 
     def _connect_sheets(self):
         if self.creds.access_token_expired:
             print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                     'Access token had expired. Logging into Google Sheets.')
+            logger.log_status_info('Access token had expired. Logging into Google Sheets.')
+            self.client = gspread.authorize(self.creds)
             self.client.login()
             self._open_sheets()
 
@@ -73,6 +80,7 @@ class DriveService:
         if self.creds.access_token_expired:
             print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                     'Access token had expired. Connecting to Google Drive.')
+            logger.log_status_info('Access token had expired. Connecting to Google Drive.')
             self.drive_service = build('drive', 'v3', http=self.creds.authorize(Http()))
 
 
@@ -133,7 +141,7 @@ class DriveService:
     def get_drive_contents(self):
         # NOTE! Sometimes resources are not found because this lists the
         # content only in the first page – it might not be on the first page.
-        # TODO: update it to
+        # TODO: update it to do it
         self._connect_drive()
         results = self.drive_service.files().list(
             pageSize=10, fields="nextPageToken, files(id, name)").execute()
@@ -256,6 +264,9 @@ class DriveService:
             for row in dataToLog:
                 self.sensor_sheet.append_row(row)
 
+        elif sheet == 'status':
+            for row in dataToLog:
+                self.status_sheet.append_row(row)
         else:
             print('No such sheet defined')
 

@@ -19,6 +19,7 @@ local_fail_log = 'fail_log.csv'
 local_ix_log = 'ix_log.csv'
 local_sensor_log = 'sensor_log.csv'
 local_program_log = 'progrun_log.csv'
+local_status_log = 'status_log.csv'
 
 # Google sheets API parameters for logging data
 DOCNAME = 'Monkey-logs'
@@ -26,6 +27,7 @@ IX_SHEET = 'main-logs'
 ALIVE_SHEET = 'alive-logs'
 PROGRUN_SHEET = 'prog-run-logs'
 SENSOR_SHEET = 'sensor-logs'
+STATUS_SHEET = 'status-log'
 TEST_PHASE = 'testing'
 
 # Google Drive API parameters for uploading listDriveFiles

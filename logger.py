@@ -63,7 +63,8 @@ class Logger:
     def upload_logfiles(self):
 
         logfiles = [configs.local_fail_log, configs.local_ix_log,
-                configs.local_sensor_log, configs.local_program_log]
+                configs.local_sensor_log, configs.local_program_log,
+                configs.local_status_log]
 
         for file in logfiles:
             if os.path.exists(file):
@@ -202,6 +203,8 @@ class Logger:
         data = [self.pid, timestamp]
         data = [data] # for gdrive.logToDrive this needs to be in [[row1],[row2],..] format
 
+        print(timestamp,'Pinging alive.')
+
         try:
             self.test_ie_for_logging()
             #print('Logging alive to drive.')
@@ -216,6 +219,21 @@ class Logger:
             self.log_g_fail('{}'.format(type(e).__name__))
 
 
+    def log_status_info(self, msg):
+
+        print(msg)
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        data = [[self.pid, timestamp, msg]]
+
+        try:
+            self.test_ie_for_logging()
+            data = self.gdrive.log_to_drive(data, 'status')
+
+        except Exception as e:
+            self.log_g_fail('{}'.format(type(e).__name__))
+            filemanager.log_local(data, sheet=configs.local_status_log)
+
+
     def log_sensor_status(self, sensorsInRange, sensorVolts, playingAudio,
                           playingVideo, cameraIsRecording, ixID=None):
 
@@ -226,7 +244,7 @@ class Logger:
         passedTime = (datetime.now() - self.sensorlog_timer).total_seconds()
 
         # log only at these intervals
-        if not ixOngoing and passedTime < 60:
+        if not ixOngoing and (passedTime / 60 < 5) :
             return
         elif ixOngoing and passedTime < 1:
             return
@@ -255,8 +273,8 @@ class Logger:
 
         data = self.sensors_temp
         if len(data) > 0:
-            #print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            #        'Updating sensor logs')
+            print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    'Updating sensor logs')
             try:
                 self.test_ie_for_logging()
                 #print('Logging sensor data to drive.')
@@ -272,6 +290,8 @@ class Logger:
 
         # not testing for log interval because only done in beginning of
         # program run - these details wond change
+
+        print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'Logging program run info.')
 
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         data = [

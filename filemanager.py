@@ -7,12 +7,14 @@ import configs
 
 sys.excepthook = sys.__excepthook__
 
+
 def log_local(data, sheet):
     print(datetime.isoformat(datetime.now()),'Logging to local file:',sheet)
     with open(sheet, 'a', newline='') as logfile:
         logwriter = csv.writer(logfile, delimiter=',')
         for row in data:
             logwriter.writerow(row)
+
 
 def delete_local_file(path):
 
@@ -21,6 +23,7 @@ def delete_local_file(path):
         print('Removed file at', path)
     else:
         print('Could not delete local file at {}, it does not exist'.format(path))
+
 
 def list_recordings():
     videos = []
@@ -51,6 +54,7 @@ def list_recordings():
     print(datetime.isoformat(datetime.now()),'Videos:', videos)
 
     return videos, pathdir
+
 
 def nof_recordings():
 
