@@ -18,7 +18,7 @@ class DriveService:
         self.alive_sheet = None
         self.progrun_sheet = None
         self.sensor_sheet = None
-        self.status_sheet
+        self.status_sheet = None
 
         self.nof_rows_left = 100
         self.quota_timer = datetime.now()
@@ -71,7 +71,6 @@ class DriveService:
         if self.creds.access_token_expired:
             print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                     'Access token had expired. Logging into Google Sheets.')
-            logger.log_status_info('Access token had expired. Logging into Google Sheets.')
             self.client = gspread.authorize(self.creds)
             self.client.login()
             self._open_sheets()
@@ -80,13 +79,13 @@ class DriveService:
         if self.creds.access_token_expired:
             print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                     'Access token had expired. Connecting to Google Drive.')
-            logger.log_status_info('Access token had expired. Connecting to Google Drive.')
             self.drive_service = build('drive', 'v3', http=self.creds.authorize(Http()))
 
 
     def _reduce_nof_rows_left(self, amount):
         self.nof_rows_left = (self.nof_rows_left - amount)
-        print('Nof rows left {}.'.format(self.nof_rows_left))
+        if (self.nof_rows_left < 10):
+            print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'Only {} rows left!'.format(self.nof_rows_left))
         return self.nof_rows_left
 
 
@@ -97,8 +96,8 @@ class DriveService:
             self.quota_timer = datetime.now()
             self.nof_rows_left = 100
             timeLeft = 0
-            print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                'Quota updated to 100')
+            #print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+             #   'Quota updated to 100')
 
 
     def create_new_folder(self, folderName):
@@ -183,7 +182,7 @@ class DriveService:
         self._upload_file(upload_details)
 
 
-    def _upload_file(self, details):
+    def _upload_file(self, upload_details):
         # general module to upload any file to specified folder in Google Drive
         # NOTE: the app needs to have shared access to that folder
 

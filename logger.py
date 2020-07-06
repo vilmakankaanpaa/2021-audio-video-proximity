@@ -55,9 +55,9 @@ class Logger:
     def log_g_fail(self, reason):
         print(datetime.now(), 'Logging to GDrive failed:', reason)
         filemanager.log_local(
-            [datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            [[datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             'Logging to Google Drive failed.',
-            reason], sheet=configs.local_fail_log)
+            reason]], sheet=configs.local_fail_log)
 
 
     def upload_logfiles(self):

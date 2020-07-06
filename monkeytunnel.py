@@ -39,10 +39,10 @@ def update_sensor_reading(userDetected, sensorReading, anyInRange, sensorThresho
             sensorReading = sensorReading - 1
 
     if sensorReading > sensorThreshold and not userDetected:
-        print("Monkey came in")
+        print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "Monkey came in")
         userDetected = True
     elif sensorReading < sensorThreshold and userDetected:
-        print("All monkeys left")
+        print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "All monkeys left")
         userDetected = False
     else:
         # don't do anything yet, keep values same
@@ -54,17 +54,19 @@ def ensure_disk_space(logger, camDirectory):
 
     if camDirectory == configs.RECORDINGS_PATH:
         freeSpace = check_disk_space(configs.external_disk)
-        print('Directory {}, free: {}'.format(camDirectory, freeSpace))
+        print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'Directory {}, free: {}'.format(camDirectory, freeSpace))
         if freeSpace < 0.04: # 28GB USB stick
             # if space is scarce, we need to upload some
             # files and not wait until nighttime
             logger.log_status_info('Disk space getting small! Uploading files already.')
             logger.upload_recordings(max_nof_uploads=5)
-    else:
+    elif camDirectory == configs.RECORDINGS_PATH_2:
         logger.log_status_info('Camera recording to PI local folder!')
         freeSpace = check_disk_space(configs.root)
         if freeSpace < 0.06: # 7.8GB total usable on Pi
             logger.upload_recordings() # so small space, need to get all out
+    else:
+        return
 
 
 if __name__ == "__main__":
@@ -103,7 +105,7 @@ if __name__ == "__main__":
     if recordingOn:
         camera = Camera()
 
-    global logger = Logger(pid)
+    logger = Logger(pid)
     logger.log_program_run_info()
     logger.log_alive(start=True)
 
@@ -172,8 +174,8 @@ if __name__ == "__main__":
 
         logger.update_ix_logs()
 
-        if (datetime.now() - diskTimer).total_seconds() > 60:
-            ensure_disk_space(camDirectory)
+        if (datetime.now() - diskTimer).total_seconds() / 60 > 5:
+            ensure_disk_space(logger, camDirectory)
             diskTimer = datetime.now()
 
         if (datetime.now().hour == 23):

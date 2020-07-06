@@ -75,9 +75,7 @@ def check_usb_disk_access():
     # can e.g. check whether usb is connected via if you can access the test.txt init
     pathdir = None
     path = configs.RECORDINGS_PATH + 'test.txt'
-    print('Checking if path exists:', path)
     exists = os.path.exists(path)
-    print(exists)
     return exists
 
 
