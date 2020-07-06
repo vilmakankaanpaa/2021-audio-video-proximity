@@ -27,14 +27,24 @@ def delete_local_video(fileName):
 def list_recordings():
     videos = []
     pathdir = None
-    
+
     try:
-        for filename in os.listdir(configs.RECORDINGS_PATH):
-            videos.append(filename)
+        dirContent = os.listdir(configs.RECORDINGS_PATH)
+        if len(dirContent) == 0:
+            print('Size of dir:', len(dirContent))
+            # there is nothing in the folder while there should be at least test.txt
+            # --> could not read directory
+            raise
+        for filename in dirContent:
+            if filename.endswith('.h256'):
+                videos.append(filename)
         pathdir = configs.RECORDINGS_PATH
+        
     except:
-        for filename in os.listdir(configs.RECORDINGS_PATH_2):
-            videos.append(filename)
+        dirContent = os.listdir(configs.RECORDINGS_PATH_2)
+        for filename in dirContent:
+            if filename.endswith('.h256'):
+                videos.append(filename)
         pathdir = configs.RECORDINGS_PATH_2
 
     return videos, pathdir
