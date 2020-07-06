@@ -153,8 +153,10 @@ if __name__ == "__main__":
 
         logger.update_ix_logs()
 
-        if (datetime.now().hour == 23):
-            if (datetime.now()-uploadTimer).total_seconds() / 60 > 19:
+
+        #if (datetime.now().hour == 23):
+        if ((datetime.now()-uploadTimer).total_seconds() / 60) > 5:
+            #if (datetime.now()-uploadTimer).total_seconds() / 60 > 19:
                 # during this hour, only check 3 times if any videos to upload
                 logger.upload_recordings()
                 uploadTimer = datetime.now()
