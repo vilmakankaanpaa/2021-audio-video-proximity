@@ -6,7 +6,7 @@ import configs
 sys.excepthook = sys.__excepthook__
 
 def log_local(data, sheet):
-    print('Logging to local file:',sheet)
+    print(datetime.isoformat(datetime.now()),'Logging to local file:',sheet)
     with open(sheet, 'a', newline='') as logfile:
         logwriter = csv.writer(logfile, delimiter=',')
         for row in data:
@@ -27,24 +27,29 @@ def delete_local_video(fileName):
 def list_recordings():
     videos = []
     pathdir = None
+    
+    print('Listing recordings..')
 
     try:
         dirContent = os.listdir(configs.RECORDINGS_PATH)
         if len(dirContent) == 0:
-            print('Size of dir:', len(dirContent))
             # there is nothing in the folder while there should be at least test.txt
             # --> could not read directory
             raise
         for filename in dirContent:
-            if filename.endswith('.h256'):
+            print('Size of dir:', len(dirContent))
+            if filename.endswith('.h264'):
                 videos.append(filename)
         pathdir = configs.RECORDINGS_PATH
         
     except:
         dirContent = os.listdir(configs.RECORDINGS_PATH_2)
         for filename in dirContent:
-            if filename.endswith('.h256'):
+            if filename.endswith('.h264'):
                 videos.append(filename)
         pathdir = configs.RECORDINGS_PATH_2
+    
+    print(datetime.isoformat(datetime.now()), 'Path for videos:', pathdir)
+    print(datetime.isoformat(datetime.now()),'Videos:', videos)
 
     return videos, pathdir
