@@ -8,6 +8,7 @@ from audioplayer import AudioPlayer
 from videoplayer import VideoPlayer
 from logger import Logger
 from camera import Camera
+from filemanager import check_disk_space
 import configs
 
 sys.excepthook = sys.__excepthook__
@@ -86,6 +87,8 @@ if __name__ == "__main__":
     logger = Logger(pid)
     logger.log_program_run_info()
     logger.log_alive(start=True)
+    
+    diskTimer = datetime.now()
 
     while True:
 
@@ -152,10 +155,14 @@ if __name__ == "__main__":
                                         playingVideo, cameraIsRecording)
 
         logger.update_ix_logs()
-
-
-        #if (datetime.now().hour == 23):
-        if ((datetime.now()-uploadTimer).total_seconds() / 60) > 5:
+        
+        if (datetime.now() - diskTimer).total_seconds() > 10:
+            freeSpace = check_disk_space(configs.external_disk)
+            print(freeSpace)
+            diskTimer = datetime.now()
+        
+        if (datetime.now().hour == 23):
+            #if ((datetime.now()-uploadTimer).total_seconds() / 60) > 2:
             #if (datetime.now()-uploadTimer).total_seconds() / 60 > 19:
                 # during this hour, only check 3 times if any videos to upload
                 logger.upload_recordings()
