@@ -255,8 +255,8 @@ class Logger:
 
         data = self.sensors_temp
         if len(data) > 0:
-            print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                    'Updating sensor logs')
+            #print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            #        'Updating sensor logs')
             try:
                 self.test_ie_for_logging()
                 #print('Logging sensor data to drive.')

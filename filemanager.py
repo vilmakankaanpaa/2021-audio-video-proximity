@@ -87,9 +87,9 @@ def get_directory_for_recordings():
 def check_disk_space(disk):
     total, used, free = shutil.disk_usage(disk)
 
-    print("Total: %d GiB" % (total // (2**30)))
-    print("Used: %d GiB" % (used // (2**30)))
-    print("Free: %d GiB" % (free // (2**30)))
+    #print("Total: %d GiB" % (total // (2**30)))
+    #print("Used: %d GiB" % (used // (2**30)))
+    #print("Free: %d GiB" % (free // (2**30)))
 
     relative = free/total
 
