@@ -228,19 +228,32 @@ class DriveService:
         # in case the file would not be uploaded to your own folder that you
         # share with the service account, you need to make sure to grant access
         # to your own account
-        self._grant_permissions(file.get('id'), upload_details)
+        fileId = file.get('id')
+        permissionId = self._grant_permissions(fileId, upload_details['grantAccessTo'])
+        self._transfer_ownership(fileId, permissionId)
 
 
-    def _grant_permissions(self, fileId, metadata):
+    def _grant_permissions(self, fileId, userEmail):
         user_permission = {
             'type':'user',
             'role':'writer',
-            'emailAddress':metadata['grantAccessTo']
+            'emailAddress':userEmail
             }
-        self.drive_service.permissions().create(
+        permission = self.drive_service.permissions().create(
             fileId=fileId,body=user_permission,fields='id').execute()
-        #print('Gdrive: Permission to resource granted.')
+        return permission.get('id')
 
+
+    def _transfer_ownership(self,fileId,permissionId)
+        user_permission = {
+            'role':'owner'
+            }
+        permissionItem = self.drive_service.permissions().update(
+            fileId=fileId,
+            permissionId=permissionId,
+            body=user_permission,
+            transferOwnership=True).execute()
+        return permissionItem
 
     def log_to_drive(self, data, sheet):
 
