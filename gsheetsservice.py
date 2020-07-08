@@ -10,7 +10,7 @@ import configs
 
 sys.excepthook = sys.__excepthook__
 
-class DriveService:
+class SheetsService:
 
     def __init__(self):
 
@@ -23,20 +23,24 @@ class DriveService:
         self.nof_rows_left = 100
         self.quota_timer = datetime.now()
 
+        CLIENT_SECRET = "/home/pi/sakis-video-tunnel/client_secret.json"
         # use creds to create a client to interact with the Google Drive API
         SCOPES = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
-        self.creds = ServiceAccountCredentials.from_json_keyfile_name('client_secret.json', SCOPES)
+
+        self.creds = ServiceAccountCredentials.from_json_keyfile_name(CLIENT_SECRET, SCOPES)
 
         # Authorize access to Google Sheets
         print('Authorizing to google sheets..')
         self.client = gspread.authorize(self.creds)
         self.client.login()
 
-        # Authorize access to Google Drive
-        print('Authorizing to google drive..')
-        self.drive_service = build('drive', 'v3', http=self.creds.authorize(Http()))
         self._open_sheets()
         self._reset_sheets()
+
+        # Authorize access to Google Drive
+        #print('Authorizing to google drive..')
+        #self.drive_service = build('drive', 'v3', http=self.creds.authorize(Http()))
+
 
 
     def _reset_sheets(self):
@@ -74,12 +78,6 @@ class DriveService:
             self.client.login()
             self._open_sheets()
 
-    def _connect_drive(self):
-        if self.creds.access_token_expired:
-            print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                    'Access token had expired. Connecting to Google Drive.')
-            self.drive_service = build('drive', 'v3', http=self.creds.authorize(Http()))
-
 
     def _reduce_nof_rows_left(self, amount):
         self.nof_rows_left = (self.nof_rows_left - amount)
@@ -98,7 +96,65 @@ class DriveService:
             #print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
              #   'Quota updated to 100')
 
+    def log_to_drive(self, data, sheet):
 
+        #print('Gdrive: Logging to drive, to {}'.format(sheet))
+        rowLimit = self.nof_rows_left
+        #print('Rowlimit {}'.format(rowLimit))
+        if rowLimit == 0:
+            return data
+
+        dataToLog = data
+        truncated = False
+
+        if len(data) > rowLimit:
+            dataToLog = data[0:rowLimit]
+            truncated = True
+        #print('Data:', data)
+        #print('Datatolog:', dataToLog)
+
+        self._connect_sheets()
+
+        if sheet == 'ix':
+            for row in dataToLog:
+                self.ix_sheet.append_row(row)
+
+        elif sheet == 'alive':
+            for row in dataToLog:
+                self.alive_sheet.append_row(row)
+
+        elif sheet == 'progrun':
+            for row in dataToLog:
+                self.progrun_sheet.append_row(row)
+
+        elif sheet == 'sensors':
+            for row in dataToLog:
+                self.sensor_sheet.append_row(row)
+
+        elif sheet == 'status':
+            for row in dataToLog:
+                self.status_sheet.append_row(row)
+        else:
+            print('No such sheet defined')
+
+        self._reduce_nof_rows_left(len(dataToLog))
+
+        dataLeft = []
+        if truncated:
+            dataLeft = data[rowLimit:]
+        #print('Datarows left {}'.format(len(dataLeft)))
+
+        return dataLeft
+
+"""
+    def _connect_drive(self):
+        if self.creds.access_token_expired:
+            print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    'Access token had expired. Connecting to Google Drive.')
+            self.drive_service = build('drive', 'v3', http=self.creds.authorize(Http()))
+"""
+
+"""
     def create_new_folder(self, folderName):
 
         self._connect_drive()
@@ -252,53 +308,4 @@ class DriveService:
             body=user_permission,
             transferOwnership=True).execute()
         return permissionItem
-
-    def log_to_drive(self, data, sheet):
-
-        #print('Gdrive: Logging to drive, to {}'.format(sheet))
-        rowLimit = self.nof_rows_left
-        #print('Rowlimit {}'.format(rowLimit))
-        if rowLimit == 0:
-            return data
-
-        dataToLog = data
-        truncated = False
-
-        if len(data) > rowLimit:
-            dataToLog = data[0:rowLimit]
-            truncated = True
-        #print('Data:', data)
-        #print('Datatolog:', dataToLog)
-
-        self._connect_sheets()
-
-        if sheet == 'ix':
-            for row in dataToLog:
-                self.ix_sheet.append_row(row)
-
-        elif sheet == 'alive':
-            for row in dataToLog:
-                self.alive_sheet.append_row(row)
-
-        elif sheet == 'progrun':
-            for row in dataToLog:
-                self.progrun_sheet.append_row(row)
-
-        elif sheet == 'sensors':
-            for row in dataToLog:
-                self.sensor_sheet.append_row(row)
-
-        elif sheet == 'status':
-            for row in dataToLog:
-                self.status_sheet.append_row(row)
-        else:
-            print('No such sheet defined')
-
-        self._reduce_nof_rows_left(len(dataToLog))
-
-        dataLeft = []
-        if truncated:
-            dataLeft = data[rowLimit:]
-        #print('Datarows left {}'.format(len(dataLeft)))
-
-        return dataLeft
+"""

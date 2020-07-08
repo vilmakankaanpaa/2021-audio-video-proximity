@@ -5,7 +5,9 @@ import http.client as httplib
 from datetime import datetime, timedelta, date
 
 import configs
-from gdriveapi import DriveService
+from gsheetsservice import SheetsService
+from gdriveservice import DriveService
+from guploader import GUploader
 import filemanager
 
 sys.excepthook = sys.__excepthook__
@@ -32,8 +34,9 @@ class Logger:
         self.ix_recording = None
         self.ix_folder_today = None
 
+        #TODO update these
         self.gdrive = DriveService()
-
+        self.gsheets = SheetsService()
 
     def internet_connected(self):
 
@@ -51,14 +54,12 @@ class Logger:
                 conn.close()
                 raise e
 
-
     def log_g_fail(self, reason):
         print(datetime.now(), 'Logging to GDrive failed:', reason)
         filemanager.log_local(
             [[datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             'Logging to Google Drive failed.',
             reason]], sheet=configs.local_fail_log)
-
 
     def upload_logfiles(self):
 
@@ -70,30 +71,36 @@ class Logger:
 
         for file in logfiles:
             if os.path.exists(file):
-                self.gdrive.upload_general_file(file)
+                self.gdrive.upload_logfile(file)
                 filemanager.delete_local_file(file)
 
         duration = round((datetime.now() - uploadStartTime).total_seconds() / 60, 2)
+        #TODO change this
         self.log_status_info('Uploading logfiles duration {}'.format(duration))
-
+        # TEST
 
     def get_folder_id_today(self):
 
+        #TODO but is this reset every day?
         if self.ix_folder_today:
             return self.ix_folder_today
 
         dateToday = date.isoformat(date.today())
 
-        contents = self.gdrive.list_drive_contents()
+        content = self.gdrive.list_content()
 
         try:
-            folderId = contents[dateToday]
+            folderId = content[dateToday]
         except:
-            folderId = self.gdrive.create_new_folder(folderName=dateToday)
+            # TODO
+            # folderId = self.Guploader.create_folder(
+            #   folderName=dateToday, parentFolder=configs.GDRIVE_FOLDER_ID)
+            folderId = self.gdrive.create_folder(
+                        folderName=dateToday,
+                        parentFolder=configs.GDRIVE_FOLDER_ID)
 
         self.ix_folder_today = folderId
         return folderId
-
 
     def upload_recordings(self, max_nof_uploads=0):
 
@@ -138,7 +145,7 @@ class Logger:
             try:
                 #print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 #        'Uploading file {}'.format(filename))
-                self.gdrive.upload_video_file(filename, folderId)
+                self.gdrive.upload_recording(filename, folderId)
                 filemanager.delete_local_file(directory + filename)
 
             except Exception as e:
@@ -146,13 +153,15 @@ class Logger:
                 self.log_g_fail('{}'.format(type(e).__name__))
 
         duration = round((datetime.now() - uploadStartTime).total_seconds() / 60, 2)
+        # TODO change
         self.log_status_info('Uploading {} recordings duration {}'.format(until, duration))
-
+        # TEST
 
     def new_recording_name(self):
+
         self.ix_recording = self.ix_id + '_' + (self.ix_start).strftime("%Y-%m-%d_%H-%M")
         return self.ix_recording
-
+        # TODO, new order
 
     def test_ie_for_logging(self):
         try:
@@ -162,7 +171,6 @@ class Logger:
             self.log_g_fail(reason)
             raise
 
-
     def log_interaction_start(self):
 
         self.ix_id = str(uuid.uuid4())[0:6]
@@ -170,7 +178,6 @@ class Logger:
         self.ix_start = datetime.now()
 
         return self.ix_id
-
 
     def log_interaction_end(self):
 
@@ -194,7 +201,6 @@ class Logger:
         self.ix_start = None
         self.ix_recording = None
 
-
     def update_ix_logs(self):
 
         data = self.tempdata
@@ -203,12 +209,12 @@ class Logger:
                 self.test_ie_for_logging()
                 print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                         'Logging interaction to drive.')
-                self.tempdata = self.gdrive.log_to_drive(data, 'ix')
+                self.tempdata = self.gsheets.log_to_drive(data, 'ix')
 
             except Exception as e:
                 self.log_g_fail('{}'.format(type(e).__name__))
                 filemanager.log_local(data, sheet=configs.local_ix_log)
-
+        # TODO: less often
 
     def log_alive(self, start=False):
 
@@ -225,7 +231,7 @@ class Logger:
         try:
             self.test_ie_for_logging()
             #print('Logging alive to drive.')
-            data = self.gdrive.log_to_drive(data, 'alive')
+            data = self.gsheets.log_to_drive(data, 'alive')
 
             if len(data) > 0:
                 print('Could not upload program data due to too small quota.')
@@ -234,7 +240,7 @@ class Logger:
 
         except Exception as e:
             self.log_g_fail('{}'.format(type(e).__name__))
-
+        # TODO: is this still needed?
 
     def log_status_info(self, msg):
 
@@ -244,15 +250,14 @@ class Logger:
 
         try:
             self.test_ie_for_logging()
-            data = self.gdrive.log_to_drive(data, 'status')
+            data = self.gsheets.log_to_drive(data, 'status')
 
         except Exception as e:
             self.log_g_fail('{}'.format(type(e).__name__))
             filemanager.log_local(data, sheet=configs.local_status_log)
+        #TODO change whole method
 
-
-    def log_sensor_status(self, sensorsInRange, sensorVolts, playingAudio,
-                          playingVideo, cameraIsRecording, ixID=None):
+    def log_sensor_status(self, sensorsInRange, sensorVolts, playingAudio, playingVideo, cameraIsRecording, ixID=None):
 
         ixOngoing = False
         if ixID:
@@ -295,13 +300,13 @@ class Logger:
             try:
                 self.test_ie_for_logging()
                 #print('Logging sensor data to drive.')
-                self.sensors_temp = self.gdrive.log_to_drive(data, 'sensors')
+                self.sensors_temp = self.gsheets.log_to_drive(data, 'sensors')
                 self.sensorlog_timer = datetime.now()
 
             except Exception as e:
                 self.log_g_fail('{}'.format(type(e).__name__))
                 filemanager.log_local(data, sheet=configs.local_sensor_log)
-
+    #TODO: less often
 
     def log_program_run_info(self):
 
@@ -327,7 +332,7 @@ class Logger:
         try:
             self.test_ie_for_logging()
             #print('Logging progrum run info to drive.')
-            dataLeft = self.gdrive.log_to_drive(data, 'progrun')
+            dataLeft = self.gsheets.log_to_drive(data, 'progrun')
 
             if len(dataLeft) > 0:
                 print('Could not upload program data due to too small quota.')
