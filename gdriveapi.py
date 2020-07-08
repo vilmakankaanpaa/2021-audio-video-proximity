@@ -71,7 +71,6 @@ class DriveService:
         if self.creds.access_token_expired:
             print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                     'Access token had expired. Logging into Google Sheets.')
-            self.client = gspread.authorize(self.creds)
             self.client.login()
             self._open_sheets()
 
@@ -137,14 +136,29 @@ class DriveService:
             print('Deletion failed:', e)
 
 
+    def _delete_videos_in_drive(self):
+
+        contents = self.get_drive_contents()
+        videos = []
+        for resource in contents['files']:
+            name = resource['name']
+            id = resource['id']
+            if name.endswith('.h264'):
+                videos.append(id)
+
+        for vid in videos:
+            self.delete_drive_resource(vid)
+
+
     def get_drive_contents(self):
         # NOTE! Sometimes resources are not found because this lists the
         # content only in the first page – it might not be on the first page.
         # TODO: update it to do it
         self._connect_drive()
         results = self.drive_service.files().list(
-            pageSize=10, fields="nextPageToken, files(id, name)").execute()
+            pageSize=100, fields="nextPageToken, files(id, name)").execute()
         return results
+
 
     def list_drive_contents(self):
 
