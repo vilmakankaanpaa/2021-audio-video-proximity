@@ -173,44 +173,40 @@ class DriveService:
     def upload_video_file(self, fileName, folderId):
         # For purpose of uploading recordings
 
-        upload_details = {
-            'name':fileName,
-            'folderId': folderId,
-            'localFilePath': configs.RECORDINGS_PATH + fileName,
-            'grantAccessTo': configs.GDRIVE_USER_EMAIL
+        localFilePath = configs.RECORDINGS_PATH + fileName
+        file_metadata = {
+            'name': fileName,
+            'mimeType': 'application/vnd.google-apps.video',
+            'parents':[folderId]
             }
 
-        self._upload_file(upload_details)
+        self._upload_file(localFilePath, file_metadata)
 
 
     def upload_general_file(self, fileName):
         # For the purpose of uploading local log files like logfail.csv
 
-        upload_details = {
+        localFilePath = configs.root + fileName
+
+        file_metadata = {
             'name': datetime.now().strftime("%m-%d_%H-%M") + '_' + fileName,
-            'folderId': configs.GDRIVE_FOLDER_ID_LOGS,
-            'localFilePath': configs.root + fileName,
-            'grantAccessTo': configs.GDRIVE_USER_EMAIL
-        }
+            'mimeType': '*/*',
+            'parents':[configs.GDRIVE_FOLDER_ID_LOGS]
+            }
 
-        self._upload_file(upload_details)
+        fileId, permissionId = self._upload_file(localFilePath, file_metadata)
+        return fileId, permissionId
 
 
-    def _upload_file(self, upload_details):
+    def _upload_file(self, localFilePath, file_metadata):
         # general module to upload any file to specified folder in Google Drive
         # NOTE: the app needs to have shared access to that folder
 
         self._connect_drive()
 
-        file_metadata = {
-            'name': upload_details['name'],
-            'mimeType': '*/*',
-            'parents':[upload_details['folderId']]
-            }
-
         media = MediaFileUpload(
-            upload_details['localFilePath'],
-            mimetype='*/*'
+            localFilePath,
+            mimetype=file_metadata['mimeType']
             )
 
         try:
@@ -220,7 +216,7 @@ class DriveService:
                 fields='id').execute()
 
             print('Gdrive: Uploaded file {} with id {}.'.format(
-                    upload_details['name'], file.get('id')))
+                    file_metadata['name'], file.get('id')))
 
         except Exception as e:
             raise e
@@ -229,8 +225,10 @@ class DriveService:
         # share with the service account, you need to make sure to grant access
         # to your own account
         fileId = file.get('id')
-        permissionId = self._grant_permissions(fileId, upload_details['grantAccessTo'])
-        self._transfer_ownership(fileId, permissionId)
+        permissionId = self._grant_permissions(fileId, configs.GDRIVE_USER_EMAIL)
+        #self._transfer_ownership(fileId, permissionId)
+        # this deos not wokr because of some sharing settings in Aatlo GSuite service
+        return fileId, permissionId
 
 
     def _grant_permissions(self, fileId, userEmail):
@@ -244,7 +242,7 @@ class DriveService:
         return permission.get('id')
 
 
-    def _transfer_ownership(self,fileId,permissionId)
+    def _transfer_ownership(self,fileId,permissionId):
         user_permission = {
             'role':'owner'
             }
