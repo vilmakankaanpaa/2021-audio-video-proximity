@@ -31,6 +31,6 @@ STATUS_SHEET = 'status-log'
 TEST_PHASE = 'testing'
 
 # Google Drive API parameters for uploading listDriveFiles
-GDRIVE_FOLDER_ID = '15-VeIBr0SVHk2_aWBVe_F2UmiXJw0tr7'
-GDRIVE_FOLDER_ID_LOGS = '1fM7o2FK_5D_PxNM8PCx6b8cfGwPvBY86'
+GDRIVE_FOLDER_ID = '15-VeIBr0SVHk2_aWBVe_F2UmiXJw0tr7'  #recordings
+GDRIVE_FOLDER_ID_LOGS = '1fM7o2FK_5D_PxNM8PCx6b8cfGwPvBY86'  #local logs folder in drive
 GDRIVE_USER_EMAIL = 'vilma.kankaanpaa@aalto.fi' # to grant access for yourself for the uploaded file
