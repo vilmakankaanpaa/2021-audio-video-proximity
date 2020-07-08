@@ -22,16 +22,16 @@ class GUploader:
         # .athorize(httplib2.Http object)
         # .refresh(httplib2.Http object)
 
-        self.creds = store.get()
+        self.creds = self.store.get()
         if not self.creds or self.creds.invalid:
-            flow = client.flow_from_clientsecrets(CLIENT_SECRET, SCOPES)
-            self.creds = tools.run_flow(flow, store)
-        self.SERVICE = build('drive', 'v3', http=creds.authorize(Http()))
+            flow = client.flow_from_clientsecrets(CLIENT_SECRET, self.SCOPES)
+            self.creds = tools.run_flow(flow, self.store)
+        self.SERVICE = build('drive', 'v3', http=self.creds.authorize(Http()))
 
         #self.SS_SERVICE = build('sheets', 'v4', http=creds.authorize(Http()))
 
 
 def _connect_drive(self):
 
-    if self.creds.access_token_expired():
-        self.creds.refresh()
+    if self.creds.access_token_expired:
+        self.creds.refresh(Http())
