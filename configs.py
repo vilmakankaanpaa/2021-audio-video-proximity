@@ -20,6 +20,7 @@ local_ix_log = 'ix_log.csv'
 local_sensor_log = 'sensor_log.csv'
 local_program_log = 'progrun_log.csv'
 local_status_log = 'status_log.csv'
+local_printlog = 'printlog.csv'
 
 # Google sheets API parameters for logging data
 DOCNAME = 'Monkey-logs'

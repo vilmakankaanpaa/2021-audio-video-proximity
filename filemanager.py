@@ -8,6 +8,15 @@ import configs
 sys.excepthook = sys.__excepthook__
 
 
+def printlog(self, msg):
+
+    print(msg)
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    data = [[self.pid, timestamp, msg]]
+
+    self.log_local(data=data, sheet=configs.local_printlog)
+
+
 def log_local(data, sheet):
     print(datetime.isoformat(datetime.now()),'Logging to local file:',sheet)
     with open(sheet, 'a', newline='') as logfile:
