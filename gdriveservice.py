@@ -29,8 +29,119 @@ class DriveService:
             self.creds = tools.run_flow(flow, self.store)
         self.SERVICE = build('drive', 'v3', http=self.creds.authorize(Http()))
 
-        #self.SS_SERVICE = build('sheets', 'v4', http=creds.authorize(Http()))
+        ### Sheets
+        self.SS_SERVICE = build('sheets', 'v4', http=creds.authorize(Http()))
 
+        self.ix_sheet = None
+        self.alive_sheet = None
+        self.progrun_sheet = None
+        self.sensor_sheet = None
+        self.status_sheet = None
+
+        self.nof_rows_left = 100
+        self.quota_timer = datetime.now()
+
+        self._open_sheets()
+        self._reset_sheets()
+
+### Sheets
+    def _reset_sheets(self):
+        # reset sheet rows if empty (since rows are appended and default sheet
+        # already has empty rows)
+        if len(self.ix_sheet.get_all_values()) == 1:
+            self.ix_sheet.resize(rows=1,cols=8)
+
+        if len(self.progrun_sheet.get_all_values()) == 1:
+            self.progrun_sheet.resize(rows=1,cols=9)
+
+        if len(self.alive_sheet.get_all_values()) == 1:
+            self.alive_sheet.resize(rows=1,cols=2)
+
+        if len(self.sensor_sheet.get_all_values()) == 1:
+            self.sensor_sheet.resize(rows=1,cols=12)
+
+        if len(self.status_sheet.get_all_values()) == 1:
+            self.status_sheet.resize(rows=1, cols=3)
+
+
+    def _open_sheets(self):
+
+        print('Opening google sheets..')
+        self.ix_sheet = self.client.open(configs.DOCNAME).worksheet(configs.IX_SHEET)
+        self.alive_sheet = self.client.open(configs.DOCNAME).worksheet(configs.ALIVE_SHEET)
+        self.progrun_sheet = self.client.open(configs.DOCNAME).worksheet(configs.PROGRUN_SHEET)
+        self.sensor_sheet = self.client.open(configs.DOCNAME).worksheet(configs.SENSOR_SHEET)
+        self.status_sheet = self.client.open(configs.DOCNAME).worksheet(configs.STATUS_SHEET)
+
+
+    def _reduce_nof_rows_left(self, amount):
+        self.nof_rows_left = (self.nof_rows_left - amount)
+        if (self.nof_rows_left < 10):
+            print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'Only {} rows left!'.format(self.nof_rows_left))
+        return self.nof_rows_left
+
+
+    def check_quota_timer(self):
+        # reset log timer every 100s – quota for google is 100 requests per 100 seconds
+        diff = (datetime.now()-self.quota_timer).total_seconds()
+        if diff >= 100:
+            self.quota_timer = datetime.now()
+            self.nof_rows_left = 100
+            timeLeft = 0
+            #print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+             #   'Quota updated to 100')
+
+    def log_to_drive(self, data, sheet):
+
+        #print('Gdrive: Logging to drive, to {}'.format(sheet))
+        rowLimit = self.nof_rows_left
+        #print('Rowlimit {}'.format(rowLimit))
+        if rowLimit == 0:
+            return data
+
+        dataToLog = data
+        truncated = False
+
+        if len(data) > rowLimit:
+            dataToLog = data[0:rowLimit]
+            truncated = True
+        #print('Data:', data)
+        #print('Datatolog:', dataToLog)
+
+        self._check_connection()
+
+        if sheet == 'ix':
+            for row in dataToLog:
+                self.ix_sheet.append_row(row)
+
+        elif sheet == 'alive':
+            for row in dataToLog:
+                self.alive_sheet.append_row(row)
+
+        elif sheet == 'progrun':
+            for row in dataToLog:
+                self.progrun_sheet.append_row(row)
+
+        elif sheet == 'sensors':
+            for row in dataToLog:
+                self.sensor_sheet.append_row(row)
+
+        elif sheet == 'status':
+            for row in dataToLog:
+                self.status_sheet.append_row(row)
+        else:
+            print('No such sheet defined')
+
+        self._reduce_nof_rows_left(len(dataToLog))
+
+        dataLeft = []
+        if truncated:
+            dataLeft = data[rowLimit:]
+        #print('Datarows left {}'.format(len(dataLeft)))
+
+        return dataLeft
+
+### Drive
 
     def _check_connection(self):
 
