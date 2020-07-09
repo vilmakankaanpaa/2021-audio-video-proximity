@@ -1,4 +1,4 @@
-import sys
+SS_SERVICEimport sys
 from apiclient.discovery  import build
 from httplib2 import Http
 from apiclient.http import MediaFileUpload
@@ -30,7 +30,7 @@ class DriveService:
         self.SERVICE = build('drive', 'v3', http=self.creds.authorize(Http()))
 
         ### Sheets
-        self.SS_SERVICE = build('sheets', 'v4', http=creds.authorize(Http()))
+        self.SS_SERVICE = build('sheets', 'v4', http=self.creds.authorize(Http()))
 
         self.ix_sheet = None
         self.alive_sheet = None
@@ -67,11 +67,11 @@ class DriveService:
     def _open_sheets(self):
 
         print('Opening google sheets..')
-        self.ix_sheet = self.client.open(configs.DOCNAME).worksheet(configs.IX_SHEET)
-        self.alive_sheet = self.client.open(configs.DOCNAME).worksheet(configs.ALIVE_SHEET)
-        self.progrun_sheet = self.client.open(configs.DOCNAME).worksheet(configs.PROGRUN_SHEET)
-        self.sensor_sheet = self.client.open(configs.DOCNAME).worksheet(configs.SENSOR_SHEET)
-        self.status_sheet = self.client.open(configs.DOCNAME).worksheet(configs.STATUS_SHEET)
+        self.ix_sheet = self.SS_SERVICE.open(configs.DOCNAME).worksheet(configs.IX_SHEET)
+        self.alive_sheet = self.SS_SERVICE.open(configs.DOCNAME).worksheet(configs.ALIVE_SHEET)
+        self.progrun_sheet = self.SS_SERVICE.open(configs.DOCNAME).worksheet(configs.PROGRUN_SHEET)
+        self.sensor_sheet = self.SS_SERVICE.open(configs.DOCNAME).worksheet(configs.SENSOR_SHEET)
+        self.status_sheet = self.SS_SERVICE.open(configs.DOCNAME).worksheet(configs.STATUS_SHEET)
 
 
     def _reduce_nof_rows_left(self, amount):
