@@ -32,135 +32,135 @@ class DriveService:
         #self.SS_SERVICE = build('sheets', 'v4', http=creds.authorize(Http()))
 
 
-def _check_connection(self):
+    def _check_connection(self):
 
-    if self.creds.access_token_expired:
-        self.creds.refresh(Http())
-        # do I need to build again?)
+        if self.creds.access_token_expired:
+            self.creds.refresh(Http())
+            # do I need to build again?)
 
-def _upload_file(self, localFilePath, metadata):
-    # general module to upload any file to specified folder in Google Drive
+    def _upload_file(self, localFilePath, metadata):
+        # general module to upload any file to specified folder in Google Drive
 
-    self._check_connection()
+        self._check_connection()
 
-    media = MediaFileUpload(
-        localFilePath,
-        mimetype=metadata['mimeType']
-        )
+        media = MediaFileUpload(
+            localFilePath,
+            mimetype=metadata['mimeType']
+            )
 
-    try:
-        file = self.SERVICE.files().create(
-            body=metadata,
-            media_body=media,
-            fields='id'
-            ).execute()
-
-    except Exception as e:
-        print('Gdrive: error in uploading:', e)
-        raise e
-
-    fileId = file.get('id')
-
-    print('Gdrive: Uploaded file {} of type {} with id {}.'.format(
-            metadata['name'], metadata['mimeType'], fileId))
-
-    return fileId
-
-
-def create_folder(self, folderName, parentFolder):
-
-    self._check_connection()
-
-    if not parentFolder:
-        metadata = {
-            'name': folderName,
-            'mimeType': 'application/vnd.google-apps.folder',
-            }
-
-    else:
-        metadata = {
-            'name': folderName,
-            'mimeType': 'application/vnd.google-apps.folder',
-            'parents': [parentFolder]
-            }
-
-    try:
-        folder = self.SERVICE.files().create(
+        try:
+            file = self.SERVICE.files().create(
                 body=metadata,
+                media_body=media,
                 fields='id'
-            ).execute()
+                ).execute()
 
-    except Exception as e:
-        print(e)
-        raise e
+        except Exception as e:
+            print('Gdrive: error in uploading:', e)
+            raise e
 
-    print(datetime.isoformat(datetime.now()),
-            'Gdrive: Created folder {} with id {}.'.format(
-                metadata['name'], folder.get('id')))
+        fileId = file.get('id')
 
-    return folder.get('id')
+        print('Gdrive: Uploaded file {} of type {} with id {}.'.format(
+                metadata['name'], metadata['mimeType'], fileId))
+
+        return fileId
 
 
-def list_content(self):
+    def create_folder(self, folderName, parentFolder=None):
 
-    # NOTE! Sometimes resources are not found because this lists the
-    # content only in the first page – it might not be on the first page.
-    # TODO: update it to do it
-    # TODO: it does not list folders now?
-    self._check_connection()
-    results = self.SERVICE.files().list(
-            pageSize=, fields="nextPageToken, files(id, name)").execute()
-    content = {}
-    for item in results['files']:
-        content[item['name']] = content['id']
+        self._check_connection()
 
-    return content
+        if not parentFolder:
+            metadata = {
+                'name': folderName,
+                'mimeType': 'application/vnd.google-apps.folder',
+                }
 
-def upload_recording(self, fileName, parentFolderId):
-    # Upload video file from the local camera-records folder
+        else:
+            metadata = {
+                'name': folderName,
+                'mimeType': 'application/vnd.google-apps.folder',
+                'parents': [parentFolder]
+                }
 
-    localFilePath = configs.RECORDINGS_PATH + fileName
-    metadata = {
-        'name': fileName,
-        'mimeType': '*/*', # for some reason did not work with 'application/vnd.google-apps.video'
-        'parents':[parentFolderId]
-        }
+        try:
+            folder = self.SERVICE.files().create(
+                    body=metadata,
+                    fields='id'
+                ).execute()
 
-    fileId = self._upload_file(localFilePath, metadata)
+        except Exception as e:
+            print(e)
+            raise e
 
-def upload_logfile(self, fileName):
-    # Upload local logfile to drive from dir sakis-video-tunnel
-    # to google drive folder 'Local log files'
+        print(datetime.isoformat(datetime.now()),
+                'Gdrive: Created folder {} with id {}.'.format(
+                    metadata['name'], folder.get('id')))
 
-    localFilePath = configs.root + fileName
+        return folder.get('id')
 
-    metadata = {
-        'name': datetime.now().strftime("%m-%d_%H-%M") + '_' + fileName,
-        'mimeType': '*/*',
-        'parents': [configs.GDRIVE_FOLDER_ID_LOGS]
-        }
 
-    fileId = self._upload_file(localFilePath, metadata)
+    def list_content(self):
 
-def delete_resource(self, resourceId):
+        # NOTE! Sometimes resources are not found because this lists the
+        # content only in the first page – it might not be on the first page.
+        # TODO: update it to do it
+        # TODO: it does not list folders now?
+        self._check_connection()
+        results = self.SERVICE.files().list(
+                pageSize=1000, fields="nextPageToken, files(id, name)").execute()
+        content = {}
+        for item in results['files']:
+            content[item['name']] = item['id']
 
-    self._check_connection()
+        return content
 
-    try:
-        self.SERVICE.files().delete(fileId=resourceId).execute()
-        print('Gdrive: Deleted resource with id {}'.format(resourceId))
+    def upload_recording(self, fileName, parentFolderId):
+        # Upload video file from the local camera-records folder
 
-    except Exception as e:
-        print('Deletion failed:', e)
+        localFilePath = configs.RECORDINGS_PATH + fileName
+        metadata = {
+            'name': fileName,
+            'mimeType': '*/*', # for some reason did not work with 'application/vnd.google-apps.video'
+            'parents':[parentFolderId]
+            }
 
-def delete_videos(self):
+        fileId = self._upload_file(localFilePath, metadata)
 
-    content = self.list_content()
-    videoIds = []
-    for file in content:
-        if file.endswith('.h264'):
-            id = content[file]
-            videoIds.append(id)
+    def upload_logfile(self, fileName):
+        # Upload local logfile to drive from dir sakis-video-tunnel
+        # to google drive folder 'Local log files'
 
-    for vid in videoIds:
-        self.delete_drive_resource(vid)
+        localFilePath = configs.root + fileName
+
+        metadata = {
+            'name': datetime.now().strftime("%m-%d_%H-%M") + '_' + fileName,
+            'mimeType': '*/*',
+            'parents': [configs.GDRIVE_FOLDER_ID_LOGS]
+            }
+
+        fileId = self._upload_file(localFilePath, metadata)
+
+    def delete_resource(self, resourceId):
+
+        self._check_connection()
+
+        try:
+            self.SERVICE.files().delete(fileId=resourceId).execute()
+            print('Gdrive: Deleted resource with id {}'.format(resourceId))
+
+        except Exception as e:
+            print('Deletion failed:', e)
+
+    def delete_videos(self):
+
+        content = self.list_content()
+        videoIds = []
+        for file in content:
+            if file.endswith('.h264'):
+                id = content[file]
+                videoIds.append(id)
+
+        for vid in videoIds:
+            self.delete_drive_resource(vid)
