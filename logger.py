@@ -2,13 +2,13 @@ import sys
 import os
 import uuid
 import http.client as httplib
-from datetime import datetime, timedelta, date
+from datetime import datetime, date
 
 import configs
+import filemanager
+from filemanager import printlog
 from gsheetsservice import SheetsService
 from gdriveservice import DriveService
-from guploader import GUploader
-import filemanager
 
 sys.excepthook = sys.__excepthook__
 
@@ -19,22 +19,21 @@ class Logger:
         # program run id to match data from same run easily
         self.pid = str(pid) + str(uuid.uuid4())[0:4]
 
+        # Timer for counting how often data from sensors is logged
         self.sensorlog_timer = datetime.now()
-        self.quota_timer = datetime.now()
-        self.alivelog_timer = datetime.now()
+        # Timer for how often internet is being checked
         self.ie_check_timer = datetime.now()
 
-        self.max_nof_rows = 100
-        self.tempdata = []
-        self.sensors_temp = []
+        self.ix_tempdata = []
+        self.sensors_tempdata = []
 
+        # Info on ongoing interaction with the tunnel
         self.ix_id = None
         self.ix_date = None
         self.ix_start = None
         self.ix_recording = None
-        self.ix_folder_today = None
+        self.ix_folder_today = {}
 
-        #TODO update these
         self.gdrive = DriveService()
         self.gsheets = SheetsService()
 
@@ -42,8 +41,7 @@ class Logger:
 
         diff = int((datetime.now() - self.ie_check_timer).total_seconds())
         if (diff > (4*60)): # every four minutes max
-            print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                    'Checking internet.')
+            printlog('Logger','Checking internet...')
             self.ie_check_timer = datetime.now()
             conn = httplib.HTTPConnection("www.google.fi", timeout=2)
             try:
@@ -54,53 +52,55 @@ class Logger:
                 conn.close()
                 raise e
 
-    def log_g_fail(self, reason):
-        print(datetime.now(), 'Logging to GDrive failed:', reason)
-        filemanager.log_local(
-            [[datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            'Logging to Google Drive failed.',
-            reason]], sheet=configs.local_fail_log)
-
     def upload_logfiles(self):
 
-        logfiles = [configs.local_fail_log, configs.local_ix_log,
-                configs.local_sensor_log, configs.local_program_log,
-                configs.local_status_log]
+        logfiles = [
+                configs.local_ix_log,
+                configs.local_sensor_log,
+                configs.local_program_log
+                ]
 
-        uploadStartTime = datetime.now()
+        try:
+            self.internet_connected()
+        except:
+            printlog('Logger','ERROR: No internet – could not upload logfiles.')
+            return
+
+        startTime = datetime.now()
 
         for file in logfiles:
             if os.path.exists(file):
-                self.gdrive.upload_logfile(file)
-                filemanager.delete_local_file(file)
+                try:
+                    self.gdrive.upload_logfile(fileName=file)
+                    filemanager.delete_local_file(path=file)
+                except Exception as e:
+                    printlog('Logger','ERROR: Could not upload logfile: {}'.format(
+                                type(e).__name__))
 
-        duration = round((datetime.now() - uploadStartTime).total_seconds() / 60, 2)
-        #TODO change this
-        self.log_status_info('Uploading logfiles duration {}'.format(duration))
-        # TEST
+        duration = round((datetime.now() - startTime).total_seconds() / 60, 2)
+        printlog('Logger','Uploaded local files. Duration: {}'.format(duration))
 
     def get_folder_id_today(self):
 
-        #TODO but is this reset every day?
-        if self.ix_folder_today:
-            return self.ix_folder_today
-
         dateToday = date.isoformat(date.today())
 
-        content = self.gdrive.list_content()
+        if dateToday in self.ix_folder_today:
+            folderId = ix_folder_today[dateToday]
+            print('FolderId today ({}): {}'.format(dateToday, folderid))
+            return folderId
+
+        _, folders = self.gdrive.list_content()
 
         try:
-            folderId = content[dateToday]
+            folderId = folders[dateToday]
         except:
-            # TODO
-            # folderId = self.Guploader.create_folder(
-            #   folderName=dateToday, parentFolder=configs.GDRIVE_FOLDER_ID)
             folderId = self.gdrive.create_folder(
                         folderName=dateToday,
                         parentFolder=configs.GDRIVE_FOLDER_ID)
 
-        self.ix_folder_today = folderId
+        self.ix_folder_today[dateToday] = folderId
         return folderId
+        #TEST
 
     def upload_recordings(self, max_nof_uploads=0):
 
@@ -110,65 +110,55 @@ class Logger:
         # an issue since there wont be that many videos..
 
         if nof_records == 0:
-            print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                    'No recordings to upload.')
+            printlog('Logger','No recordings to upload.')
             return
 
         try:
             self.internet_connected()
         except:
-            print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                 'Not connected to internet, could not upload files.')
-            reason = "Could not upload video files, no internet."
-            self.log_g_fail(reason)
+            printlog('Logger','ERROR: No internet – could not upload files.')
             return
 
         folderId = self.get_folder_id_today()
         uploadedFiles = []
         records, directory = filemanager.list_recordings()
 
-        until = len(records)
+        MAX = len(records)
         if max_nof_uploads > 0:
-            until = max_nof_uploads
+            MAX = max_nof_uploads
 
-        uploadStartTime = datetime.now()
+        startTime = datetime.now()
 
-        for i in range(until):
-
-            filename = records[i]
-
-            if filename == self.ix_recording:
+        i = 0
+        for filename in records:
+            if i == MAX:
+                break
+            if filename != self.ix_recording:
                 # skip if currently being recorded!
-                ++i
-                filename = records[i]
+                try:
+                    self.gdrive.upload_recording(filename, folderId)
+                    filemanager.delete_local_file(directory + filename)
+                    ++i
+                except Exception as e:
+                    printlog('Logger','ERROR: Could not upload file: {}'.format(
+                                type(e).__name__))
 
-            try:
-                #print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                #        'Uploading file {}'.format(filename))
-                self.gdrive.upload_recording(filename, folderId)
-                filemanager.delete_local_file(directory + filename)
-
-            except Exception as e:
-                print('Could not upload file: {}'.format(e))
-                self.log_g_fail('{}'.format(type(e).__name__))
-
-        duration = round((datetime.now() - uploadStartTime).total_seconds() / 60, 2)
-        # TODO change
-        self.log_status_info('Uploading {} recordings duration {}'.format(until, duration))
+        duration = round((datetime.now() - startTime).total_seconds() / 60, 2)
+        printlog('Logger','Uploaded {} recordings, duration {}'.format(
+                    MAX, duration))
         # TEST
 
     def new_recording_name(self):
 
-        self.ix_recording = self.ix_id + '_' + (self.ix_start).strftime("%Y-%m-%d_%H-%M")
+        self.ix_recording = (self.ix_start).strftime(
+                                "%Y-%m-%d_%H-%M") + '_' + self.ix_id
         return self.ix_recording
-        # TODO, new order
 
     def test_ie_for_logging(self):
         try:
             self.internet_connected()
         except:
-            reason = "No internet."
-            self.log_g_fail(reason)
+            printlog('Logger','ERROR: No internet – could not log to sheets.')
             raise
 
     def log_interaction_start(self):
@@ -193,7 +183,7 @@ class Logger:
         data = [self.pid, ID, date, startime.strftime("%Y-%m-%d %H:%M:%S"),
             endtime.strftime("%Y-%m-%d %H:%M:%S"), duration, phase, video]
 
-        self.tempdata.append(data)
+        self.ix_tempdata.append(data)
 
         # reset
         self.ix_id = None
@@ -201,61 +191,18 @@ class Logger:
         self.ix_start = None
         self.ix_recording = None
 
-    def update_ix_logs(self):
+    def upload_ix_logs(self):
 
-        data = self.tempdata
+        data = self.ix_tempdata
         if (len(data) > 0):
             try:
                 self.test_ie_for_logging()
-                print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                        'Logging interaction to drive.')
-                self.tempdata = self.gsheets.log_to_drive(data, 'ix')
-
+                printlog('Logger','Uploading interaction logs to sheets.')
+                self.ix_tempdata = self.gsheets.log_to_drive(data, 'ix')
             except Exception as e:
-                self.log_g_fail('{}'.format(type(e).__name__))
+                printlog('Logger','ERROR: Could not upload ix data: {}'.format(
+                            type(e).__name__))
                 filemanager.log_local(data, sheet=configs.local_ix_log)
-        # TODO: less often
-
-    def log_alive(self, start=False):
-
-        timeDiff = (datetime.now() - self.alivelog_timer).total_seconds() / 60
-        if timeDiff < 5 and not start: # log every 5 minutes
-            return
-
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        data = [self.pid, timestamp]
-        data = [data] # for gdrive.logToDrive this needs to be in [[row1],[row2],..] format
-
-        print(timestamp,'Pinging alive.')
-
-        try:
-            self.test_ie_for_logging()
-            #print('Logging alive to drive.')
-            data = self.gsheets.log_to_drive(data, 'alive')
-
-            if len(data) > 0:
-                print('Could not upload program data due to too small quota.')
-            else:
-                self.alivelog_timer = datetime.now()
-
-        except Exception as e:
-            self.log_g_fail('{}'.format(type(e).__name__))
-        # TODO: is this still needed?
-
-    def log_status_info(self, msg):
-
-        print(msg)
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        data = [[self.pid, timestamp, msg]]
-
-        try:
-            self.test_ie_for_logging()
-            data = self.gsheets.log_to_drive(data, 'status')
-
-        except Exception as e:
-            self.log_g_fail('{}'.format(type(e).__name__))
-            filemanager.log_local(data, sheet=configs.local_status_log)
-        #TODO change whole method
 
     def log_sensor_status(self, sensorsInRange, sensorVolts, playingAudio, playingVideo, cameraIsRecording, ixID=None):
 
@@ -267,8 +214,10 @@ class Logger:
 
         # log only at these intervals
         if not ixOngoing and (passedTime / 60 < 5) :
+            # Every 5 minutes when not active
             return
         elif ixOngoing and passedTime < 1:
+            # Every second when active
             return
 
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -284,34 +233,28 @@ class Logger:
         #for i in range(3):
         #    print(sensorsInRange[i], sensorVolts[i])
 
-        self.sensors_temp.append(
+        self.sensors_tempdata.append(
             [self.pid, ixID, timestamp, sensor1_r, sensor1_v, sensor2_r, sensor2_v,
              sensor3_r, sensor3_v, playingAudio, playingVideo, cameraIsRecording])
+        self.sensorlog_timer = datetime.now()
 
-        self.update_sensor_logs()
+    def upload_sensor_logs(self):
 
-
-    def update_sensor_logs(self):
-
-        data = self.sensors_temp
+        data = self.sensors_tempdata
         if len(data) > 0:
-            print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                    'Updating sensor logs')
             try:
                 self.test_ie_for_logging()
-                #print('Logging sensor data to drive.')
-                self.sensors_temp = self.gsheets.log_to_drive(data, 'sensors')
-                self.sensorlog_timer = datetime.now()
+                printlog('Logger','Uploading sensor logs to sheets.')
+                self.sensors_tempdata = self.gsheets.log_to_drive(data, 'sensors')
 
             except Exception as e:
-                self.log_g_fail('{}'.format(type(e).__name__))
+                printlog('Logger','ERROR: Could not upload sensor data: {}'.format(
+                            type(e).__name__))
                 filemanager.log_local(data, sheet=configs.local_sensor_log)
-    #TODO: less often
 
     def log_program_run_info(self):
 
-        # not testing for log interval because only done in beginning of
-        # program run - these details wond change
+        # Logged only once in the start of monkeytunnel.py
 
         print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'Logging program run info.')
 
@@ -326,17 +269,16 @@ class Logger:
             configs.USE_AUDIO,
             configs.AUDIO_PATH,
             configs.RECORDING_ON]
-
-        data = [data] # for gdrive.logToDrive this needs to be in [[row1],[row2],..] format
+        # for gdrive.log_to_drive this needs to be in format
+        # list(lists); [[row1],[row2],..]
+        data = [data]
 
         try:
             self.test_ie_for_logging()
-            #print('Logging progrum run info to drive.')
+            printlog('Logger','Logging program run info to sheets.')
             dataLeft = self.gsheets.log_to_drive(data, 'progrun')
 
-            if len(dataLeft) > 0:
-                print('Could not upload program data due to too small quota.')
-
         except Exception as e:
-            self.log_g_fail('{}'.format(type(e).__name__))
+            printlog('Logger','ERROR: Could not log program status: {}'.format(
+                            type(e).__name__))
             filemanager.log_local(data, sheet=configs.local_program_log)
