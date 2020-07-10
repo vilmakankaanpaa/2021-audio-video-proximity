@@ -209,7 +209,7 @@ if __name__ == "__main__":
         if (datetime.now() - uploadData_timer).total_seconds() / 60 > 10:
             printlog('Main','Uploading data from logs..')
             logger.upload_ix_logs()
-            self.upload_sensor_logs()
+            logger.upload_sensor_logs()
             uploadData_timer = datetime.now()
 
         # Check disk space every 5 minutes

@@ -252,7 +252,6 @@ class Logger:
     def log_program_run_info(self):
 
         # Logged only once in the start of monkeytunnel.py
-        printlog('Logger','Logging program run info.')
 
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         data = [
