@@ -3,16 +3,17 @@ import os
 import csv
 import shutil
 from datetime import datetime
+
+# Local source
 import configs
 
 sys.excepthook = sys.__excepthook__
 
-
-def printlog(self, msg):
+def printlog(msg, srcfile):
 
     print(msg)
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    data = [[self.pid, timestamp, msg]]
+    data = [[self.pid, timestamp, srcfile, msg]]
 
     self.log_local(data=data, sheet=configs.local_printlog)
 
