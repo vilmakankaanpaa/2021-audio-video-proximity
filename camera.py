@@ -2,8 +2,6 @@
 # https://projects.raspberrypi.org/en/projects/getting-started-with-picamera/4
 from picamera import PiCamera
 from time import sleep
-import filemanager
-
 
 class Camera():
 
@@ -17,14 +15,10 @@ class Camera():
         return self.recording
 
 
-    def start_recording(self, videoName):
+    def start_recording(self, videoName, directory):
         # this will determine whether the usb can be opened
-        pathdir = filemanager.get_directory_for_recordings()
-
-        self.camera.start_recording(pathdir + videoName + '.h264')
+        self.camera.start_recording(directory + videoName + '.h264')
         self.recording = True
-
-        return pathdir
 
 
     def stop_recording(self):

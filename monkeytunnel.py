@@ -161,16 +161,21 @@ if __name__ == "__main__":
             ixID = logger.ix_id
             if not ixID:
                 ixID = logger.log_interaction_start()
+                printlog('Main','Interaction started.')
 
             if recordingOn and not cameraIsRecording:
                 fileName = logger.new_recording_name()
-                camDirectory = camera.start_recording(fileName)
+                camDirectory = filemanager.get_directory_for_recordings()
+                camera.start_recording(fileName, camDirectory)
+                printlog('Main','Camera started recording.')
 
             if usingAudio and not playingAudio:
                 audioPlayer.play_audio()
+                printlog('Main','Audio started playing.')
 
             if usingVideo and not playingVideo:
                 videoPlayer.play_video()
+                printlog('Main','Video started playing.')
 
             logger.log_sensor_status(sensorsInRange, sensorVolts, playingAudio,
                                         playingVideo, cameraIsRecording, ixID)
@@ -179,15 +184,19 @@ if __name__ == "__main__":
 
             if recordingOn and cameraIsRecording:
                 camera.stop_recording()
+                printlog('Main','Camera stopped recording.')
 
             if usingAudio and playingAudio:
                 audioPlayer.pause_audio()
+                printlog('Main','Audio stopped playing.')
 
             if usingVideo and playingVideo:
                 videoPlayer.pause_video()
+                printlog('Main','Video stopped playing.')
 
             if logger.ix_id:
                 logger.log_interaction_end()
+                printlog('Main','Interaction ended.')
 
             logger.log_sensor_status(sensorsInRange, sensorVolts, playingAudio,
                                         playingVideo, cameraIsRecording)
@@ -198,6 +207,7 @@ if __name__ == "__main__":
         # was done and this slowed down the program a lot. So in case happening,
         # it will be done less often
         if (datetime.now() - uploadData_timer).total_seconds() / 60 > 10:
+            printlog('Main','Uploading data from logs..')
             logger.upload_ix_logs()
             self.upload_sensor_logs()
             uploadData_timer = datetime.now()
