@@ -86,7 +86,6 @@ class Logger:
 
         if dateToday in self.ix_folder_today:
             folderId = self.ix_folder_today[dateToday]
-            print('FolderId today ({}): {}'.format(dateToday, folderid))
             return folderId
 
         _, folders = self.gdrive.list_content()
