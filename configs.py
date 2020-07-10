@@ -15,23 +15,19 @@ RECORDINGS_PATH = external_disk + 'camera-records/'
 RECORDINGS_PATH_2 = root + 'camera-records/'
 
 # local logfile names
-local_fail_log = 'fail_log.csv'
-local_ix_log = 'ix_log.csv'
-local_sensor_log = 'sensor_log.csv'
-local_program_log = 'progrun_log.csv'
-local_status_log = 'status_log.csv'
+local_ix_log = 'ix_backup.csv'
+local_sensor_log = 'sensor_backup.csv'
+local_program_log = 'progrun_backup.csv'
 local_printlog = 'printlog.csv'
 
 # Google sheets API parameters for logging data
 DOCNAME = 'Monkey-logs'
 IX_SHEET = 'main-logs'
-ALIVE_SHEET = 'alive-logs'
 PROGRUN_SHEET = 'prog-run-logs'
 SENSOR_SHEET = 'sensor-logs'
-STATUS_SHEET = 'status-log'
+
 TEST_PHASE = 'testing'
 
 # Google Drive API parameters for uploading listDriveFiles
-GDRIVE_FOLDER_ID = '15-VeIBr0SVHk2_aWBVe_F2UmiXJw0tr7'  #recordings
-GDRIVE_FOLDER_ID_LOGS = '1fM7o2FK_5D_PxNM8PCx6b8cfGwPvBY86'  #local logs folder in drive
-GDRIVE_USER_EMAIL = 'vilma.kankaanpaa@aalto.fi' # to grant access for yourself for the uploaded file
+GDRIVE_FOLDER_ID = '15-VeIBr0SVHk2_aWBVe_F2UmiXJw0tr7'  #"Recordings"
+GDRIVE_FOLDER_ID_LOGS = '1fM7o2FK_5D_PxNM8PCx6b8cfGwPvBY86'  #"Local logs" folder in drive
