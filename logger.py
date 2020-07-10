@@ -100,7 +100,6 @@ class Logger:
         self.ix_folder_today[dateToday] = folderId
         return folderId
 
-
     def upload_recordings(self, max_nof_uploads=0):
 
         nof_records = filemanager.nof_recordings()
@@ -145,7 +144,6 @@ class Logger:
         duration = round((datetime.now() - startTime).total_seconds() / 60, 2)
         printlog('Logger','Uploaded {} recordings, duration {}'.format(
                     MAX, duration))
-        # TEST
 
     def new_recording_name(self):
 
