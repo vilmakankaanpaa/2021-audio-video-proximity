@@ -1,5 +1,5 @@
 # program run settings
-TEST_PHASE = 'testing'
+TEST_PHASE = '1-no-video'
 USE_AUDIO = False
 USE_VIDEO = True
 VIDEO_AUDIO_ON = False # audio of the video file
