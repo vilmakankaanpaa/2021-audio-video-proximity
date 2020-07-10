@@ -1,4 +1,5 @@
 # program run settings
+TEST_PHASE = 'testing'
 USE_AUDIO = False
 USE_VIDEO = True
 VIDEO_AUDIO_ON = False # audio of the video file
@@ -10,7 +11,7 @@ external_disk = '/mnt/kingston/'
 
 # paths to use
 AUDIO_PATH = 'None'
-VIDEO_PATH = root + 'video/test_video_1.mp4'
+VIDEO_PATH = root + 'video/black.mp4'
 RECORDINGS_PATH = external_disk + 'camera-records/'
 RECORDINGS_PATH_2 = root + 'camera-records/'
 
@@ -25,8 +26,6 @@ DOCNAME = 'Monkey-logs'
 IX_SHEET = 'main-logs'
 PROGRUN_SHEET = 'prog-run-logs'
 SENSOR_SHEET = 'sensor-logs'
-
-TEST_PHASE = 'testing'
 
 # Google Drive API parameters for uploading listDriveFiles
 GDRIVE_FOLDER_ID = '15-VeIBr0SVHk2_aWBVe_F2UmiXJw0tr7'  #"Recordings"
