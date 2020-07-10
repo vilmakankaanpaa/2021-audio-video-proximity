@@ -41,10 +41,10 @@ def update_sensor_reading(monkeyDetected, thresholdReading, anyInRange, threshol
             --thresholdReading
 
     if thresholdReading > threshold and not monkeyDetected:
-        printlog('Main','Monkey came in!'')
+        printlog('Main','Monkey came in!')
         monkeyDetected = True
     elif thresholdReading < threshold and monkeyDetected:
-        printlog('Main','All monkeys left. :('')
+        printlog('Main','All monkeys left. :(')
         monkeyDetected = False
     else:
         # don't do anything yet, keep values same
