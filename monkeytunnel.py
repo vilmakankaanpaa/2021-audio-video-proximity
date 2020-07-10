@@ -209,19 +209,19 @@ if __name__ == "__main__":
 
         timeSinceIx = (datetime.now() - ix_timer).total_seconds() / 60
 
-        # Upload log data to Sheets every 5 minutes
+        # Upload log data to Sheets every 6 minutes
         # Sometimes the Google Sheets kept logging in every time logging
         # was done and this slowed down the program a lot. So in case happening,
         # it will be done less often
-        if (datetime.now() - uploadData_timer).total_seconds() / 60 > 5:
+        if (datetime.now() - uploadData_timer).total_seconds() / 60 > 6:
             if not logger.ix_id and timeSinceIx > 1:
                 printlog('Main','Uploading data from logs..')
                 logger.upload_ix_logs()
                 logger.upload_sensor_logs()
                 uploadData_timer = datetime.now()
 
-        # Check disk space every 5 minutes
-        if (datetime.now() - checkSpace_timer).total_seconds() / 60 > 5:
+        # Check disk space every 4 minutes
+        if (datetime.now() - checkSpace_timer).total_seconds() / 60 > 4:
             ensure_disk_space(logger, camDirectory)
             checkSpace_timer = datetime.now()
 
