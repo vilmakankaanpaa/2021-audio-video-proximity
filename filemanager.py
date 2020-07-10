@@ -13,7 +13,7 @@ def printlog(msg, srcfile):
 
     print(msg)
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    data = [[self.pid, timestamp, srcfile, msg]]
+    data = [[timestamp, srcfile, msg]]
 
     self.log_local(data=data, sheet=configs.local_printlog)
 
