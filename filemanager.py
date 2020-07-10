@@ -19,7 +19,7 @@ def printlog(srcfile, msg):
 
 
 def log_local(data, sheet):
-    
+
     with open(sheet, 'a', newline='') as logfile:
         logwriter = csv.writer(logfile, delimiter=',')
         for row in data:
@@ -71,7 +71,9 @@ def get_directory_for_recordings():
     usb = check_usb_disk_access()
     if usb:
         return configs.RECORDINGS_PATH
-    return configs.RECORDINGS_PATH_2
+    else:
+        printlog('Filemanager','ERROR: Could not access USB drive!')
+        return configs.RECORDINGS_PATH_2
 
 
 def check_disk_space(disk):
