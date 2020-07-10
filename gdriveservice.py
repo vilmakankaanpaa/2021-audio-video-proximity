@@ -55,8 +55,8 @@ class DriveService:
             raise e
 
         fileId = file.get('id')
-        printlog('Drive','Uploaded file {} of type {} with id {}.'.format(
-                metadata['name'], metadata['mimeType'], fileId))
+        #printlog('Drive','Uploaded file {} of type {} with id {}.'.format(
+        #        metadata['name'], metadata['mimeType'], fileId))
         return fileId
 
 
