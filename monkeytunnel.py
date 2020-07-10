@@ -116,6 +116,9 @@ if __name__ == "__main__":
     # Timer for when disk space should be checked
     checkSpace_timer = datetime.now()
 
+    # Timer to avoid uploading data during and right after interactions
+    ix_timer = datetime.now()
+
     if usingVideo:
         videoPlayer = VideoPlayer(videoPath=configs.VIDEO_PATH,
                                 useVideoAudio=configs.VIDEO_AUDIO_ON)
@@ -196,21 +199,26 @@ if __name__ == "__main__":
 
             if logger.ix_id:
                 logger.log_interaction_end()
+                ix_timer = datetime.now()
                 printlog('Main','Interaction ended.')
 
             logger.log_sensor_status(sensorsInRange, sensorVolts, playingAudio,
                                         playingVideo, cameraIsRecording)
 
 
-        # Upload log data to Sheets every 10 minutes
+
+        timeSinceIx = (datetime.now() - ix_timer).total_seconds() / 60
+
+        # Upload log data to Sheets every 5 minutes
         # Sometimes the Google Sheets kept logging in every time logging
         # was done and this slowed down the program a lot. So in case happening,
         # it will be done less often
-        if (datetime.now() - uploadData_timer).total_seconds() / 60 > 10:
-            printlog('Main','Uploading data from logs..')
-            logger.upload_ix_logs()
-            logger.upload_sensor_logs()
-            uploadData_timer = datetime.now()
+        if (datetime.now() - uploadData_timer).total_seconds() / 60 > 5:
+            if not logger.ix_id and timeSinceIx > 1:
+                printlog('Main','Uploading data from logs..')
+                logger.upload_ix_logs()
+                logger.upload_sensor_logs()
+                uploadData_timer = datetime.now()
 
         # Check disk space every 5 minutes
         if (datetime.now() - checkSpace_timer).total_seconds() / 60 > 5:
@@ -219,13 +227,14 @@ if __name__ == "__main__":
 
         # Upload recordings and log files in the evening
         hourNow = datetime.now().hour
-        if (hourNow == 22 or hourNow == 23):
-            if (datetime.now()-uploadFiles_timer).total_seconds() / 60 > 25:
-                # During these hours, only check about 4 times if there are any
-                # videos / logfiles to upload
-                printlog('Main','Starting to upload files from today.')
-                logger.upload_recordings()
-                logger.upload_logfiles()
-                uploadFiles_timer = datetime.now()
+        if not logger.ix_id and timeSinceIx > 1:
+            if (hourNow == 22 or hourNow == 23):
+                if (datetime.now()-uploadFiles_timer).total_seconds() / 60 > 25:
+                    # During these hours, only check about 4 times if there are any
+                    # videos / logfiles to upload
+                    printlog('Main','Starting to upload files from today.')
+                    logger.upload_recordings()
+                    logger.upload_logfiles()
+                    uploadFiles_timer = datetime.now()
 
         sleep(0.4)
