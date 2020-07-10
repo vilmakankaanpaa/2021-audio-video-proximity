@@ -36,49 +36,27 @@ def delete_local_file(path):
 
 def list_recordings():
     videos = []
-    pathdir = None
+    dir = None
 
-    try:
-        dirContent = os.listdir(configs.RECORDINGS_PATH)
-        if len(dirContent) == 0:
-            # there is nothing in the folder while there should be at least test.txt
-            # --> could not read directory
-            raise
-        for filename in dirContent:
-            if filename.endswith('.h264'):
-                videos.append(filename)
-        pathdir = configs.RECORDINGS_PATH
+    dir = get_directory_for_recordings()
+    dirContent = os.listdir(dir)
+    print('Size of dir:', len(dirContent))
+    for filename in dirContent:
+        if filename.endswith('.h264'):
+            videos.append(filename)
 
-    except:
-        printlog('Filemanager','ERROR – Setting recordings folder to Pi local!')
-        dirContent = os.listdir(configs.RECORDINGS_PATH_2)
-        for filename in dirContent:
-            if filename.endswith('.h264'):
-                videos.append(filename)
-        pathdir = configs.RECORDINGS_PATH_2
-
-    return videos, pathdir
+    return videos, dir
 
 
 def nof_recordings():
 
-    try:
-        
+    if check_usb_disk_access():
         dirContent = os.listdir(configs.RECORDINGS_PATH)
-        if len(dirContent) == 0:
-            raise
-        else:
-            # there is one file for testing in the folder: test.txt, hence -1
-            printlog('Filemanager','No. of recordings in {} is {}.'.format(
-                configs.RECORDINGS_PATH, (len(dirContent)-1)))
-            return len(dirContent)-1
-    except:
+        # there is one file for testing in the folder: test.txt, hence -1
+        return len(dirContent)-1
+    else:
         dirContent = os.listdir(configs.RECORDINGS_PATH_2)
-
-    printlog('Filemanager','No. of recordings in {} is {}.'.format(
-                configs.RECORDINGS_PATH_2, len(dirContent)))
-    
-    return len(dirContent)
+        return len(dirContent)
 
 
 def check_usb_disk_access():
