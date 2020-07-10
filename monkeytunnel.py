@@ -3,12 +3,13 @@ import sys
 from time import sleep
 from datetime import datetime, date, time
 
+# Local sources
 from sensors import check_sensors
+from filemanager import check_disk_space, printlog
+from logger import Logger
 from audioplayer import AudioPlayer
 from videoplayer import VideoPlayer
-from logger import Logger
 from camera import Camera
-from filemanager import check_disk_space
 import configs
 
 sys.excepthook = sys.__excepthook__
@@ -26,79 +27,98 @@ def print_configurations():
     if configs.RECORDING_ON: print('Recording to folder:', configs.RECORDINGS_PATH)
 
 
-def update_sensor_reading(userDetected, sensorReading, anyInRange, sensorThreshold):
+def update_sensor_reading(monkeyDetected, thresholdReading, anyInRange, threshold):
 
-    # When enough no of consecutive checks are same, set new value
-    # sensorReading will vary between 0–threshold and the middle point will divide if false or true
+    # When enough no. of consecutive checks are same, set new value
+    # thresholdReading will vary between 0–threshold and the middle point
+    # will determine if false or true (monkey in)
 
     if anyInRange:
-        if sensorReading < (sensorThreshold*2): # max
-            sensorReading = sensorReading + 1
+        if thresholdReading < (threshold*2):
+            ++thresholdReading
     else:
-        if sensorReading > 0: # 0 is min
-            sensorReading = sensorReading - 1
+        if thresholdReading > 0:
+            --thresholdReading
 
-    if sensorReading > sensorThreshold and not userDetected:
-        print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "Monkey came in")
-        userDetected = True
-    elif sensorReading < sensorThreshold and userDetected:
-        print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "All monkeys left")
-        userDetected = False
+    if thresholdReading > threshold and not monkeyDetected:
+        printlog('Main','Monkey came in!'')
+        monkeyDetected = True
+    elif thresholdReading < threshold and monkeyDetected:
+        printlog('Main','All monkeys left. :('')
+        monkeyDetected = False
     else:
         # don't do anything yet, keep values same
+        # value is now same as threshold
         pass
 
-    return userDetected, sensorReading
+    return monkeyDetected, thresholdReading
 
-def ensure_disk_space(logger, camDirectory):
+def ensure_disk_space(logger, recDirectory):
 
-    if camDirectory == configs.RECORDINGS_PATH:
+    printlog('Main','Checking disk space.')
+
+    if recDirectory == configs.RECORDINGS_PATH:
+        # Path to the USB
+
         freeSpace = check_disk_space(configs.external_disk)
-        print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'Directory {}, free: {}'.format(camDirectory, freeSpace))
-        if freeSpace < 0.04: # 28GB USB stick
-            # if space is scarce, we need to upload some
-            # files and not wait until nighttime
-            logger.log_status_info('Disk space getting small! Uploading files already.')
+        printlog('Main','Directory {}, free: {}'.format(recDirectory, freeSpace))
+
+        if freeSpace < 0.04: # this is ca. 1.1/28.0 GB of the USB stick left
+            # if space is scarce, we need to upload some files ASAP
+            printlog('Main','Disk space on USB getting small! Uploading files already.')
+            # But let's not upload all in order not to disturb
+            # the functioning of the tunnel for too long..
             logger.upload_recordings(max_nof_uploads=5)
-    elif camDirectory == configs.RECORDINGS_PATH_2:
-        logger.log_status_info('Camera recording to PI local folder!')
+
+    elif recDirectory == configs.RECORDINGS_PATH_2:
+        # PATH to local directory
+
+        printlog('Main','ERROR: Camera has been recording to Pi local folder!')
         freeSpace = check_disk_space(configs.root)
-        if freeSpace < 0.06: # 7.8GB total usable on Pi
-            logger.upload_recordings() # so small space, need to get all out
+        if freeSpace < 0.15: # 1.17/7.8 GB of the total free space on Pi
+            printlog('Main','Disk space on Pi getting small! Uploading files already.')
+            # Pi is so small that we just need them all out.
+            logger.upload_recordings()
     else:
-        return
+        pass
 
 
 if __name__ == "__main__":
 
     print(datetime.isoformat(datetime.now()))
-    print('Starting up monkeytunnel..')
     pid = os.getpid()
     print('pid:',pid)
-    # TODO: save the pid to temp file
 
-    # configurations for this run of the program
+    printlog('Main','Starting up monkeytunnel..')
+
+    # Configurations for this run of the program
     usingAudio = configs.USE_AUDIO
     usingVideo = configs.USE_VIDEO
     recordingOn = configs.RECORDING_ON
 
-    sensorThreshold = 2 # after this number of consecutive readings, change value of userDetected
-    sensorReading = sensorThreshold # this is the middle grounf between True and False
-    userDetected = False
-
     playingAudio = False
     playingVideo = False
     cameraIsRecording = False
-
     camDirectory = None
 
-    uploadTimer = datetime.now()
-    diskTimer = datetime.now()
+    # Sensorthreshold:
+    # This number + 1 of consecutive readings determines
+    # if the value of monkeyDetected changes
+    sensorThreshold = 2
+    # threshold is "middle ground", it won't determine any change yet
+    thresholdReading = sensorThreshold
+    monkeyDetected = False
+
+    # Timer for when files (recordings, logfiles) should be uploaded
+    uploadFiles_timer = datetime.now()
+    # Timer for when data should be uploaded (interactions & sensors readings)
+    uploadData_timer = datetime.now()
+    # Timer for when disk space should be checked
+    checkSpace_timer = datetime.now()
 
     if usingVideo:
         videoPlayer = VideoPlayer(videoPath=configs.VIDEO_PATH,
                                 useVideoAudio=configs.VIDEO_AUDIO_ON)
-
     if usingAudio:
         audioPlayer = AudioPlayer()
 
@@ -107,18 +127,18 @@ if __name__ == "__main__":
 
     logger = Logger(pid)
     logger.log_program_run_info()
-    logger.log_alive(start=True)
 
     while True:
 
-        logger.log_alive()
-        logger.gdrive.check_quota_timer()
+        # Checking if should update the request quota for Google Sheets
+        # It is 100 requests per 100 seconds (e.g. logging of 100 rows)
+        logger.gsheets.check_quota_timer()
 
         sensorVolts, sensorsInRange = check_sensors()
-        anyInRange = any(sensorsInRange)
 
-        userDetected, sensorReading = update_sensor_reading(
-            userDetected, sensorReading, anyInRange, sensorThreshold)
+        monkeyDetected, thresholdReading = update_sensor_reading(
+            monkeyDetected, thresholdReading,
+            any(sensorsInRange), sensorThreshold)
 
         if recordingOn:
             cameraIsRecording = camera.is_recording()
@@ -136,7 +156,7 @@ if __name__ == "__main__":
                 videoPlayer = VideoPlayer(videoPath=configs.VIDEO_PATH,
                             useVideoAudio=configs.VIDEO_AUDIO_ON)
 
-        if userDetected:
+        if monkeyDetected:
 
             ixID = logger.ix_id
             if not ixID:
@@ -172,19 +192,30 @@ if __name__ == "__main__":
             logger.log_sensor_status(sensorsInRange, sensorVolts, playingAudio,
                                         playingVideo, cameraIsRecording)
 
-        logger.update_ix_logs()
 
-        if (datetime.now() - diskTimer).total_seconds() / 60 > 5:
+        # Upload log data to Sheets every 10 minutes
+        # Sometimes the Google Sheets kept logging in every time logging
+        # was done and this slowed down the program a lot. So in case happening,
+        # it will be done less often
+        if (datetime.now() - uploadData_timer).total_seconds() / 60 > 10:
+            logger.upload_ix_logs()
+            self.upload_sensor_logs()
+            uploadData_timer = datetime.now()
+
+        # Check disk space every 5 minutes
+        if (datetime.now() - checkSpace_timer).total_seconds() / 60 > 5:
             ensure_disk_space(logger, camDirectory)
-            diskTimer = datetime.now()
+            checkSpace_timer = datetime.now()
 
-        h = datetime.now().hour
-        if (h == 22 or h == 23):
-            if (datetime.now()-uploadTimer).total_seconds() / 60 > 25:
-                # during these hours, only check about 4 times if any videos / logfiles to upload
-                logger.log_status_info('Starting to upload files from today.')
+        # Upload recordings and log files in the evening
+        hourNow = datetime.now().hour
+        if (hourNow == 22 or hourNow == 23):
+            if (datetime.now()-uploadFiles_timer).total_seconds() / 60 > 25:
+                # During these hours, only check about 4 times if there are any
+                # videos / logfiles to upload
+                printlog('Main','Starting to upload files from today.')
                 logger.upload_recordings()
                 logger.upload_logfiles()
-                uploadTimer = datetime.now()
+                uploadFiles_timer = datetime.now()
 
         sleep(0.4)
