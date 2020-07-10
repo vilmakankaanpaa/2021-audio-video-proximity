@@ -36,7 +36,6 @@ class DriveService:
         if self.creds.access_token_expired:
             printlog('Drive','Access token had expired. Refreshing token for Drive.')
             self.creds.refresh(Http())
-            # TODO: understand whether it is needed to build again?
 
     def _upload_file(self, localFilePath, metadata):
         # general module to upload any file to specified folder in Google Drive
@@ -90,7 +89,7 @@ class DriveService:
         return folderId
 
     def list_content(self):
-        #TODO: test
+
         self._check_connection()
         results = self.SERVICE.files().list(
                 pageSize=1000, fields="nextPageToken, files(id, name, mimeType)").execute()
@@ -114,6 +113,7 @@ class DriveService:
             }
 
         fileId = self._upload_file(localFilePath, metadata)
+        #TEST
 
     def upload_logfile(self, fileName):
         # Upload local logfile to drive from dir sakis-video-tunnel
