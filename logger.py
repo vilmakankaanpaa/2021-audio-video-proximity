@@ -41,7 +41,6 @@ class Logger:
 
         diff = int((datetime.now() - self.ie_check_timer).total_seconds())
         if (diff > (4*60)): # every four minutes max
-            printlog('Logger','Checking internet...')
             self.ie_check_timer = datetime.now()
             conn = httplib.HTTPConnection("www.google.fi", timeout=2)
             try:
@@ -57,13 +56,14 @@ class Logger:
         logfiles = [
                 configs.local_ix_log,
                 configs.local_sensor_log,
-                configs.local_program_log
+                configs.local_program_log,
+                configs.local_printlog
                 ]
 
         try:
             self.internet_connected()
         except:
-            printlog('Logger','ERROR: No internet – could not upload logfiles.')
+            printlog('Logger','ERROR: No internet, could not upload logfiles.')
             return
 
         startTime = datetime.now()
@@ -74,8 +74,8 @@ class Logger:
                     self.gdrive.upload_logfile(fileName=file)
                     filemanager.delete_local_file(path=file)
                 except Exception as e:
-                    printlog('Logger','ERROR: Could not upload logfile: {}'.format(
-                                type(e).__name__))
+                    printlog('Logger','ERROR: Could not upload logfile {}: {}'.format(
+                                file, type(e).__name__))
 
         duration = round((datetime.now() - startTime).total_seconds() / 60, 2)
         printlog('Logger','Uploaded local files. Duration: {}'.format(duration))
@@ -85,7 +85,7 @@ class Logger:
         dateToday = date.isoformat(date.today())
 
         if dateToday in self.ix_folder_today:
-            folderId = ix_folder_today[dateToday]
+            folderId = self.ix_folder_today[dateToday]
             print('FolderId today ({}): {}'.format(dateToday, folderid))
             return folderId
 
@@ -100,7 +100,7 @@ class Logger:
 
         self.ix_folder_today[dateToday] = folderId
         return folderId
-        #TEST
+
 
     def upload_recordings(self, max_nof_uploads=0):
 
@@ -255,8 +255,7 @@ class Logger:
     def log_program_run_info(self):
 
         # Logged only once in the start of monkeytunnel.py
-
-        print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'Logging program run info.')
+        printlog('Logger','Logging program run info.')
 
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         data = [
@@ -269,6 +268,7 @@ class Logger:
             configs.USE_AUDIO,
             configs.AUDIO_PATH,
             configs.RECORDING_ON]
+
         # for gdrive.log_to_drive this needs to be in format
         # list(lists); [[row1],[row2],..]
         data = [data]
