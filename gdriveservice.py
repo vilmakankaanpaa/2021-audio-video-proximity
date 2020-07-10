@@ -16,7 +16,7 @@ class DriveService:
     def __init__(self):
 
         CLIENT_SECRET = "/home/pi/sakis-video-tunnel/client_secret_drive.json"
-        self.SCOPES='https://www.googleapis.com/auth/drive', 'https://www.googleapis.com/auth/spreadsheets'
+        SCOPES='https://www.googleapis.com/auth/drive', 'https://www.googleapis.com/auth/spreadsheets'
         self.store = file.Storage('token.json')
         # returns oauth2.client.Credentials
         # https://oauth2client.readthedocs.io/en/latest/source/oauth2client.client.html#oauth2client.client.Credentials
@@ -27,7 +27,7 @@ class DriveService:
         printlog('Drive','Accessing google drive.')
         self.creds = self.store.get()
         if not self.creds or self.creds.invalid:
-            flow = client.flow_from_clientsecrets(CLIENT_SECRET, self.SCOPES)
+            flow = client.flow_from_clientsecrets(CLIENT_SECRET, SCOPES)
             self.creds = tools.run_flow(flow, self.store)
         self.SERVICE = build('drive', 'v3', http=self.creds.authorize(Http()))
 
