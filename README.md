@@ -1,46 +1,51 @@
-#### Connecting to pi:
+### Connecting to pi
+Computer needs to be connected to the same network as Pi and know the IP of the pi (might be also possible to search by name). Find out IP locally: https://www.raspberrypi.org/documentation/remote-access/ip-address.md. You can use e.g. "Fing" mobile app to scan the the IPs of devices connected to the same wifi as the phone is.
+It is best to start with making your phone hotspot known for Pi, so you can do the connecting to new wifi anywhere through using the phone hotspot.
+Connecting to your phone hotspot:
+1. Use a netwrok know for the Pi, and connect your mobile to the same wifi
+2. Use Fing mobile app to scan all the devices in the same wifi and search for Raspberry Pi. Copy the IP address shown.
+3. Connect also your laptop to the same wifi.
+4. Use VNC Viewer to connect to you Pi with the IP address you copied.
+5. Use the username and password to log into Pi.
+6. Start hotspot on your mobile and connect to that with Pi.
+7. Use laptop to scan for the new IP address of Pi when connected to your hotspot.
+8. Connect also your laptop on hotspot and connect to Pi with VNC viewer.
 
-Needs to be connected to the same network and know the IP of the pi (might be also possible to search by name)
-Find out the IP: https://www.raspberrypi.org/documentation/remote-access/ip-address.md
-E.g. can use "Fing" phone app to find out the IP, if the pi and phone are on the same network.
+### Running the program
+##### Notes
+* The program needs **sudo access** to access the flash drive connected to it, where the recordings are stored.
+* The USB is currently not being auto-mounted so **USB needs to be mounted** prior running the program.
+* There is executable named launcher.sh that contains the scripts needed for running the program. This executable is **ran every time the Raspberry Pi reboots**. This is controlled in a file located in */home/pi/.config/autorun*.
+* Closing the application "clean" works with **ctrl+C**. If for some reason it is not cleanly closed, you need to kill some scripts before starting it up again or otherwise the program will not work correctly. These are written in another executable named killprogram.sh. (Omxplayer is library for playing the video files on screen and if not closed cleanly, the player will stay running in the background.)
 
+**Run the program normally from terminal:**
+```
+sudo mount /dev/sda1 /mnt/kingston
+cd /home/pi/sakis-video-tunnel
+sudo python3 monkeytunnel.py
+```
+**Killing the program in terminal:**
+```
+pkill -9 python3
+pkill -9 launcher.sh
+killall /usr/bin/omxplayer.bin
+```
 
-#### Running the system:
-
-run the file 'ir_distance.py': python3 ir_distance.py
-I'm pretty sure it's python3 but if I remember that incorrectly and it doesn't work try python.
-
-Forgot to make a requirements file but everything is installed on the pi.
-
-#### Online logging to Google Sheets
-
-There needs to be a 'client_secret.json' file that contains the creds for Google Drive API.
-
-The Logger class in sound_log.py deterines the sheets to write to; change names in init function. All the data should be also logged locally, and any failures to log to the Google document are logged in 'logfail.csv'.
-
-The frequency to attempt online logging is quite short, because as it is now, logging blocks the script i.e. when it's happening the sensors are not read. So better to log small amounts of data often than block for a longer time at once. I'm sure there are better ways to do it but this worked well enough for my case.
-
-Data is logged as:
- - timestamp
- - start (flag True if start of an interaction)
- - end (flag True if end of an interaction)
- - sensor1 (flag True if sensor 1 is active at this time)
- - sensor2 (flag True if sensor 2 is active at this time)
- - sensor3 (flag True if sensor 3 is active at this time)
-
-#### Requirements
-
-omxplayer-wrapper==0.3.3
-pathlib2==2.3.5
-spidev==3.4
-mpyg321==0.0.2
-
-threading ?
-pexpect==4.7.0
-gspread==3.1.0
-oauth2client==4.1.3
-csv ?
-httplib2=0.14.0
-google-auth==1.18.0
-google-auth-oauthlib==0.4.1
+### Requirements
+omxplayer-wrapper\==0.3.3
+spidev\==3.4
+mpyg321\==0.0.2
+gspread\==3.1.0
+oauth2client\==4.1.3
+httplib2\==0.14.0
+google-auth\==1.18.0
+google-auth-oauthlib\==0.4.1
 google-api-python-client
+pytest-shutil
+
+**not sure if really used:**
+pathlib2\==2.3.5
+
+**not sure in installed or a side package:**
+pexpect\==4.7.0 (?)
+threading
