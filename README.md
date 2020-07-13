@@ -3,14 +3,17 @@
 ## Requirements
 
 ### Technology
+```
 Raspberry Pi
 Three proximity sensors
 LCD Screen
 Camera module
 Fish-eye lens
 Speaker
+```
 
 ### Libraries
+```
 omxplayer-wrapper\==0.3.3
 spidev\==3.4
 mpyg321\==0.0.2
@@ -21,6 +24,7 @@ google-auth\==1.18.0
 google-auth-oauthlib\==0.4.1
 google-api-python-client
 pytest-shutil
+```
 
 **not sure if really used:**
 pathlib2\==2.3.5
