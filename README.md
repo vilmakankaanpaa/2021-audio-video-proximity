@@ -52,6 +52,7 @@ Connecting to your phone hotspot:
 * The USB is currently not being auto-mounted so **USB needs to be mounted** prior running the program.
 * There is executable named launcher.sh that contains the scripts needed for running the program. This executable is **ran every time the Raspberry Pi reboots**. This is controlled in a file located in */home/pi/.config/autorun*.
 * Closing the application "clean" works with **ctrl+C**. If for some reason it is not cleanly closed, you need to kill some scripts before starting it up again or otherwise the program will not work correctly. These are written in another executable named killprogram.sh. (Omxplayer is library for playing the video files on screen and if not closed cleanly, the player will stay running in the background.)
+* The configurations for the program run instance are set in the file configs.py. Here you can set e.g. which modules and directories to use in the program run.
 
 **Run the program normally from terminal:**
 ```
