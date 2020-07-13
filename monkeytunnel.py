@@ -5,7 +5,7 @@ from datetime import datetime, date, time
 
 # Local sources
 from sensors import check_sensors
-from filemanager import check_disk_space, printlog
+from filemanager import check_disk_space, printlog, get_directory_for_recordings
 from logger import Logger
 from audioplayer import AudioPlayer
 from videoplayer import VideoPlayer
@@ -139,10 +139,13 @@ if __name__ == "__main__":
         logger.gsheets.check_quota_timer()
 
         sensorVolts, sensorsInRange = check_sensors()
+        anyInRange = any(sensorsInRange)
+        if anyInRange:
+            printlog('Main','Anyinrange: sensorVolts')
 
         monkeyDetected, thresholdReading = update_sensor_reading(
             monkeyDetected, thresholdReading,
-            any(sensorsInRange), sensorThreshold)
+            anyInRange, sensorThreshold)
 
         if recordingOn:
             cameraIsRecording = camera.is_recording()
@@ -169,7 +172,7 @@ if __name__ == "__main__":
 
             if recordingOn and not cameraIsRecording:
                 fileName = logger.new_recording_name()
-                camDirectory = filemanager.get_directory_for_recordings()
+                camDirectory = get_directory_for_recordings()
                 camera.start_recording(fileName, camDirectory)
                 printlog('Main','Camera started recording.')
 
