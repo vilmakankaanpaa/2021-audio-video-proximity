@@ -210,7 +210,7 @@ class Logger:
                             type(e).__name__), e)
                 filemanager.log_local(data, sheet=configs.local_ix_log)
 
-    def log_sensor_status(self, sensorsInRange, sensorVolts, playingAudio, playingVideo, cameraIsRecording, ixID=None):
+    def log_sensor_status(self, sensorsInRange, sensorVolts, playingAudio, playingVideo, cameraIsRecording, ixID=None, anyInRange):
 
         ixOngoing = False
         if ixID:
@@ -219,9 +219,14 @@ class Logger:
         passedTime = (datetime.now() - self.sensorlog_timer).total_seconds()
 
         # log only at these intervals
-        if not ixOngoing and (passedTime / 60 < 5) :
+        if not ixOngoing and (passedTime / 60 < 5):
             # Every 5 minutes when not active
-            return
+            # Except if there happens to be a TRUE reading
+            if anyInRange and (passedTime / 60 > 1):
+                pass
+            else:
+                return
+
         elif ixOngoing and passedTime < 1:
             # Every second when active
             return
