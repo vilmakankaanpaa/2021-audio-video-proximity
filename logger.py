@@ -3,6 +3,7 @@ import os
 import uuid
 import http.client as httplib
 from datetime import datetime, date
+from time import sleep
 
 import configs
 import filemanager
@@ -70,12 +71,20 @@ class Logger:
 
         for file in logfiles:
             if os.path.exists(file):
+
+                if file == configs.local_printlog:
+                    printlog('Logger','Sleeping before uploading this file.')
+                    # using this file constantly for logigng rows so sleep for
+                    # a while to avoid collapse with trying to upload a file
+                    # that has been just opened as well
+                    sleep(0.5)
+
                 try:
                     self.gdrive.upload_logfile(fileName=file)
                     filemanager.delete_local_file(path=file)
                 except Exception as e:
-                    printlog('Logger','ERROR: Could not upload logfile {}: {}'.format(
-                                file, type(e).__name__))
+                    printlog('Logger','ERROR: Could not upload logfile {}: {}, {}'.format(
+                                file, type(e).__name__), e)
 
         duration = round((datetime.now() - startTime).total_seconds() / 60, 2)
         printlog('Logger','Uploaded local files. Duration: {}'.format(duration))
@@ -138,8 +147,8 @@ class Logger:
                     filemanager.delete_local_file(directory + filename)
                     ++i
                 except Exception as e:
-                    printlog('Logger','ERROR: Could not upload file: {}'.format(
-                                type(e).__name__))
+                    printlog('Logger','ERROR: Could not upload file: {}, {}'.format(
+                                type(e).__name__), e)
 
         duration = round((datetime.now() - startTime).total_seconds() / 60, 2)
         printlog('Logger','Uploaded {} recordings, duration {}'.format(
@@ -197,8 +206,8 @@ class Logger:
                 printlog('Logger','Uploading interaction logs to sheets.')
                 self.ix_tempdata = self.gsheets.log_to_drive(data, 'ix')
             except Exception as e:
-                printlog('Logger','ERROR: Could not upload ix data: {}'.format(
-                            type(e).__name__))
+                printlog('Logger','ERROR: Could not upload ix data: {}, {}'.format(
+                            type(e).__name__), e)
                 filemanager.log_local(data, sheet=configs.local_ix_log)
 
     def log_sensor_status(self, sensorsInRange, sensorVolts, playingAudio, playingVideo, cameraIsRecording, ixID=None):
@@ -245,8 +254,8 @@ class Logger:
                 self.sensors_tempdata = self.gsheets.log_to_drive(data, 'sensors')
 
             except Exception as e:
-                printlog('Logger','ERROR: Could not upload sensor data: {}'.format(
-                            type(e).__name__))
+                printlog('Logger','ERROR: Could not upload sensor data: {}, {}'.format(
+                            type(e).__name__), e)
                 filemanager.log_local(data, sheet=configs.local_sensor_log)
 
     def log_program_run_info(self):
@@ -275,6 +284,6 @@ class Logger:
             dataLeft = self.gsheets.log_to_drive(data, 'progrun')
 
         except Exception as e:
-            printlog('Logger','ERROR: Could not log program status: {}'.format(
-                            type(e).__name__))
+            printlog('Logger','ERROR: Could not log program status: {}, {}'.format(
+                            type(e).__name__), e)
             filemanager.log_local(data, sheet=configs.local_program_log)

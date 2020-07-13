@@ -35,10 +35,10 @@ def update_sensor_reading(monkeyDetected, thresholdReading, anyInRange, threshol
 
     if anyInRange:
         if thresholdReading < (threshold*2):
-            ++thresholdReading
+            thresholdReading += 1
     else:
         if thresholdReading > 0:
-            --thresholdReading
+            thresholdReading -= 1
 
     if thresholdReading > threshold and not monkeyDetected:
         printlog('Main','Monkey came in!')
@@ -100,6 +100,7 @@ if __name__ == "__main__":
     playingVideo = False
     cameraIsRecording = False
     camDirectory = None
+    logfilesUploadedToday = False
 
     # Sensorthreshold:
     # This number + 1 of consecutive readings determines
@@ -234,7 +235,15 @@ if __name__ == "__main__":
                     # videos / logfiles to upload
                     printlog('Main','Starting to upload files from today.')
                     logger.upload_recordings()
-                    logger.upload_logfiles()
+
+                    if not logfilesUploadedToday:
+                        # do this only once a day
+                        logger.upload_logfiles()
+                        logfilesUploadedToday = True
+
                     uploadFiles_timer = datetime.now()
+
+            elif hourNow == 0:
+                logfilesUploadedToday = False
 
         sleep(0.4)
