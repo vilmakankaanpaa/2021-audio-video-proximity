@@ -185,7 +185,7 @@ if __name__ == "__main__":
                 printlog('Main','Video started playing.')
 
             logger.log_sensor_status(sensorsInRange, sensorVolts, playingAudio,
-                                        playingVideo, cameraIsRecording, ixID, anyInRange)
+                                        playingVideo, cameraIsRecording, anyInRange, ixID)
 
         else:
 
@@ -207,7 +207,7 @@ if __name__ == "__main__":
                 printlog('Main','Interaction ended.')
 
             logger.log_sensor_status(sensorsInRange, sensorVolts, playingAudio,
-                                        playingVideo, cameraIsRecording, ixID = None, anyInRange)
+                                        playingVideo, cameraIsRecording, anyInRange)
 
 
 

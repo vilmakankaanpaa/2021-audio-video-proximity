@@ -210,7 +210,7 @@ class Logger:
                             type(e).__name__), e)
                 filemanager.log_local(data, sheet=configs.local_ix_log)
 
-    def log_sensor_status(self, sensorsInRange, sensorVolts, playingAudio, playingVideo, cameraIsRecording, ixID=None, anyInRange):
+    def log_sensor_status(self, sensorsInRange, sensorVolts, playingAudio, playingVideo, cameraIsRecording, anyInRange, ixID=None):
 
         ixOngoing = False
         if ixID:
