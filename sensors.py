@@ -23,7 +23,7 @@ def is_in_range(voltsValue, sensorIndex):
     if sensorIndex == 0 and voltsValue > 0.65:
         # rightmost sensor when looking "at the screen"
         return True
-    elif sensorIndex == 1 and voltsValue > 0.80:
+    elif sensorIndex == 1 and voltsValue > 0.90:
         # left of above
         return True
     elif sensorIndex == 2 and voltsValue > 0.30:
