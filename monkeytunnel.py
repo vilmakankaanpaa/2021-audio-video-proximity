@@ -140,8 +140,6 @@ if __name__ == "__main__":
 
         sensorVolts, sensorsInRange = check_sensors()
         anyInRange = any(sensorsInRange)
-        if anyInRange:
-            printlog('Main','Anyinrange: {}'.format(sensorVolts))
 
         monkeyDetected, thresholdReading = update_sensor_reading(
             monkeyDetected, thresholdReading,
