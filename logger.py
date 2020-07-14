@@ -84,7 +84,7 @@ class Logger:
                     filemanager.delete_local_file(path=file)
                 except Exception as e:
                     printlog('Logger','ERROR: Could not upload logfile {}: {}, {}'.format(
-                                file, type(e).__name__), e)
+                                file, type(e).__name__, e))
 
         duration = round((datetime.now() - startTime).total_seconds() / 60, 2)
         printlog('Logger','Uploaded local files. Duration: {}'.format(duration))
@@ -148,7 +148,7 @@ class Logger:
                     ++i
                 except Exception as e:
                     printlog('Logger','ERROR: Could not upload file: {}, {}'.format(
-                                type(e).__name__), e)
+                                type(e).__name__, e))
 
         duration = round((datetime.now() - startTime).total_seconds() / 60, 2)
         printlog('Logger','Uploaded {} recordings, duration {}'.format(
@@ -205,9 +205,11 @@ class Logger:
                 self.test_ie_for_logging()
                 printlog('Logger','Uploading interaction logs to sheets.')
                 self.ix_tempdata = self.gsheets.log_to_drive(data, 'ix')
+                printlog('Logger','Finished logging.')
+
             except Exception as e:
                 printlog('Logger','ERROR: Could not upload ix data: {}, {}'.format(
-                            type(e).__name__), e)
+                            type(e).__name__, e))
                 filemanager.log_local(data, sheet=configs.local_ix_log)
 
     def log_sensor_status(self, sensorsInRange, sensorVolts, playingAudio, playingVideo, cameraIsRecording, anyInRange, ixID=None):
@@ -221,11 +223,7 @@ class Logger:
         # log only at these intervals
         if not ixOngoing and (passedTime / 60 < 5):
             # Every 5 minutes when not active
-            # Except if there happens to be a TRUE reading
-            if anyInRange and (passedTime / 60 > 1):
-                pass
-            else:
-                return
+            return
 
         elif ixOngoing and passedTime < 1:
             # Every second when active
@@ -257,10 +255,11 @@ class Logger:
                 self.test_ie_for_logging()
                 printlog('Logger','Uploading sensor logs to sheets.')
                 self.sensors_tempdata = self.gsheets.log_to_drive(data, 'sensors')
+                printlog('Logger','Finished logging.')
 
             except Exception as e:
                 printlog('Logger','ERROR: Could not upload sensor data: {}, {}'.format(
-                            type(e).__name__), e)
+                            type(e).__name__, e))
                 filemanager.log_local(data, sheet=configs.local_sensor_log)
 
     def log_program_run_info(self):
@@ -287,8 +286,9 @@ class Logger:
             self.test_ie_for_logging()
             printlog('Logger','Logging program run info to sheets.')
             dataLeft = self.gsheets.log_to_drive(data, 'progrun')
+            printlog('Logger','Finished logging.')
 
         except Exception as e:
             printlog('Logger','ERROR: Could not log program status: {}, {}'.format(
-                            type(e).__name__), e)
+                            type(e).__name__, e))
             filemanager.log_local(data, sheet=configs.local_program_log)
