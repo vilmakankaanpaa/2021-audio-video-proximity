@@ -19,4 +19,4 @@ xdotool mousemove 100 100
 
 # start the monkeytunnel program
 cd /home/pi/sakis-video-tunnel
-sudo python3 monkeytunnel.py
+sudo python3 monkeytunnel.py >> output.txt
