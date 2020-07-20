@@ -132,15 +132,15 @@ if __name__ == "__main__":
     logger = Logger(pid)
     logger.log_program_run_info()
     
-    k = 0
+#    k = 0
 
     while True:
 
-        if (k == 10):
-            print(datetime.isoformat(datetime.now()),'ping!')
-            k=0
-        else:
-            k += 1
+#        if (k == 10):
+#            print(datetime.isoformat(datetime.now()),'ping!')
+#            k=0
+#        else:
+#            k += 1
             
         # Checking if should update the request quota for Google Sheets
         # It is 100 requests per 100 seconds (e.g. logging of 100 rows)
