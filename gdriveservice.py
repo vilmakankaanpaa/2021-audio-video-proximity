@@ -51,7 +51,7 @@ class DriveService:
                 fields='id'
                 ).execute()
         except Exception as e:
-            printlog('Drive','ERROR: could not upload file. Emessage:', e)
+            printlog('Drive','ERROR: could not upload file. Emessage: {}'.format(e))
             raise e
 
         fileId = file.get('id')
@@ -80,7 +80,7 @@ class DriveService:
                     fields='id'
                 ).execute()
         except Exception as e:
-            printlog('Drive','ERROR: could not create folder. Emessage:', e)
+            printlog('Drive','ERROR: could not create folder. Emessage: {}'.format(e))
             raise e
 
         folderId = folder.get('id')
