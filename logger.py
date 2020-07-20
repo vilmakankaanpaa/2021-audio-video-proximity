@@ -175,13 +175,18 @@ class Logger:
 
         return self.ix_id
 
-    def log_interaction_end(self):
+    def log_interaction_end(self, realEndTime=None):
 
         pid = self.pid
         ID = self.ix_id
         date = self.ix_date
         startime = self.ix_start
-        endtime = datetime.now()
+
+        if realEndTime:
+            endtime = realEndTime
+        else:
+            endtime = datetime.now()
+            
         duration = (endtime - self.ix_start).total_seconds()
         phase = configs.TEST_PHASE
         video = self.ix_recording + '.h264'

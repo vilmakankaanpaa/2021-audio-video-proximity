@@ -14,7 +14,6 @@ import configs
 
 sys.excepthook = sys.__excepthook__
 
-
 def print_configurations():
 
     print('Audio on:', configs.USE_AUDIO)
@@ -33,12 +32,15 @@ def update_sensor_reading(monkeyDetected, thresholdReading, anyInRange, threshol
     # thresholdReading will vary between 0–threshold*factor and the threshold point
     # will determine if false or true (monkey in)
 
+    # One loop takes basically 0.4 seconds (the time code sleeps at the loop end)
+    # So the more loops are needed to change the userDetected value,
+    # the less sensitive the system is
     if anyInRange:
-        if thresholdReading < (threshold*5):
-            thresholdReading += 1
+        if thresholdReading < (threshold*5)-1:
+            thresholdReading += 2 # go up fast
     else:
         if thresholdReading > 0:
-            thresholdReading -= 1
+            thresholdReading -= 1 # but down slower
 
     if thresholdReading > threshold and not monkeyDetected:
         printlog('Main','Monkey came in!')
@@ -102,9 +104,6 @@ if __name__ == "__main__":
     camDirectory = None
     logfilesUploadedToday = False
 
-    # Sensorthreshold:
-    # This number + 1 of consecutive readings determines
-    # if the value of monkeyDetected changes
     sensorThreshold = 2
     # threshold is "middle ground", it won't determine any change yet
     thresholdReading = sensorThreshold
@@ -131,8 +130,10 @@ if __name__ == "__main__":
 
     logger = Logger(pid)
     logger.log_program_run_info()
-    
+
 #    k = 0
+    firstFalseReadingTime = None
+    numberOfLoops = 0
 
     while True:
 
@@ -141,13 +142,22 @@ if __name__ == "__main__":
 #            k=0
 #        else:
 #            k += 1
-            
+
         # Checking if should update the request quota for Google Sheets
         # It is 100 requests per 100 seconds (e.g. logging of 100 rows)
         logger.gsheets.check_quota_timer()
 
         sensorVolts, sensorsInRange = check_sensors()
         anyInRange = any(sensorsInRange)
+
+        # Checking whether it is first FALSE reading after monkey has been in for interaction
+        if (not anyInRange and monkeyDetected): # monkeydetected value from previous round
+            if numberOfLoops == 0:
+                firstFalseReadingTime = datetime.now()
+            else:
+                numberOfLoops += 1
+        else:
+            numberOfLoops = 0
 
         monkeyDetected, thresholdReading = update_sensor_reading(
             monkeyDetected, thresholdReading,
@@ -208,7 +218,8 @@ if __name__ == "__main__":
                 printlog('Main','Video stopped playing.')
 
             if logger.ix_id:
-                logger.log_interaction_end()
+                logger.log_interaction_end(firstFalseReadingTime)
+                firstFalseReadingTime = None
                 ix_timer = datetime.now()
                 printlog('Main','Interaction ended.')
 
