@@ -30,11 +30,11 @@ def print_configurations():
 def update_sensor_reading(monkeyDetected, thresholdReading, anyInRange, threshold):
 
     # When enough no. of consecutive checks are same, set new value
-    # thresholdReading will vary between 0–threshold and the middle point
+    # thresholdReading will vary between 0–threshold*factor and the threshold point
     # will determine if false or true (monkey in)
 
     if anyInRange:
-        if thresholdReading < (threshold*2):
+        if thresholdReading < (threshold*5):
             thresholdReading += 1
     else:
         if thresholdReading > 0:
