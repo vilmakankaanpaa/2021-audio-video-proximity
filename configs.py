@@ -1,5 +1,5 @@
 # program run settings
-TEST_PHASE = '1-no-video'
+TEST_PHASE = '2-forest-video'
 USE_AUDIO = False
 USE_VIDEO = True
 VIDEO_AUDIO_ON = False # audio of the video file
@@ -11,7 +11,7 @@ external_disk = '/mnt/kingston/'
 
 # paths to use
 AUDIO_PATH = 'None'
-VIDEO_PATH = root + 'video/black.mp4'
+VIDEO_PATH = root + 'video/forest_clip.mp4'
 RECORDINGS_PATH = external_disk + 'camera-records/'
 RECORDINGS_PATH_2 = root + 'camera-records/'
 
