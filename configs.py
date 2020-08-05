@@ -11,7 +11,7 @@ external_disk = '/mnt/kingston/'
 
 # paths to use
 AUDIO_PATH = 'None'
-VIDEO_PATH = root + 'video/bluejelly.mp4'
+VIDEO_PATH = root + 'video/bluejelly2.mp4'
 RECORDINGS_PATH = external_disk + 'camera-records/'
 RECORDINGS_PATH_2 = root + 'camera-records/'
 
