@@ -186,7 +186,7 @@ class Logger:
             endtime = realEndTime
         else:
             endtime = datetime.now()
-            
+
         duration = (endtime - self.ix_start).total_seconds()
         phase = configs.TEST_PHASE
         video = self.ix_recording + '.h264'
@@ -226,8 +226,8 @@ class Logger:
         passedTime = (datetime.now() - self.sensorlog_timer).total_seconds()
 
         # log only at these intervals
-        if not ixOngoing and (passedTime / 60 < 5):
-            # Every 5 minutes when not active
+        #if not ixOngoing and (passedTime / 60 < 5):
+        if not ixOngoing:
             return
 
         elif ixOngoing and passedTime < 1:
@@ -255,6 +255,7 @@ class Logger:
     def upload_sensor_logs(self):
 
         data = self.sensors_tempdata
+        """
         if len(data) > 0:
             try:
                 self.test_ie_for_logging()
@@ -266,6 +267,11 @@ class Logger:
                 printlog('Logger','ERROR: Could not upload sensor data: {}, {}'.format(
                             type(e).__name__, e))
                 filemanager.log_local(data, sheet=configs.local_sensor_log)
+        """
+        if len(data) > 0:
+            printlog('Logger','Uploading sensor logs to local sheet.')
+            filemanager.log_local(data, sheet=configs.local_sensor_log)
+            printlog('Finished logging.')
 
     def log_program_run_info(self):
 
