@@ -145,12 +145,14 @@ class Logger:
                 try:
                     self.gdrive.upload_recording(filename, folderId)
                     filemanager.delete_local_file(directory + filename)
-                    
+                    i += 1
+
                 except Exception as e:
                     printlog('Logger','ERROR: Could not upload file: {}, {}'.format(
                                 type(e).__name__, e))
-                ++i
-                
+                    if type(e).__name__ == "TimeoutError":
+                        break
+
         duration = round((datetime.now() - startTime).total_seconds() / 60, 2)
         printlog('Logger','Uploaded {} recordings, duration {}'.format(
                     MAX, duration))
@@ -217,6 +219,15 @@ class Logger:
                 printlog('Logger','ERROR: Could not upload ix data: {}, {}'.format(
                             type(e).__name__, e))
                 filemanager.log_local(data, sheet=configs.local_ix_log)
+
+    def ping():
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        data = [timestamp]
+        try:
+            self.gsheets.log_to_drive([data], 'ping')
+        except Exception as e:
+            print('Ping error', type(e).__name__)
+
 
     def log_sensor_status(self, sensorsInRange, sensorVolts, playingAudio, playingVideo, cameraIsRecording, anyInRange, ixID=None):
 

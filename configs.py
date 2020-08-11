@@ -26,6 +26,7 @@ DOCNAME = 'Monkey-logs'
 IX_SHEET = 'main-logs'
 PROGRUN_SHEET = 'prog-run-logs'
 SENSOR_SHEET = 'sensor-logs'
+PING_SHEET = 'ping-logs'
 
 # Google Drive API parameters for uploading listDriveFiles
 GDRIVE_FOLDER_ID = '15-VeIBr0SVHk2_aWBVe_F2UmiXJw0tr7'  #"Recordings"

@@ -116,6 +116,8 @@ if __name__ == "__main__":
     # Timer for when disk space should be checked
     checkSpace_timer = datetime.now()
 
+    pingTimer = datetime.now()
+
     # Timer to avoid uploading data during and right after interactions
     ix_timer = datetime.now()
 
@@ -137,11 +139,10 @@ if __name__ == "__main__":
 
     while True:
 
-#        if (k == 10):
-#            print(datetime.isoformat(datetime.now()),'ping!')
-#            k=0
-#        else:
-#            k += 1
+        if ((datetime.now() - pingTimer).total_seconds() / 60 > 10:
+            # ping every 10 minutes
+            logger.ping()
+            pingTimer = datetime.now()
 
         # Checking if should update the request quota for Google Sheets
         # It is 100 requests per 100 seconds (e.g. logging of 100 rows)
@@ -200,8 +201,8 @@ if __name__ == "__main__":
                 videoPlayer.play_video()
                 printlog('Main','Video started playing.')
 
-            logger.log_sensor_status(sensorsInRange, sensorVolts, playingAudio,
-                                        playingVideo, cameraIsRecording, anyInRange, ixID)
+            #logger.log_sensor_status(sensorsInRange, sensorVolts, playingAudio,
+            #                            playingVideo, cameraIsRecording, anyInRange, ixID)
 
         else:
 
@@ -223,8 +224,8 @@ if __name__ == "__main__":
                 ix_timer = datetime.now()
                 printlog('Main','Interaction ended.')
 
-            logger.log_sensor_status(sensorsInRange, sensorVolts, playingAudio,
-                                        playingVideo, cameraIsRecording, anyInRange)
+            #logger.log_sensor_status(sensorsInRange, sensorVolts, playingAudio,
+            #                            playingVideo, cameraIsRecording, anyInRange)
 
 
 
@@ -238,7 +239,7 @@ if __name__ == "__main__":
             if not logger.ix_id and timeSinceIx > 1:
                 printlog('Main','Uploading data from logs..')
                 logger.upload_ix_logs()
-                logger.upload_sensor_logs()
+                #logger.upload_sensor_logs()
                 uploadData_timer = datetime.now()
 
         # Check disk space every 4 minutes
@@ -254,7 +255,7 @@ if __name__ == "__main__":
                     # During these hours, only check about 4 times if there are any
                     # videos / logfiles to upload
                     printlog('Main','Starting to upload files from today.')
-                    logger.upload_recordings()
+                    logger.upload_recordings(50)
 
                     if not logfilesUploadedToday:
                         # do this only once a day

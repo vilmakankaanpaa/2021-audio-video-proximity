@@ -17,6 +17,7 @@ class SheetsService:
         self.ix_sheet = None
         self.progrun_sheet = None
         self.sensor_sheet = None
+        self.ping_sheet = None
 
         self.nof_rows_left = 100
         self.quota_timer = datetime.now() # The service account has request quota of 100 requests per 100 seconds
@@ -44,12 +45,16 @@ class SheetsService:
         if len(self.sensor_sheet.get_all_values()) == 1:
             self.sensor_sheet.resize(rows=1,cols=12)
 
+        if len(self.ping_sheet.get_all_values()) == 1:
+            self.ping_sheet.resize(rows=1,cols=1)
+
     def _open_sheets(self):
 
         printlog('Sheets','Opening worksheets..')
         self.ix_sheet = self.client.open(configs.DOCNAME).worksheet(configs.IX_SHEET)
         self.progrun_sheet = self.client.open(configs.DOCNAME).worksheet(configs.PROGRUN_SHEET)
         self.sensor_sheet = self.client.open(configs.DOCNAME).worksheet(configs.SENSOR_SHEET)
+        self.ping_sheet = self.client.open(configs.DOCNAME).worksheet(configs.PING_SHEET)
 
     def _check_connection(self):
         if self.creds.access_token_expired:
@@ -99,6 +104,9 @@ class SheetsService:
             for row in dataToLog:
                 self.sensor_sheet.append_row(row)
 
+        elif sheet == 'ping':
+            for row in dataToLog:
+                self.ping_sheet.append_row(row)
         else:
             printlog('Sheets', 'ERROR: No such sheet defined')
 
