@@ -106,7 +106,7 @@ class SheetsService:
 
         elif sheet == 'ping':
             for row in dataToLog:
-                self.ping_sheet.append_row(row)
+                self.ping_sheet.insert_row(row)
         else:
             printlog('Sheets', 'ERROR: No such sheet defined')
 
