@@ -39,6 +39,9 @@ class DriveService:
 
     def _upload_file(self, localFilePath, metadata):
         # general module to upload any file to specified folder in Google Drive
+
+        printlog('Drive','Uplaoding file: {}'.format(localFilePath))
+
         self._check_connection()
         media = MediaFileUpload(
             localFilePath,
