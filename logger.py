@@ -271,7 +271,7 @@ class Logger:
         if len(data) > 0:
             printlog('Logger','Uploading sensor logs to local sheet.')
             filemanager.log_local(data, sheet=configs.local_sensor_log)
-            printlog('Finished logging.')
+            printlog('Logger','Finished logging.')
 
     def log_program_run_info(self):
 
