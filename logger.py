@@ -145,11 +145,12 @@ class Logger:
                 try:
                     self.gdrive.upload_recording(filename, folderId)
                     filemanager.delete_local_file(directory + filename)
-                    ++i
+                    
                 except Exception as e:
                     printlog('Logger','ERROR: Could not upload file: {}, {}'.format(
                                 type(e).__name__, e))
-
+                ++i
+                
         duration = round((datetime.now() - startTime).total_seconds() / 60, 2)
         printlog('Logger','Uploaded {} recordings, duration {}'.format(
                     MAX, duration))
