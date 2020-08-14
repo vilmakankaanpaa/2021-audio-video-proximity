@@ -220,7 +220,7 @@ class Logger:
                             type(e).__name__, e))
                 filemanager.log_local(data, sheet=configs.local_ix_log)
 
-    def ping():
+    def ping(self):
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         data = [timestamp]
         try:

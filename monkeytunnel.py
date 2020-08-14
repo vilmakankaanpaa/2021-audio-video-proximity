@@ -136,10 +136,12 @@ if __name__ == "__main__":
 #    k = 0
     firstFalseReadingTime = None
     numberOfLoops = 0
+    
+    logger.ping()
 
     while True:
 
-        if ((datetime.now() - pingTimer).total_seconds() / 60 > 10:
+        if (datetime.now() - pingTimer).total_seconds() / 60 > 10:
             # ping every 10 minutes
             logger.ping()
             pingTimer = datetime.now()
