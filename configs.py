@@ -1,5 +1,5 @@
 # program run settings
-TEST_PHASE = '4-worms-video'
+TEST_PHASE = '5-abstract-video'
 USE_AUDIO = False
 USE_VIDEO = True
 VIDEO_AUDIO_ON = False # audio of the video file
@@ -11,7 +11,7 @@ external_disk = '/mnt/kingston/'
 
 # paths to use
 AUDIO_PATH = 'None'
-VIDEO_PATH = root + 'video/worms.mp4'
+VIDEO_PATH = root + 'video/abstract.mp4'
 RECORDINGS_PATH = external_disk + 'camera-records/'
 RECORDINGS_PATH_2 = root + 'camera-records/'
 
