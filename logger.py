@@ -143,7 +143,7 @@ class Logger:
             if filename != self.ix_recording:
                 # skip if currently being recorded!
                 try:
-                    self.gdrive.upload_recording(filename, folderId)
+                    self.gdrive.upload_recording(filename, folderId, directory)
                     filemanager.delete_local_file(directory + filename)
                     i += 1
 

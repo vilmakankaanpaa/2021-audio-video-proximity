@@ -106,17 +106,17 @@ class DriveService:
 
         return files, folders
 
-    def upload_recording(self, fileName, parentFolderId):
+    def upload_recording(self, fileName, parentFolderId, directory):
         # Upload video file from the local camera-records folder
-        localFilePath = configs.RECORDINGS_PATH + fileName
+        localFilePath = directory + fileName
         metadata = {
             'name': fileName,
-            'mimeType': '*/*', # for some reason did not work with 'application/vnd.google-apps.video'
+            'mimeType': '*/*',
             'parents':[parentFolderId]
             }
 
         fileId = self._upload_file(localFilePath, metadata)
-        #TEST
+
 
     def upload_logfile(self, fileName):
         # Upload local logfile to drive from dir sakis-video-tunnel
