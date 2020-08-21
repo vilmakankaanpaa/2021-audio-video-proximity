@@ -77,7 +77,7 @@ def ensure_disk_space(logger, recDirectory):
 
         printlog('Main','ERROR: Camera has been recording to Pi local folder!')
         freeSpace = check_disk_space(configs.root)
-        if freeSpace < 0.15: # 1.17/7.8 GB of the total free space on Pi
+        if freeSpace < 0.02: # 2% of the 7.8 GB of the total free space on Pi, so less than 156MB
             printlog('Main','Disk space on Pi getting small! Uploading files already.')
             # Pi is so small that we just need them all out.
             logger.upload_recordings()
@@ -136,7 +136,7 @@ if __name__ == "__main__":
 #    k = 0
     firstFalseReadingTime = None
     numberOfLoops = 0
-    
+
     logger.ping()
 
     while True:
