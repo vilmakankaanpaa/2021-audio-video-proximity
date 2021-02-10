@@ -12,6 +12,3 @@ token.json
 
 # Recordings of the camera module
 camera-records
-
-# Mainly output.txt file
-*.txt
