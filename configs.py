@@ -22,11 +22,11 @@ local_program_log = 'progrun_backup.csv'
 local_printlog = 'printlog.csv'
 
 # Google sheets API parameters for logging data
-DOCNAME = 'Monkey-logs'
-IX_SHEET = 'main-logs'
-PROGRUN_SHEET = 'prog-run-logs'
-SENSOR_SHEET = 'sensor-logs'
-PING_SHEET = 'ping-logs'
+SPREADSHEET_ID = '1-sFTPHnKqSMEMJ6mKf0D3lMXn77QECNJbL_vR-Prskg'
+IX_SHEET = 'interactions'
+STARTS_SHEET = 'system-starts'
+SENSORS_SHEET = 'sensor-readings'
+PING_SHEET = 'ping-alive'
 
 # Google Drive API parameters for uploading listDriveFiles
 GDRIVE_FOLDER_ID = '15-VeIBr0SVHk2_aWBVe_F2UmiXJw0tr7'  #"Recordings"

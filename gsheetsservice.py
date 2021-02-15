@@ -14,55 +14,63 @@ class SheetsService:
 
     def __init__(self):
 
-        self.ix_sheet = None
-        self.progrun_sheet = None
-        self.sensor_sheet = None
-        self.ping_sheet = None
+        self.spreadsheet_id = configs.SPREADSHEET_ID
+        self.sheets = {
+                    'ix': configs.IX_SHEET,
+                    'progrun': configs.STARTS_SHEET,
+                    'sensors': configs.SENSORS_SHEET,
+                    'ping': configs.PING_SHEET
+                }
 
         self.nof_rows_left = 100
         self.quota_timer = datetime.now() # The service account has request quota of 100 requests per 100 seconds
 
-        CLIENT_SECRET = "/home/pi/sakis-video-tunnel/client_secret_sheets.json"
-        SCOPES = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
+        SERVICE_ACCOUNT_FILE = '/home/pi/sakis-tunnel-2021/service_account.json'
+        SCOPE = ['https://www.googleapis.com/auth/drive', 'https://www.googleapis.com/auth/spreadsheets']
 
-        self.creds = ServiceAccountCredentials.from_json_keyfile_name(CLIENT_SECRET, SCOPES)
+        self.creds = service_account.Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPE)
 
+        # Service for Google Sheets
         printlog('Sheets','Logging in to Google Sheets..')
-        self.client = gspread.authorize(self.creds)
-        self.client.login()
-        self._open_sheets()
-        self._reset_sheets()
+        service = build('sheets', 'v4', credentials=credentials)
 
-    def _reset_sheets(self):
-        # reset sheet rows if empty (since rows are appended and default sheet
-        # already has empty rows)
-        if len(self.ix_sheet.get_all_values()) == 1:
-            self.ix_sheet.resize(rows=1,cols=8)
+        #self._reset_sheets() # TODO: is this really needed?
 
-        if len(self.progrun_sheet.get_all_values()) == 1:
-            self.progrun_sheet.resize(rows=1,cols=9)
 
-        if len(self.sensor_sheet.get_all_values()) == 1:
-            self.sensor_sheet.resize(rows=1,cols=12)
-
-        if len(self.ping_sheet.get_all_values()) == 1:
-            self.ping_sheet.resize(rows=1,cols=1)
-
-    def _open_sheets(self):
-
-        printlog('Sheets','Opening worksheets..')
-        self.ix_sheet = self.client.open(configs.DOCNAME).worksheet(configs.IX_SHEET)
-        self.progrun_sheet = self.client.open(configs.DOCNAME).worksheet(configs.PROGRUN_SHEET)
-        self.sensor_sheet = self.client.open(configs.DOCNAME).worksheet(configs.SENSOR_SHEET)
-        self.ping_sheet = self.client.open(configs.DOCNAME).worksheet(configs.PING_SHEET)
+    # def _reset_sheets(self):
+    #     # reset sheet rows if empty (since rows are appended and default sheet
+    #     # already has empty rows)
+    #     if len(self.ix_sheet.get_all_values()) == 1:
+    #         self.ix_sheet.resize(rows=1,cols=8)
+    #
+    #     if len(self.progrun_sheet.get_all_values()) == 1:
+    #         self.progrun_sheet.resize(rows=1,cols=9)
+    #
+    #     if len(self.sensor_sheet.get_all_values()) == 1:
+    #         self.sensor_sheet.resize(rows=1,cols=12)
+    #
+    #     if len(self.ping_sheet.get_all_values()) == 1:
+    #         self.ping_sheet.resize(rows=1,cols=1)
+    #
+    # def _open_sheets(self):
+    #
+    #     printlog('Sheets','Opening worksheets..')
+    #     self.ix_sheet = self.client.open(configs.DOCNAME).worksheet(configs.IX_SHEET)
+    #     self.progrun_sheet = self.client.open(configs.DOCNAME).worksheet(configs.PROGRUN_SHEET)
+    #     self.sensor_sheet = self.client.open(configs.DOCNAME).worksheet(configs.SENSOR_SHEET)
+    #     self.ping_sheet = self.client.open(configs.DOCNAME).worksheet(configs.PING_SHEET)
 
     def _check_connection(self):
-        if self.creds.access_token_expired:
-            printlog('Sheets','Access token had expired. Logging in.')
-            self.client.login()
-            self._open_sheets()
+        # TODO: how to check connection?
+        pass
+        # if self.creds.access_token_expired:
+        #     printlog('Sheets','Access token had expired. Logging in.')
+        #     self.client.login()
+        #     self._open_sheets()
 
     def _reduce_nof_rows_left(self, amount):
+        # TODO are the quotas still same?
+        pass
         self.nof_rows_left = (self.nof_rows_left - amount)
         if (self.nof_rows_left < 10):
             printlog('Sheets','Less than 10 ({}) rows left in quota'.format(self.nof_rows_left))
@@ -70,6 +78,7 @@ class SheetsService:
 
     def check_quota_timer(self):
         # reset log timer every 100s – quota for google is 100 requests per 100 seconds
+        pass
         diff = (datetime.now()-self.quota_timer).total_seconds()
         if diff >= 100:
             self.quota_timer = datetime.now()
@@ -90,25 +99,31 @@ class SheetsService:
             dataToLog = data[0:rowLimit]
             truncated = True
 
-        self._check_connection()
+        #self._check_connection()
 
-        if sheet == 'ix':
-            for row in dataToLog:
-                self.ix_sheet.append_row(row)
+        spreadsheet_id = self.spreadsheet_id
+        value_input_option = 'USER_ENTERED'
 
-        elif sheet == 'progrun':
-            for row in dataToLog:
-                self.progrun_sheet.append_row(row)
+        body = {
+            'values': dataToLog
+        }
 
-        elif sheet == 'sensors':
-            for row in dataToLog:
-                self.sensor_sheet.append_row(row)
+        try:
+            range_name = self.sheets[sheet]
+        except:
+            printlog('Sheets','ERROR: No such sheet.')
 
-        elif sheet == 'ping':
-            for row in dataToLog:
-                self.ping_sheet.insert_row(row)
-        else:
-            printlog('Sheets', 'ERROR: No such sheet defined')
+        try:
+
+            result = service.spreadsheets().values().append(
+                spreadsheetId=spreadsheet_id, range=range_name,
+                valueInputOption=value_input_option, body=body).execute()
+
+            print('{0} cells appended.'.format(result \
+                                                   .get('updates') \
+                                                   .get('updatedCells')))
+       except:
+            printlog('Sheets', 'ERROR: Uplaoding to sheets failed.')
 
         self._reduce_nof_rows_left(len(dataToLog))
         dataLeft = []
