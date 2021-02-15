@@ -1,6 +1,8 @@
 from mpyg321.mpyg321 import MPyg321Player, PlayerStatus
 from time import sleep
 
+import configs
+
 class AudioPlayer(MPyg321Player):
 
     # Player status values:
@@ -35,3 +37,6 @@ class AudioPlayer(MPyg321Player):
             self.play_song(configs.AUDIO_PATH)
         else:
             pass
+
+    def pause_audio(self):
+        self.pause()
