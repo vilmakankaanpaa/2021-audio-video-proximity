@@ -133,7 +133,6 @@ if __name__ == "__main__":
     logger = Logger(pid)
     logger.log_program_run_info()
 
-#    k = 0
     firstFalseReadingTime = None
     numberOfLoops = 0
 
@@ -203,8 +202,8 @@ if __name__ == "__main__":
                 videoPlayer.play_video()
                 printlog('Main','Video started playing.')
 
-            #logger.log_sensor_status(sensorsInRange, sensorVolts, playingAudio,
-            #                            playingVideo, cameraIsRecording, anyInRange, ixID)
+            logger.log_sensor_status(sensorsInRange, sensorVolts, playingAudio,
+                                        playingVideo, cameraIsRecording, anyInRange, ixID)
 
         else:
 
@@ -226,8 +225,8 @@ if __name__ == "__main__":
                 ix_timer = datetime.now()
                 printlog('Main','Interaction ended.')
 
-            #logger.log_sensor_status(sensorsInRange, sensorVolts, playingAudio,
-            #                            playingVideo, cameraIsRecording, anyInRange)
+            logger.log_sensor_status(sensorsInRange, sensorVolts, playingAudio,
+                                        playingVideo, cameraIsRecording, anyInRange)
 
 
 
@@ -241,7 +240,7 @@ if __name__ == "__main__":
             if not logger.ix_id and timeSinceIx > 1:
                 printlog('Main','Uploading data from logs..')
                 logger.upload_ix_logs()
-                #logger.upload_sensor_logs()
+                logger.upload_sensor_logs()
                 uploadData_timer = datetime.now()
 
         # Check disk space every 4 minutes

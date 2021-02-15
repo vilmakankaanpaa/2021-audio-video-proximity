@@ -1,9 +1,9 @@
 # program run settings
 TEST_PHASE = '6-animals-video'
 USE_AUDIO = False
-USE_VIDEO = True
+USE_VIDEO = False
 VIDEO_AUDIO_ON = False # audio of the video file
-RECORDING_ON = True # record interaction with camera module
+RECORDING_ON = False # record interaction with camera module
 
 # roots
 root = '/home/pi/sakis-video-tunnel/'
