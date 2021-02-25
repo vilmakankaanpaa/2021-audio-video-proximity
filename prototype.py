@@ -10,6 +10,7 @@ import os
 from time import sleep
 import spidev
 from datetime import datetime
+import csv
 
 # Spidev used to connect to and read the sensors
 spi = spidev.SpiDev()
@@ -29,10 +30,10 @@ def log_data(data):
         for row in data:
             logwriter.writerow(row)
 
-def main():
+if __name__ == "__main__":
 
     boottime = datetime.now()
-    threshold = 800
+    threshold = 600
     detected = False
     ix_readings = []
     ix_count = 0
@@ -41,11 +42,13 @@ def main():
     while True:
 
         reading = read_channel(0)
+        print(reading)
 
         if reading > threshold:
             # interaction detected
-            if detected = False:
+            if detected == False:
                 ix_count += 1
+                print('new interaction!')
 
             detected = True
             # append to ix_readings
@@ -53,9 +56,9 @@ def main():
             ix_readings.append([datetime.now(), since_boot, ix_count, reading])
 
         else:
-            if detected = True:
+            if detected == True:
                 log_data(ix_readings)
                 ix_readings = []
             detected = False
 
-        sleep(0.2)
+        sleep(0.1)
