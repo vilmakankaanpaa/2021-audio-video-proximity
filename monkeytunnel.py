@@ -4,7 +4,6 @@ from time import sleep
 from datetime import datetime, date, time
 
 # Local sources
-from sensors import check_sensors
 from filemanager import check_disk_space, printlog, get_directory_for_recordings
 from logger import Logger
 from audioplayer import AudioPlayer
@@ -14,47 +13,6 @@ import configs
 import settings
 
 sys.excepthook = sys.__excepthook__
-
-def print_configurations():
-
-    print('Audio on:', configs.USE_AUDIO)
-    print('Video on:', configs.USE_VIDEO)
-    print('Using video audio:', configs.VIDEO_AUDIO_ON)
-    print('Recording on:', configs.RECORDING_ON)
-
-    if configs.USE_AUDIO: print('Audio file in use:', configs.AUDIO_PATH)
-    if configs.USE_VIDEO: print('Video file in use:', configs.VIDEO_PATH)
-    if configs.RECORDING_ON: print('Recording to folder:', configs.RECORDINGS_PATH)
-
-
-def update_sensor_reading(monkeyDetected, thresholdReading, anyInRange, threshold):
-
-    # When enough no. of consecutive checks are same, set new value
-    # thresholdReading will vary between 0–threshold*factor and the threshold point
-    # will determine if false or true (monkey in)
-
-    # One loop takes basically 0.4 seconds (the time code sleeps at the loop end)
-    # So the more loops are needed to change the userDetected value,
-    # the less sensitive the system is
-    if anyInRange:
-        if thresholdReading < (threshold*5)-1:
-            thresholdReading += 2 # go up fast
-    else:
-        if thresholdReading > 0:
-            thresholdReading -= 1 # but down slower
-
-    if thresholdReading > threshold and not monkeyDetected:
-        printlog('Main','Monkey came in!')
-        monkeyDetected = True
-    elif thresholdReading < threshold and monkeyDetected:
-        printlog('Main','All monkeys left. :(')
-        monkeyDetected = False
-    else:
-        # don't do anything yet, keep values same
-        # value is now same as threshold
-        pass
-
-    return monkeyDetected, thresholdReading
 
 def ensure_disk_space(logger, recDirectory):
 
@@ -103,10 +61,7 @@ if __name__ == "__main__":
     camDirectory = None
     logfilesUploadedToday = False
 
-    sensorThreshold = 2
-    # threshold is "middle ground", it won't determine any change yet
-    thresholdReading = sensorThreshold
-    monkeyDetected = False
+    # sensornote: setted the threshold here
 
     # Timer for when files (recordings, logfiles) should be uploaded
     uploadFiles_timer = datetime.now()
@@ -133,9 +88,6 @@ if __name__ == "__main__":
     logger = Logger(pid)
     logger.log_program_run_info()
 
-    firstFalseReadingTime = None
-    numberOfLoops = 0
-
     logger.ping()
 
     while True:
@@ -149,21 +101,9 @@ if __name__ == "__main__":
         # It is 100 requests per 100 seconds (e.g. logging of 100 rows)
         logger.gsheets.check_quota_timer()
 
-        sensorVolts, sensorsInRange = check_sensors()
-        anyInRange = any(sensorsInRange)
-
-        # Checking whether it is first FALSE reading after monkey has been in for interaction
-        if (not anyInRange and monkeyDetected): # monkeydetected value from previous round
-            if numberOfLoops == 0:
-                firstFalseReadingTime = datetime.now()
-            else:
-                numberOfLoops += 1
-        else:
-            numberOfLoops = 0
-
-        monkeyDetected, thresholdReading = update_sensor_reading(
-            monkeyDetected, thresholdReading,
-            anyInRange, sensorThreshold)
+        # snesornote: reading sensors here
+        # sensornote: handling the FALSe readings here
+        # sensornote: determined if monkey was detected or not
 
         if recordingOn:
             cameraIsRecording = camera.is_recording()
@@ -180,53 +120,6 @@ if __name__ == "__main__":
                 # if quit, spawn new
                 videoPlayer = VideoPlayer(videoPath=configs.VIDEO_PATH,
                             useVideoAudio=configs.VIDEO_AUDIO_ON)
-
-        if monkeyDetected:
-
-            ixID = logger.ix_id
-            if not ixID:
-                ixID = logger.log_interaction_start()
-                printlog('Main','Interaction started.')
-
-            if recordingOn and not cameraIsRecording:
-                fileName = logger.new_recording_name()
-                camDirectory = get_directory_for_recordings()
-                camera.start_recording(fileName, camDirectory)
-                printlog('Main','Camera started recording.')
-
-            if usingAudio and not playingAudio:
-                audioPlayer.play_audio()
-                printlog('Main','Audio started playing.')
-
-            if usingVideo and not playingVideo:
-                videoPlayer.play_video()
-                printlog('Main','Video started playing.')
-
-            logger.log_sensor_status(sensorsInRange, sensorVolts, playingAudio,
-                                        playingVideo, cameraIsRecording, anyInRange, ixID)
-
-        else:
-
-            if recordingOn and cameraIsRecording:
-                camera.stop_recording()
-                printlog('Main','Camera stopped recording.')
-
-            if usingAudio and playingAudio:
-                audioPlayer.pause_audio()
-                printlog('Main','Audio stopped playing.')
-
-            if usingVideo and playingVideo:
-                videoPlayer.pause_video()
-                printlog('Main','Video stopped playing.')
-
-            if logger.ix_id:
-                logger.log_interaction_end(firstFalseReadingTime)
-                firstFalseReadingTime = None
-                ix_timer = datetime.now()
-                printlog('Main','Interaction ended.')
-
-            logger.log_sensor_status(sensorsInRange, sensorVolts, playingAudio,
-                                        playingVideo, cameraIsRecording, anyInRange)
 
 
 
