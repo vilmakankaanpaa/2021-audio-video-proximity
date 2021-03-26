@@ -100,9 +100,12 @@ if __name__ == "__main__":
         while True:
 
             # Check for media playing over delay time
-            if any(mediaPlaying) and not any(switches.switchesOpen):
+            print('currentlyplaying:', switches.switchCurrentlyPlaying)
+            if switches.switchCurrentlyPlaying and not any(switches.switchesOpen):
                 # Stop media if delay is over
-                turnOff(switchCurrentlyPlaying)
+                switches.turnOff(switches.switchCurrentlyPlaying)
+                
+            sleep(0.2)
 
             #if (datetime.now() - pingTimer).total_seconds() / 60 > 10:
                 # ping every 10 minutes
@@ -174,7 +177,6 @@ if __name__ == "__main__":
                 elif hourNow == 0:
                     logfilesUploadedToday = False
             '''
-            sleep(0.4)
 
 
     except KeyboardInterrupt:

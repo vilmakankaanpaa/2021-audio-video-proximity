@@ -76,7 +76,7 @@ def turnOn(switch):
         # One is playing (but not this)
         if delayPassed:
             # turn  the other one off
-            stopMedia(switchCurrentlyPlaying))
+            stopMedia(switchCurrentlyPlaying)
             # start on new switch
             startMedia(switch)
         else:
