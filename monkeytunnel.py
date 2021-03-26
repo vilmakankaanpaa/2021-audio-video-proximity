@@ -1,6 +1,6 @@
 import os
 import sys
-import RPi.GPIO as GPIO 
+import RPi.GPIO as GPIO
 from time import sleep
 from datetime import datetime, date, time
 
@@ -97,24 +97,12 @@ if __name__ == "__main__":
 
         #logger.ping()
 
-        # if media is playing or not
-        mediaPlaying = [False,False,False,False]
-        print(mediaPlaying)
-
-        print(switches.switchesOpen)
-
         while True:
 
-            #### newpart
-            for i in range(0,4):
-                if mediaPlaying[i] and not switches.switchesOpen[i]:
-                    print('turnging media off')
-
-                elif not mediaPlaying[i] and switches.switchesOpen[i]:
-                    print('turning media on')
-
-
-            ####
+            # Check for media playing over delay time
+            if any(mediaPlaying) and not any(switches.switchesOpen):
+                # Stop media if delay is over
+                turnOff(switchCurrentlyPlaying)
 
             #if (datetime.now() - pingTimer).total_seconds() / 60 > 10:
                 # ping every 10 minutes
