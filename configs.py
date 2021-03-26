@@ -1,7 +1,5 @@
 # program run settings
-TEST_PHASE = '6-animals-video'
-USE_AUDIO = False
-USE_VIDEO = False
+TEST_PHASE = 'Testing'
 VIDEO_AUDIO_ON = False # audio of the video file
 RECORDING_ON = False # record interaction with camera module
 
@@ -10,10 +8,19 @@ root = '/home/pi/sakis-video-tunnel/'
 external_disk = '/mnt/kingston/'
 
 # paths to use
-AUDIO_PATH = 'None'
-VIDEO_PATH = root + 'video/animals.mp4'
 RECORDINGS_PATH = external_disk + 'camera-records/'
 RECORDINGS_PATH_2 = root + 'camera-records/'
+
+# audio files
+AUDIO1 = root + 'audio/zen.mp3'
+AUDIO2 = root + 'audio/rain.mp3'
+AUDIO3 = root + 'audio/traffic.mp3'
+AUDIO4 = root + 'audio/music.mp3'
+# video files
+VIDEO1 = root + 'video/forest.mp4'
+VIDEO2 = root + 'video/underwater.mp4'
+VIDEO3 = root + 'video/worms.mp4'
+VIDEO4 = root + 'video/abstract.mp4'
 
 # local logfile names
 local_ix_log = 'ix_backup.csv'
