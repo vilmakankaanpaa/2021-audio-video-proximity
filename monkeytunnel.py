@@ -1,6 +1,5 @@
 import os
 import sys
-import RPi.GPIO as GPIO
 from time import sleep
 from datetime import datetime, date, time
 
@@ -12,7 +11,7 @@ from datetime import datetime, date, time
 #from camera import Camera
 import switches
 import configs
-import settings
+import globals
 
 sys.excepthook = sys.__excepthook__
 
@@ -45,30 +44,13 @@ def ensure_disk_space(logger, recDirectory):
     else:
         pass
 
-def setupSwitches():
-        # Use Broadcom (the GPIO numbering)
-        GPIO.setmode(GPIO.BCM)
-        # Set the GPIO pin numbers to use and
-        # use Pull Up resistance for the reed sensor wiring
-        GPIO.setup(22,GPIO.IN, pull_up_down=GPIO.PUD_UP)
-        GPIO.setup(23,GPIO.IN, pull_up_down=GPIO.PUD_UP)
-        GPIO.setup(24,GPIO.IN, pull_up_down=GPIO.PUD_UP)
-        GPIO.setup(25,GPIO.IN, pull_up_down=GPIO.PUD_UP)
-        # Adding what happens when switch value changes. We are not using
-        # bouncetime because we need to make sure to record all changes. The quick
-        # changes are going to handled in other ways.
-        GPIO.add_event_detect(22, GPIO.BOTH, callback=switches.react)
-        GPIO.add_event_detect(23, GPIO.BOTH, callback=switches.react)
-        GPIO.add_event_detect(24, GPIO.BOTH, callback=switches.react)
-        GPIO.add_event_detect(25, GPIO.BOTH, callback=switches.react)
-
 
 if __name__ == "__main__":
 
-    settings.init()
-    
+    globals.init()
+
     print(datetime.isoformat(datetime.now()))
-    settings.pid = os.getpid()
+    globals.pid = os.getpid()
 
     print('pid:',settings.pid)
 
@@ -117,17 +99,17 @@ if __name__ == "__main__":
         # if media is playing or not
         mediaPlaying = [False,False,False,False]
         print(mediaPlaying)
-        
-        print(settings.switchesOpen)
+
+        print(globals.switchesOpen)
 
         while True:
 
             #### newpart
             for i in range(0,4):
-                if mediaPlaying[i] and not settings.switchesOpen[i]:
+                if mediaPlaying[i] and not globals.switchesOpen[i]:
                     print('turnging media off')
-                
-                elif not mediaPlaying[i] and settings.switchesOpen[i]:
+
+                elif not mediaPlaying[i] and globals.switchesOpen[i]:
                     print('turning media on')
 
 
