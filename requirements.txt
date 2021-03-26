@@ -1,5 +1,6 @@
 httplib2==0.19.0
 omxplayer-wrapper==0.3.3
-mpyg321==1.0.1
+mpg321==0.3.2
+mpyg321==1.1.0
 apiapiclient==1.0.4
 gspread==3.6.0
