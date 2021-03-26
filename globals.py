@@ -20,11 +20,3 @@ def init():
     videoAudio = False
 
     global pid
-
-    # GPIO channels of the switches on RPI
-    global switchChannels
-    switchChannels = {22:0, 23:1, 24:2, 25:3}
-
-    # globals for switches
-    global switchesOpen
-    switchesOpen = [False, False, False, False]

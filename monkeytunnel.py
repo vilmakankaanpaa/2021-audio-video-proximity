@@ -100,16 +100,16 @@ if __name__ == "__main__":
         mediaPlaying = [False,False,False,False]
         print(mediaPlaying)
 
-        print(globals.switchesOpen)
+        print(switches.switchesOpen)
 
         while True:
 
             #### newpart
             for i in range(0,4):
-                if mediaPlaying[i] and not globals.switchesOpen[i]:
+                if mediaPlaying[i] and not switches.switchesOpen[i]:
                     print('turnging media off')
 
-                elif not mediaPlaying[i] and globals.switchesOpen[i]:
+                elif not mediaPlaying[i] and switches.switchesOpen[i]:
                     print('turning media on')
 
 
