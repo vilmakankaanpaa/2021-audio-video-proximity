@@ -20,22 +20,20 @@ def init():
         GPIO.add_event_detect(24, GPIO.BOTH, callback=react)
         GPIO.add_event_detect(25, GPIO.BOTH, callback=react)
 
+        # TODO: do a class instead?
+
         # GPIO channels of the switches on RPI
-        global channels
-        channels = {22:0, 23:1, 24:2, 25:3}
+        global channels; channels = {22:0, 23:1, 24:2, 25:3}
 
         # Use global variable to update the switch statuses
-        global switchesOpen
-        switchesOpen = [False, False, False, False]
+        global switchesOpen; switchesOpen = [False, False, False, False]
 
-        global switchCurrentlyPlaying # 0-3
-        switchCurrentlyPlaying = None
+        global switchCurrentlyPlaying; switchCurrentlyPlaying = None # 0-3
 
-        global delay
-        delay = 3 # seconds
+        global delay; delay = 3 # seconds
 
-        global starttime
-        starttime = None
+        global starttime; starttime = None
+
 
 #
 # Called when one of the four switches is triggered
@@ -45,14 +43,14 @@ def react(channel):
 
     if GPIO.input(channel) == GPIO.HIGH:
         print('Switch', switch, 'is open.')
-        switchesOpen[switch] = True
+        global switchesOpen; switchesOpen[switch] = True
         #log([datetime.now(),'flip','Flip open {}'.format(count), since_boot])
         if switch != switchCurrentlyPlaying:
             turnOn(switch)
 
     else:
         print('Switch', switch, 'is closed.')
-        switchesOpen[switch] = False
+        global switchesOpen; switchesOpen[switch] = False
         #log([datetime.now(),'flip','Flip closed {}'.format(count), since_boot])
         if switch == switchCurrentlyPlaying:
             # sometimes another switch was opened during other one was open, then it would not be stopped
@@ -87,19 +85,21 @@ def turnOn(switch):
 def turnOff(switch):
     if delayPassed:
         stopMedia(switchCurrentlyPlaying)
-        switchCurrentlyPlaying = None
-        starttime = None
+        global switchCurrentlyPlaying; switchCurrentlyPlaying = None
+        global starttime; starttime = None
 
 
 def startMedia(switch):
-    starttime = datetime.now()
-    switchCurrentlyPlaying = switch
+    # TODO: start the actual media
+    global starttime; starttime = datetime.now()
+    global switchCurrentlyPlaying; switchCurrentlyPlaying = switch
     print(starttime, 'Starting on switch', switch)
 
 
 def stopMedia(switch):
+    # TODO stop the actual media
     playtime = round((datetime.now() - starttime).total_seconds(),2)
-    switchCurrentlyPlaying = None
+    global switchCurrentlyPlaying; switchCurrentlyPlaying = None
     print(datetime.now(), 'Stopping on switch', switch, playtime)
 
 
