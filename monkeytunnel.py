@@ -1,5 +1,6 @@
 import os
 import sys
+import RPi.GPIO as GPIO 
 from time import sleep
 from datetime import datetime, date, time
 
@@ -52,12 +53,12 @@ if __name__ == "__main__":
     print(datetime.isoformat(datetime.now()))
     globals.pid = os.getpid()
 
-    print('pid:',settings.pid)
+    print('pid:',globals.pid)
 
     #printlog('Main','Starting up monkeytunnel..')
 
     try:
-        setupSwitches()
+        switches.init()
         print('switches setup')
 
         # Variables for keep track of the state of system
