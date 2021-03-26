@@ -9,6 +9,7 @@ from logger import Logger
 from audioplayer import AudioPlayer
 from videoplayer import VideoPlayer
 from camera import Camera
+import switches
 import configs
 import settings
 
@@ -43,6 +44,23 @@ def ensure_disk_space(logger, recDirectory):
     else:
         pass
 
+def setupSwitches():
+        # Use Broadcom (the GPIO numbering)
+        GPIO.setmode(GPIO.BCM)
+        # Set the GPIO pin numbers to use and
+        # use Pull Up resistance for the reed sensor wiring
+        GPIO.setup(22,GPIO.IN, pull_up_down=GPIO.PUD_UP)
+        GPIO.setup(23,GPIO.IN, pull_up_down=GPIO.PUD_UP)
+        GPIO.setup(24,GPIO.IN, pull_up_down=GPIO.PUD_UP)
+        GPIO.setup(25,GPIO.IN, pull_up_down=GPIO.PUD_UP)
+        # Adding what happens when switch value changes. We are not using
+        # bouncetime because we need to make sure to record all changes. The quick
+        # changes are going to handled in other ways.
+        GPIO.add_event_detect(22, GPIO.BOTH, callback=switches.react)
+        GPIO.add_event_detect(23, GPIO.BOTH, callback=switches.react)
+        GPIO.add_event_detect(24, GPIO.BOTH, callback=switches.react)
+        GPIO.add_event_detect(25, GPIO.BOTH, callback=switches.react)
+
 
 if __name__ == "__main__":
 
@@ -54,111 +72,139 @@ if __name__ == "__main__":
 
     printlog('Main','Starting up monkeytunnel..')
 
-    # Variables for keep track of the state of system
-    playingAudio = False
-    playingVideo = False
-    cameraIsRecording = False
-    camDirectory = None
-    logfilesUploadedToday = False
+    try:
+        setupSwitches()
 
-    # sensornote: setted the threshold here
+        # Variables for keep track of the state of system
+        playingAudio = False
+        playingVideo = False
+        cameraIsRecording = False
+        camDirectory = None
+        logfilesUploadedToday = False
 
-    # Timer for when files (recordings, logfiles) should be uploaded
-    uploadFiles_timer = datetime.now()
-    # Timer for when data should be uploaded (interactions & sensors readings)
-    uploadData_timer = datetime.now()
-    # Timer for when disk space should be checked
-    checkSpace_timer = datetime.now()
+        # sensornote: setted the threshold here
 
-    pingTimer = datetime.now()
+        # Timer for when files (recordings, logfiles) should be uploaded
+        uploadFiles_timer = datetime.now()
+        # Timer for when data should be uploaded (interactions & sensors readings)
+        uploadData_timer = datetime.now()
+        # Timer for when disk space should be checked
+        checkSpace_timer = datetime.now()
 
-    # Timer to avoid uploading data during and right after interactions
-    ix_timer = datetime.now()
+        pingTimer = datetime.now()
 
-    if usingAudio:
-        audioPlayer = AudioPlayer()
-
-    elif usingVideo:
-        # TODO how to initialize with many videos?
-        videoPlayer = VideoPlayer(videoPath=configs.VIDEO_PATH,
-                                useVideoAudio=configs.VIDEO_AUDIO_ON)
-    if recordingOn:
-        camera = Camera()
-
-    logger = Logger(pid)
-    logger.log_program_run_info()
-
-    logger.ping()
-
-    while True:
-
-        if (datetime.now() - pingTimer).total_seconds() / 60 > 10:
-            # ping every 10 minutes
-            logger.ping()
-            pingTimer = datetime.now()
-
-        # Checking if should update the request quota for Google Sheets
-        # It is 100 requests per 100 seconds (e.g. logging of 100 rows)
-        logger.gsheets.check_quota_timer()
-
-        # snesornote: reading sensors here
-        # sensornote: handling the FALSe readings here
-        # sensornote: determined if monkey was detected or not
-
-        if recordingOn:
-            cameraIsRecording = camera.is_recording()
+        # Timer to avoid uploading data during and right after interactions
+        ix_timer = datetime.now()
 
         if usingAudio:
-            playingAudio = audioPlayer.is_playing()
-            if not playingAudio and audioPlayer.has_quit():
-                # if quit, spawn new
-                audioPlayer = AudioPlayer()
+            audioPlayer = AudioPlayer()
 
-        if usingVideo:
-            playingVideo = videoPlayer.is_playing()
-            if not playingVideo and videoPlayer.has_quit():
-                # if quit, spawn new
-                videoPlayer = VideoPlayer(videoPath=configs.VIDEO_PATH,
-                            useVideoAudio=configs.VIDEO_AUDIO_ON)
+        elif usingVideo:
+            # TODO how to initialize with many videos?
+            videoPlayer = VideoPlayer(videoPath=configs.VIDEO_PATH,
+                                    useVideoAudio=configs.VIDEO_AUDIO_ON)
+        if recordingOn:
+            camera = Camera()
+
+        logger = Logger(pid)
+        logger.log_program_run_info()
+
+        logger.ping()
+
+        # if media is playing or not
+        mediaPlaying = [False,False,False,False]
+
+        while True:
+
+            #### newpart
+            for i in range(1,5):
+                if mediaPlaying[i] and not switchesOpen[i]:
+                    print('turnging media off')
+                    pass
+                elif not mediaPlaying[i] and switchesOpen[i]:
+                    print('turning media on')
+                    pass
+
+            ####
+
+            if (datetime.now() - pingTimer).total_seconds() / 60 > 10:
+                # ping every 10 minutes
+                logger.ping()
+                pingTimer = datetime.now()
+
+            # Checking if should update the request quota for Google Sheets
+            # It is 100 requests per 100 seconds (e.g. logging of 100 rows)
+            logger.gsheets.check_quota_timer()
+
+            # snesornote: reading sensors here
+            # sensornote: handling the FALSe readings here
+            # sensornote: determined if monkey was detected or not
+
+            if recordingOn:
+                cameraIsRecording = camera.is_recording()
+
+            if usingAudio:
+                playingAudio = audioPlayer.is_playing()
+                if not playingAudio and audioPlayer.has_quit():
+                    # if quit, spawn new
+                    audioPlayer = AudioPlayer()
+
+            if usingVideo:
+                playingVideo = videoPlayer.is_playing()
+                if not playingVideo and videoPlayer.has_quit():
+                    # if quit, spawn new
+                    videoPlayer = VideoPlayer(videoPath=configs.VIDEO_PATH,
+                                useVideoAudio=configs.VIDEO_AUDIO_ON)
 
 
 
-        timeSinceIx = (datetime.now() - ix_timer).total_seconds() / 60
+            timeSinceIx = (datetime.now() - ix_timer).total_seconds() / 60
 
-        # Upload log data to Sheets every 6 minutes
-        # Sometimes the Google Sheets kept logging in every time logging
-        # was done and this slowed down the program a lot. So in case happening,
-        # it will be done less often
-        if (datetime.now() - uploadData_timer).total_seconds() / 60 > 6:
+            # Upload log data to Sheets every 6 minutes
+            # Sometimes the Google Sheets kept logging in every time logging
+            # was done and this slowed down the program a lot. So in case happening,
+            # it will be done less often
+            if (datetime.now() - uploadData_timer).total_seconds() / 60 > 6:
+                if not logger.ix_id and timeSinceIx > 1:
+                    printlog('Main','Uploading data from logs..')
+                    logger.upload_ix_logs()
+                    logger.upload_sensor_logs()
+                    uploadData_timer = datetime.now()
+
+            # Check disk space every 4 minutes
+            if (datetime.now() - checkSpace_timer).total_seconds() / 60 > 4:
+                ensure_disk_space(logger, camDirectory)
+                checkSpace_timer = datetime.now()
+
+            # Upload recordings and log files in the evening
+            hourNow = datetime.now().hour
             if not logger.ix_id and timeSinceIx > 1:
-                printlog('Main','Uploading data from logs..')
-                logger.upload_ix_logs()
-                logger.upload_sensor_logs()
-                uploadData_timer = datetime.now()
+                if (hourNow == 22 or hourNow == 23):
+                    if (datetime.now()-uploadFiles_timer).total_seconds() / 60 > 25:
+                        # During these hours, only check about 4 times if there are any
+                        # videos / logfiles to upload
+                        printlog('Main','Starting to upload files from today.')
+                        logger.upload_recordings(50)
 
-        # Check disk space every 4 minutes
-        if (datetime.now() - checkSpace_timer).total_seconds() / 60 > 4:
-            ensure_disk_space(logger, camDirectory)
-            checkSpace_timer = datetime.now()
+                        if not logfilesUploadedToday:
+                            # do this only once a day
+                            logger.upload_logfiles()
+                            logfilesUploadedToday = True
 
-        # Upload recordings and log files in the evening
-        hourNow = datetime.now().hour
-        if not logger.ix_id and timeSinceIx > 1:
-            if (hourNow == 22 or hourNow == 23):
-                if (datetime.now()-uploadFiles_timer).total_seconds() / 60 > 25:
-                    # During these hours, only check about 4 times if there are any
-                    # videos / logfiles to upload
-                    printlog('Main','Starting to upload files from today.')
-                    logger.upload_recordings(50)
+                        uploadFiles_timer = datetime.now()
 
-                    if not logfilesUploadedToday:
-                        # do this only once a day
-                        logger.upload_logfiles()
-                        logfilesUploadedToday = True
+                elif hourNow == 0:
+                    logfilesUploadedToday = False
 
-                    uploadFiles_timer = datetime.now()
+            sleep(0.4)
 
-            elif hourNow == 0:
-                logfilesUploadedToday = False
 
-        sleep(0.4)
+    except KeyboardInterrupt:
+        print('Exiting, KeyboardInterrupt')
+
+    except:
+        print('Error occurred')
+
+    finally:
+        # Remove the channel setup always
+        GPIO.cleanup()
