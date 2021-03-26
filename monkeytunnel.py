@@ -11,6 +11,7 @@ from audioplayer import AudioPlayer
 from videoplayer import VideoPlayer
 from camera import Camera
 import configs
+import settings
 
 sys.excepthook = sys.__excepthook__
 
@@ -88,16 +89,14 @@ def ensure_disk_space(logger, recDirectory):
 if __name__ == "__main__":
 
     print(datetime.isoformat(datetime.now()))
+    global pid
     pid = os.getpid()
+
     print('pid:',pid)
 
     printlog('Main','Starting up monkeytunnel..')
 
-    # Configurations for this run of the program
-    usingAudio = configs.USE_AUDIO
-    usingVideo = configs.USE_VIDEO
-    recordingOn = configs.RECORDING_ON
-
+    # Variables for keep track of the state of system
     playingAudio = False
     playingVideo = False
     cameraIsRecording = False
@@ -121,12 +120,13 @@ if __name__ == "__main__":
     # Timer to avoid uploading data during and right after interactions
     ix_timer = datetime.now()
 
-    if usingVideo:
-        videoPlayer = VideoPlayer(videoPath=configs.VIDEO_PATH,
-                                useVideoAudio=configs.VIDEO_AUDIO_ON)
     if usingAudio:
         audioPlayer = AudioPlayer()
 
+    elif usingVideo:
+        # TODO how to initialize with many videos?
+        videoPlayer = VideoPlayer(videoPath=configs.VIDEO_PATH,
+                                useVideoAudio=configs.VIDEO_AUDIO_ON)
     if recordingOn:
         camera = Camera()
 

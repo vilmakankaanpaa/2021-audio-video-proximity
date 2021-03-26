@@ -1,7 +1,4 @@
-# program run settings
-TEST_PHASE = 'Testing'
-VIDEO_AUDIO_ON = False # audio of the video file
-RECORDING_ON = False # record interaction with camera module
+# Configurations for paths and URLs
 
 # roots
 root = '/home/pi/sakis-video-tunnel/'
