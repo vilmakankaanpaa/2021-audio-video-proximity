@@ -23,16 +23,24 @@ def init():
         # TODO: do a class instead?
 
         # GPIO channels of the switches on RPI
-        global channels; channels = {22:0, 23:1, 24:2, 25:3}
+        global channels
+        channels = {22:0, 23:1, 24:2, 25:3}
 
         # Use global variable to update the switch statuses
-        global switchesOpen; switchesOpen = [False, False, False, False]
+        global switchesOpen
+        switchesOpen = [False, False, False, False]
 
-        global switchCurrentlyPlaying; switchCurrentlyPlaying = None # 0-3
+        global switchCurrentlyPlaying
+        switchCurrentlyPlaying = None
+        
+        global switchOnQueue
+        switchOnQueue = None
 
-        global delay; delay = 3 # seconds
+        global delay
+        delay = 3 # seconds
 
-        global starttime; starttime = None
+        global starttime
+        starttime = None
 
 
 #
@@ -40,69 +48,86 @@ def init():
 def react(channel):
 
     switch = channels.get(channel)
+    global switchesOpen
+    global switchOnQueue
 
     if GPIO.input(channel) == GPIO.HIGH:
         print('Switch', switch, 'is open.')
-        global switchesOpen; switchesOpen[switch] = True
+        switchesOpen[switch] = True
         #log([datetime.now(),'flip','Flip open {}'.format(count), since_boot])
         if switch != switchCurrentlyPlaying:
             turnOn(switch)
 
     else:
         print('Switch', switch, 'is closed.')
-        global switchesOpen; switchesOpen[switch] = False
+        switchesOpen[switch] = False
         #log([datetime.now(),'flip','Flip closed {}'.format(count), since_boot])
         if switch == switchCurrentlyPlaying:
             # sometimes another switch was opened during other one was open, then it would not be stopped
-            turnOff(switch)
+            turnOff()
+        if switch == switchOnQueue:
+            switchOnQueue = None
 
 
 def delayPassed():
-    playtime = round((datetime.now() - starttime).total_seconds(),2)
-    if playtime > delay:
-        return True
+    
+    global delay
+    if starttime != None:
+        # already was turned off
+        playtime = round((datetime.now() - starttime).total_seconds(),2)
+        if playtime > delay:
+            return True
+        else:
+            return False
     else:
+        # nothing palying anymore, skip
         return False
 
 
 def turnOn(switch):
-
+    
+    global switchCurrentlyPlaying
+    global switchOnQueue
+    
     if not switchCurrentlyPlaying:
         # Nothing playing, start fresh
         startMedia(switch)
     else:
         # One is playing (but not this)
-        if delayPassed:
+        if delayPassed():
             # turn  the other one off
-            stopMedia(switchCurrentlyPlaying)
+            stopMedia()
             # start on new switch
             startMedia(switch)
         else:
-            # Delay is not over, do nothing
-            pass
+            # Delay is not over, put on queue
+            switchOnQueue = switch
 
 
-def turnOff(switch):
-    if delayPassed:
-        stopMedia(switchCurrentlyPlaying)
-        global switchCurrentlyPlaying; switchCurrentlyPlaying = None
-        global starttime; starttime = None
+def turnOff():
+    if delayPassed():
+        stopMedia()
 
 
 def startMedia(switch):
     # TODO: start the actual media
-    global starttime; starttime = datetime.now()
-    global switchCurrentlyPlaying; switchCurrentlyPlaying = switch
+    global starttime
+    starttime = datetime.now()
+    global switchCurrentlyPlaying
+    switchCurrentlyPlaying = switch
+    global switchOnQueue
+    switchOnQueue = None # Cannot be any queue
     print(starttime, 'Starting on switch', switch)
 
 
-def stopMedia(switch):
+def stopMedia():
     # TODO stop the actual media
+    global switchCurrentlyPlaying
+    global starttime
+    
     playtime = round((datetime.now() - starttime).total_seconds(),2)
-    global switchCurrentlyPlaying; switchCurrentlyPlaying = None
-    print(datetime.now(), 'Stopping on switch', switch, playtime)
-
-
-
-
-    # Is the same already playing?
+    print(datetime.now(), 'Stopping on switch', switchCurrentlyPlaying, playtime)
+    
+    switchCurrentlyPlaying = None
+    starttime = None
+    

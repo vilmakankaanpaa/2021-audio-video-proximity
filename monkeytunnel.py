@@ -96,14 +96,25 @@ if __name__ == "__main__":
         #logger.log_program_run_info()
 
         #logger.ping()
-
+        mediaPlaying = False
         while True:
 
             # Check for media playing over delay time
-            print('currentlyplaying:', switches.switchCurrentlyPlaying)
-            if switches.switchCurrentlyPlaying and not any(switches.switchesOpen):
+            
+            if switches.switchCurrentlyPlaying != None:
+                mediaPlaying = True
+            else:
+                mediaPlaying = False
+            
+            if mediaPlaying and not any(switches.switchesOpen):
                 # Stop media if delay is over
-                switches.turnOff(switches.switchCurrentlyPlaying)
+                switches.turnOff()
+            if switches.switchOnQueue:
+                # the switch open is not the one playing -> check for delay
+                # if needs to be switched
+                switches.turnOn(switches.switchOnQueue)
+                
+                
                 
             sleep(0.2)
 
