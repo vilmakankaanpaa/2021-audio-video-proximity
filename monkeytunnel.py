@@ -1,14 +1,15 @@
 import os
 import sys
+import RPi.GPIO as GPIO
 from time import sleep
 from datetime import datetime, date, time
 
 # Local sources
-from filemanager import check_disk_space, printlog, get_directory_for_recordings
-from logger import Logger
-from audioplayer import AudioPlayer
-from videoplayer import VideoPlayer
-from camera import Camera
+#from filemanager import check_disk_space, printlog, get_directory_for_recordings
+#from logger import Logger
+#from audioplayer import AudioPlayer
+#from videoplayer import VideoPlayer
+#from camera import Camera
 import switches
 import configs
 import settings
@@ -64,106 +65,112 @@ def setupSwitches():
 
 if __name__ == "__main__":
 
+    settings.init()
+    
     print(datetime.isoformat(datetime.now()))
-    global pid
-    pid = os.getpid()
+    settings.pid = os.getpid()
 
-    print('pid:',pid)
+    print('pid:',settings.pid)
 
-    printlog('Main','Starting up monkeytunnel..')
+    #printlog('Main','Starting up monkeytunnel..')
 
     try:
         setupSwitches()
+        print('switches setup')
 
         # Variables for keep track of the state of system
-        playingAudio = False
-        playingVideo = False
-        cameraIsRecording = False
-        camDirectory = None
-        logfilesUploadedToday = False
+        #playingAudio = False
+        #playingVideo = False
+        #cameraIsRecording = False
+        #camDirectory = None
+        #logfilesUploadedToday = False
 
         # sensornote: setted the threshold here
 
         # Timer for when files (recordings, logfiles) should be uploaded
-        uploadFiles_timer = datetime.now()
+        #uploadFiles_timer = datetime.now()
         # Timer for when data should be uploaded (interactions & sensors readings)
-        uploadData_timer = datetime.now()
+        #uploadData_timer = datetime.now()
         # Timer for when disk space should be checked
-        checkSpace_timer = datetime.now()
+        #checkSpace_timer = datetime.now()
 
-        pingTimer = datetime.now()
+        #pingTimer = datetime.now()
 
         # Timer to avoid uploading data during and right after interactions
-        ix_timer = datetime.now()
+        #ix_timer = datetime.now()
 
-        if usingAudio:
-            audioPlayer = AudioPlayer()
+        #if usingAudio:
+        #    audioPlayer = AudioPlayer()
 
-        elif usingVideo:
+        #elif usingVideo:
             # TODO how to initialize with many videos?
-            videoPlayer = VideoPlayer(videoPath=configs.VIDEO_PATH,
-                                    useVideoAudio=configs.VIDEO_AUDIO_ON)
-        if recordingOn:
-            camera = Camera()
+        #    videoPlayer = VideoPlayer(videoPath=configs.VIDEO_PATH,
+        #                            useVideoAudio=configs.VIDEO_AUDIO_ON)
+        #if recordingOn:
+        #    camera = Camera()
 
-        logger = Logger(pid)
-        logger.log_program_run_info()
+        #logger = Logger(pid)
+        #logger.log_program_run_info()
 
-        logger.ping()
+        #logger.ping()
 
         # if media is playing or not
         mediaPlaying = [False,False,False,False]
+        print(mediaPlaying)
+        
+        print(settings.switchesOpen)
 
         while True:
 
             #### newpart
-            for i in range(1,5):
-                if mediaPlaying[i] and not switchesOpen[i]:
+            for i in range(0,4):
+                if mediaPlaying[i] and not settings.switchesOpen[i]:
                     print('turnging media off')
-                    pass
-                elif not mediaPlaying[i] and switchesOpen[i]:
+                
+                elif not mediaPlaying[i] and settings.switchesOpen[i]:
                     print('turning media on')
-                    pass
+
 
             ####
 
-            if (datetime.now() - pingTimer).total_seconds() / 60 > 10:
+            #if (datetime.now() - pingTimer).total_seconds() / 60 > 10:
                 # ping every 10 minutes
-                logger.ping()
-                pingTimer = datetime.now()
+             #   logger.ping()
+              #  pingTimer = datetime.now()
 
             # Checking if should update the request quota for Google Sheets
             # It is 100 requests per 100 seconds (e.g. logging of 100 rows)
-            logger.gsheets.check_quota_timer()
+            #logger.gsheets.check_quota_timer()
 
             # snesornote: reading sensors here
             # sensornote: handling the FALSe readings here
             # sensornote: determined if monkey was detected or not
 
-            if recordingOn:
-                cameraIsRecording = camera.is_recording()
+            #if recordingOn:
+            #    cameraIsRecording = camera.is_recording()
 
-            if usingAudio:
-                playingAudio = audioPlayer.is_playing()
-                if not playingAudio and audioPlayer.has_quit():
+            #if usingAudio:
+            #    playingAudio = audioPlayer.is_playing()
+            #    if not playingAudio and audioPlayer.has_quit():
                     # if quit, spawn new
-                    audioPlayer = AudioPlayer()
+            #        audioPlayer = AudioPlayer()
 
-            if usingVideo:
-                playingVideo = videoPlayer.is_playing()
-                if not playingVideo and videoPlayer.has_quit():
+            #if usingVideo:
+            #    playingVideo = videoPlayer.is_playing()
+            #    if not playingVideo and videoPlayer.has_quit():
                     # if quit, spawn new
-                    videoPlayer = VideoPlayer(videoPath=configs.VIDEO_PATH,
-                                useVideoAudio=configs.VIDEO_AUDIO_ON)
+            #        videoPlayer = VideoPlayer(videoPath=configs.VIDEO_PATH,
+             #                   useVideoAudio=configs.VIDEO_AUDIO_ON)
 
 
 
-            timeSinceIx = (datetime.now() - ix_timer).total_seconds() / 60
+            #timeSinceIx = (datetime.now() - ix_timer).total_seconds() / 60
 
             # Upload log data to Sheets every 6 minutes
             # Sometimes the Google Sheets kept logging in every time logging
             # was done and this slowed down the program a lot. So in case happening,
             # it will be done less often
+            '''
             if (datetime.now() - uploadData_timer).total_seconds() / 60 > 6:
                 if not logger.ix_id and timeSinceIx > 1:
                     printlog('Main','Uploading data from logs..')
@@ -195,15 +202,12 @@ if __name__ == "__main__":
 
                 elif hourNow == 0:
                     logfilesUploadedToday = False
-
+            '''
             sleep(0.4)
 
 
     except KeyboardInterrupt:
         print('Exiting, KeyboardInterrupt')
-
-    except:
-        print('Error occurred')
 
     finally:
         # Remove the channel setup always
