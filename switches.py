@@ -5,7 +5,7 @@ from datetime import datetime
 
 class Switches():
 
-    def __init__(self):
+    def __init__(self, logger):
 
         # Use Broadcom (the GPIO numbering)
         GPIO.setmode(GPIO.BCM)
@@ -33,7 +33,8 @@ class Switches():
         self.endtime = None
         self.delay = 3 # seconds
 
-
+        self.logger = logger
+        
     # Called when one of the four switches is triggered
     def react(self, channel):
 
@@ -78,7 +79,7 @@ class Switches():
             self.second_queue = None
 
         # New interaction starts whenever new video turns on
-        logger.log_interaction_start(self.switchPlaying)
+        self.logger.log_interaction_start(self.switchPlaying)
         #printlog('Main','Interaction started')
 
         # TODO: turn media actually on
@@ -89,7 +90,11 @@ class Switches():
     def turnOff(self):
 
         self.endtime = datetime.now()
-        logger.log_interaction_end(self.endtime,)
+        self.logger.log_interaction_end(self.endtime,)
+        
+        # TODO: log the end of interaction
+        playtime = round((datetime.now() - self.starttime).total_seconds(),2)
+
 
         # TODO: turn media actually off
         print('Turning media off:', self.switchPlaying, playtime)

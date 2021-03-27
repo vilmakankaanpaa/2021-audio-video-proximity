@@ -58,11 +58,12 @@ if __name__ == "__main__":
     #printlog('Main','Starting up monkeytunnel..')
 
     try:
-        switches = Switches()
+        logger = Logger()
+        switches = Switches(logger)
         print('switches setup')
 
         # TODO: shuffle the order and type
-        global globals.mediaorder = ['Zen','rain','traffic','music']
+        globals.mediaorder = ['Zen','rain','traffic','music']
 
         # Variables for keep track of the state of system
         #playingAudio = False
@@ -95,7 +96,6 @@ if __name__ == "__main__":
         if globals.recordingOn:
             camera = Camera()
 
-        logger = Logger()
         logger.log_program_run_info()
 
         logger.ping()
@@ -113,7 +113,7 @@ if __name__ == "__main__":
 
             switches.updateSwitches()
 
-            if switches.switchPlaying
+            if switches.switchPlaying:
 
                 if not camera.recording:
                     file = logger.new_recording_name()
@@ -153,8 +153,8 @@ if __name__ == "__main__":
                     # if quit, spawn new
             #        videoPlayer = VideoPlayer(videoPath=configs.VIDEO_PATH,
              #                   useVideoAudio=configs.VIDEO_AUDIO_ON)
-
-            timeSinceIx = (datetime.now() - switch.endtime).total_seconds() / 60
+            if switches.endtime != None:
+                timeSinceIx = (datetime.now() - switches.endtime).total_seconds() / 60
             # Upload log data to Sheets every 6 minutes
             # Sometimes the Google Sheets kept logging in every time logging
             # was done and this slowed down the program a lot. So in case happening,
