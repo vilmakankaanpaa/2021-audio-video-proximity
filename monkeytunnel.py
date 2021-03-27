@@ -9,7 +9,7 @@ from datetime import datetime, date, time
 #from logger import Logger
 #from audioplayer import AudioPlayer
 #from videoplayer import VideoPlayer
-#from camera import Camera
+from camera import Camera
 from switches import Switches
 import configs
 import globals
@@ -89,7 +89,7 @@ if __name__ == "__main__":
             # TODO how to initialize with many videos?
         #    videoPlayer = VideoPlayer(videoPath=configs.VIDEO_PATH,
         #                            useVideoAudio=configs.VIDEO_AUDIO_ON)
-        if recordingOn:
+        if globals.recordingOn:
             camera = Camera()
 
         logger = Logger(pid)
@@ -117,7 +117,7 @@ if __name__ == "__main__":
 
             elif not switches.switchPlaying and camera.recording:
 
-                timeSinceActivity = round(datetime.now() - switches.endtime).total_seconds(),2)
+                timeSinceActivity = round((datetime.now() - switches.endtime).total_seconds(),2)
 
                 if timeSinceActivity > camera.delay:
                     # TODO: turn off
