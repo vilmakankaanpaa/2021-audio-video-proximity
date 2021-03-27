@@ -77,7 +77,7 @@ if __name__ == "__main__":
         # Timer for when disk space should be checked
         #checkSpace_timer = datetime.now()
 
-        #pingTimer = datetime.now()
+        pingTimer = datetime.now()
 
         # Timer to avoid uploading data during and right after interactions
         #ix_timer = datetime.now()
@@ -92,14 +92,21 @@ if __name__ == "__main__":
         if recordingOn:
             camera = Camera()
 
-        #logger = Logger(pid)
-        #logger.log_program_run_info()
+        logger = Logger(pid)
+        logger.log_program_run_info()
 
-        #logger.ping()
+        logger.ping()
 
         cameraDelay = 10 # seconds
 
         while True:
+
+
+            if (datetime.now() - pingTimer).total_seconds() / 60 > 10:
+                #ping every 10 minutes
+                logger.ping()
+                pingTimer = datetime.now()
+
 
             switches.updateSwitches()
 
@@ -118,11 +125,6 @@ if __name__ == "__main__":
                     print('Stopping record')
 
             sleep(0.2)
-
-            #if (datetime.now() - pingTimer).total_seconds() / 60 > 10:
-                # ping every 10 minutes
-             #   logger.ping()
-              #  pingTimer = datetime.now()
 
             # Checking if should update the request quota for Google Sheets
             # It is 100 requests per 100 seconds (e.g. logging of 100 rows)

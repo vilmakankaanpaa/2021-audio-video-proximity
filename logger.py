@@ -6,6 +6,7 @@ from datetime import datetime, date
 from time import sleep
 
 import configs
+import globals
 import filemanager
 from filemanager import printlog
 from gsheetsservice import SheetsService
@@ -35,10 +36,12 @@ class Logger:
         self.ix_recording = None
         self.ix_folder_today = {}
 
-        self.gdrive = DriveService()
+#        self.gdrive = DriveService()
         self.gsheets = SheetsService()
 
     def internet_connected(self):
+
+        print('Checking internet connection')
 
         diff = int((datetime.now() - self.ie_check_timer).total_seconds())
         if (diff > (4*60)): # every four minutes max
@@ -52,6 +55,7 @@ class Logger:
                 conn.close()
                 raise e
 
+'''
     def upload_logfiles(self):
 
         logfiles = [
@@ -88,7 +92,9 @@ class Logger:
 
         duration = round((datetime.now() - startTime).total_seconds() / 60, 2)
         printlog('Logger','Uploaded local files. Duration: {}'.format(duration))
+'''
 
+'''
     def get_folder_id_today(self):
 
         dateToday = date.isoformat(date.today())
@@ -108,7 +114,9 @@ class Logger:
 
         self.ix_folder_today[dateToday] = folderId
         return folderId
+'''
 
+'''
     def upload_recordings(self, max_nof_uploads=0):
 
         nof_records = filemanager.nof_recordings()
@@ -157,18 +165,22 @@ class Logger:
         printlog('Logger','Uploaded {} recordings, duration {}'.format(
                     MAX, duration))
 
+
     def new_recording_name(self):
 
         self.ix_recording = (self.ix_start).strftime(
                                 "%Y-%m-%d_%H-%M") + '_' + self.ix_id
         return self.ix_recording
 
+'''
+'''
     def test_ie_for_logging(self):
         try:
             self.internet_connected()
         except:
             printlog('Logger','ERROR: No internet – could not log to sheets.')
             raise
+
 
     def log_interaction_start(self):
 
@@ -219,6 +231,7 @@ class Logger:
                 printlog('Logger','ERROR: Could not upload ix data: {}, {}'.format(
                             type(e).__name__, e))
                 filemanager.log_local(data, sheet=configs.local_ix_log)
+'''
 
     def ping(self):
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -228,7 +241,7 @@ class Logger:
         except Exception as e:
             print('Ping error', type(e).__name__)
 
-
+'''
     def log_sensor_status(self, sensorsInRange, sensorVolts, playingAudio, playingVideo, cameraIsRecording, anyInRange, ixID=None):
 
         ixOngoing = False
@@ -263,7 +276,8 @@ class Logger:
             [self.pid, ixID, timestamp, sensor1_r, sensor1_v, sensor2_r, sensor2_v,
              sensor3_r, sensor3_v, playingAudio, playingVideo, cameraIsRecording])
         self.sensorlog_timer = datetime.now()
-
+'''
+'''
     def upload_sensor_logs(self):
 
         data = self.sensors_tempdata
@@ -284,6 +298,7 @@ class Logger:
             printlog('Logger','Uploading sensor logs to local sheet.')
             filemanager.log_local(data, sheet=configs.local_sensor_log)
             printlog('Logger','Finished logging.')
+'''
 
     def log_program_run_info(self):
 
@@ -293,13 +308,10 @@ class Logger:
         data = [
             self.pid,
             timestamp,
-            configs.TEST_PHASE,
-            configs.USE_VIDEO,
-            configs.VIDEO_AUDIO_ON,
-            configs.VIDEO_PATH,
-            configs.USE_AUDIO,
-            configs.AUDIO_PATH,
-            configs.RECORDING_ON]
+            globals.testMode,
+            globals.usingVideo,
+            globals.usingAudio,
+            globals.recordingOn]
 
         # for gdrive.log_to_drive this needs to be in format
         # list(lists); [[row1],[row2],..]
