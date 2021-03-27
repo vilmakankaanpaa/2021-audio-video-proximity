@@ -30,6 +30,7 @@ class Switches():
         self.queue = None
         self.second_queue = None # for rare cases of X is changed to Y but X is still kept open: when Y closes, X should be put back
         self.starttime = None
+        self.endtime = None
         self.delay = 3 # seconds
 
 
@@ -39,6 +40,7 @@ class Switches():
         switch = self.channels.get(channel)
 
         if GPIO.input(channel) == GPIO.HIGH:
+
             print('Switch', switch, 'is open.')
             self.switchesOpen[switch] = True
             #log([datetime.now(),'flip','Flip open {}'.format(count), since_boot])
@@ -123,6 +125,7 @@ class Switches():
             if self.queue != None:
                 # Turn new switch on
                 self.turnOn()
+                self.endtime = None
         else:
             # media is currently playing
             if self.queue != None:
@@ -134,6 +137,7 @@ class Switches():
                     # all switches closed too
                     if self.delayPassed():
                         self.turnOff()
+                        self.endtime = datetime.now()
                 else:
                     # either the switch currently playing is open or another one
                         # another one must be in second_queue

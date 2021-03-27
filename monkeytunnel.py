@@ -89,17 +89,31 @@ if __name__ == "__main__":
             # TODO how to initialize with many videos?
         #    videoPlayer = VideoPlayer(videoPath=configs.VIDEO_PATH,
         #                            useVideoAudio=configs.VIDEO_AUDIO_ON)
-        #if recordingOn:
-        #    camera = Camera()
+        if recordingOn:
+            camera = Camera()
 
         #logger = Logger(pid)
         #logger.log_program_run_info()
 
         #logger.ping()
 
+        cameraDelay = 10 # seconds
+
         while True:
 
             switches.updateSwitches()
+
+            if switches.switchPlaying and not camera.recording:
+                # TODO: turn on
+                camera.recording = True
+
+            elif not switches.switchPlaying and camera.recording:
+
+                timeSinceActivity = round(datetime.now() - switches.endtime).total_seconds(),2)
+
+                if timeSinceActivity > camera.delay:
+                    # TODO: turn off
+                    camera.recording = False
 
             sleep(0.2)
 
