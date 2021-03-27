@@ -98,7 +98,7 @@ class Switches():
 
         if self.switchesOpen[changedSwitch]:
             # switch that was turned off is still open
-            self.queue = sw1
+            self.queue = changedSwitch
             
 
     def updateSwitches(self):
