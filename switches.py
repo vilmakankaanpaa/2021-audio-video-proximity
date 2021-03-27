@@ -43,7 +43,8 @@ class Switches():
             #log([datetime.now(),'flip','Flip open {}'.format(count), since_boot])
 
             # set switch always on queue first to start playing next
-            self.queue = switch
+            if switch != self.switchPlaying:
+                self.queue = switch
 
         else:
             print('Switch', switch, 'is closed.')
@@ -57,7 +58,7 @@ class Switches():
 
     def delayPassed(self):
 
-        playtime = round((datetime.now() - starttime).total_seconds(),2)
+        playtime = round((datetime.now() - self.starttime).total_seconds(),2)
         if playtime > self.delay:
             return True
         else:
@@ -67,7 +68,7 @@ class Switches():
     def turnOn(self):
 
         self.starttime = datetime.now()
-        self.switchPlaying = queue
+        self.switchPlaying = self.queue
         self.queue = None
 
         # TODO: turn media actually on
@@ -78,7 +79,7 @@ class Switches():
     def turnOff(self):
 
         # TODO: log the end of interaction
-        playtime = round((datetime.now() - starttime).total_seconds(),2)
+        playtime = round((datetime.now() - self.starttime).total_seconds(),2)
 
         # TODO: turn media actually off
         print('Turning media off:', self.switchPlaying, playtime)
@@ -96,20 +97,27 @@ class Switches():
         #       -> Do nothing / don't add on the queue
         # 3. Switch on queue but another one playing
         #       -> Check if delay has passed -> leave to queue or start playing
-        # 4. All switches closed but one is playing
+        # 4. No queue, delay passed, switch still open -> keep playing
+        # 5. All switches closed but one is playing
         #       -> Check if delay has passed -> continue or stop playing
 
         if self.switchPlaying == None:
             # media is not currently playing
             if self.queue != None:
                 # Turn new switch on
-                turnOn()
+                self.turnOn()
         else:
             # media is currently playing
-            if self.queue != self.switchPlaying:
-                if delayPassed():
-                    turnOff()
-                    turnOn()
-            elif not any(self.switchesOpen):
-                if delayPassed():
-                    turnOff()
+            if self.queue != None:
+                if self.delayPassed():
+                    self.turnOff()
+                    self.turnOn()
+            else:
+                # queue is empty
+                if not any(self.switchesOpen):
+                    # all switches closed too
+                    if self.delayPassed():
+                        self.turnOff()
+                else:
+                    # the switch playing is still open, don't turn off
+                    pass
