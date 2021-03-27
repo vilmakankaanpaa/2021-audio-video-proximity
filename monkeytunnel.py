@@ -10,7 +10,7 @@ from datetime import datetime, date, time
 #from audioplayer import AudioPlayer
 #from videoplayer import VideoPlayer
 #from camera import Camera
-import switches
+from switches import Switches
 import configs
 import globals
 
@@ -58,7 +58,7 @@ if __name__ == "__main__":
     #printlog('Main','Starting up monkeytunnel..')
 
     try:
-        switches.init()
+        switches = Switches()
         print('switches setup')
 
         # Variables for keep track of the state of system
@@ -96,26 +96,11 @@ if __name__ == "__main__":
         #logger.log_program_run_info()
 
         #logger.ping()
-        mediaPlaying = False
+
         while True:
 
-            # Check for media playing over delay time
-            
-            if switches.switchCurrentlyPlaying != None:
-                mediaPlaying = True
-            else:
-                mediaPlaying = False
-            
-            if mediaPlaying and not any(switches.switchesOpen):
-                # Stop media if delay is over
-                switches.turnOff()
-            if switches.switchOnQueue:
-                # the switch open is not the one playing -> check for delay
-                # if needs to be switched
-                switches.turnOn(switches.switchOnQueue)
-                
-                
-                
+            switches.updateSwitches()
+
             sleep(0.2)
 
             #if (datetime.now() - pingTimer).total_seconds() / 60 > 10:

@@ -1,9 +1,12 @@
 
 import RPi.GPIO as GPIO
-import globals
 from datetime import datetime
 
-def init():
+
+class Switches():
+
+    def __init__(self):
+
         # Use Broadcom (the GPIO numbering)
         GPIO.setmode(GPIO.BCM)
         # Set the GPIO pin numbers to use and
@@ -20,114 +23,93 @@ def init():
         GPIO.add_event_detect(24, GPIO.BOTH, callback=react)
         GPIO.add_event_detect(25, GPIO.BOTH, callback=react)
 
-        # TODO: do a class instead?
-
         # GPIO channels of the switches on RPI
-        global channels
-        channels = {22:0, 23:1, 24:2, 25:3}
-
-        # Use global variable to update the switch statuses
-        global switchesOpen
-        switchesOpen = [False, False, False, False]
-
-        global switchCurrentlyPlaying
-        switchCurrentlyPlaying = None
-        
-        global switchOnQueue
-        switchOnQueue = None
-
-        global delay
-        delay = 3 # seconds
-
-        global starttime
-        starttime = None
+        self.channels = {22:0, 23:1, 24:2, 25:3}
+        self.switchesOpen = [False, False, False, False]
+        self.switchPlaying = None
+        self.queue = None
+        self.starttime = None
+        self.delay = 3 # seconds
 
 
-#
 # Called when one of the four switches is triggered
 def react(channel):
 
-    switch = channels.get(channel)
-    global switchesOpen
-    global switchOnQueue
+    switch = self.channels.get(channel)
 
     if GPIO.input(channel) == GPIO.HIGH:
         print('Switch', switch, 'is open.')
-        switchesOpen[switch] = True
+        self.switchesOpen[switch] = True
         #log([datetime.now(),'flip','Flip open {}'.format(count), since_boot])
-        if switch != switchCurrentlyPlaying:
-            turnOn(switch)
+
+        # set switch always on queue first to start playing next
+        self.queue = switch
 
     else:
         print('Switch', switch, 'is closed.')
-        switchesOpen[switch] = False
+        self.switchesOpen[switch] = False
         #log([datetime.now(),'flip','Flip closed {}'.format(count), since_boot])
-        if switch == switchCurrentlyPlaying:
-            # sometimes another switch was opened during other one was open, then it would not be stopped
-            turnOff()
-        if switch == switchOnQueue:
-            switchOnQueue = None
+
+        if switch == self.queue:
+            # when switch was on queue but it closes before getting to play
+            self.queue = None
 
 
 def delayPassed():
-    
-    global delay
-    if starttime != None:
-        # already was turned off
-        playtime = round((datetime.now() - starttime).total_seconds(),2)
-        if playtime > delay:
-            return True
-        else:
-            return False
+
+    playtime = round((datetime.now() - starttime).total_seconds(),2)
+    if playtime > self.delay:
+        return True
     else:
-        # nothing palying anymore, skip
         return False
 
 
 def turnOn(switch):
-    
-    global switchCurrentlyPlaying
-    global switchOnQueue
-    
-    if not switchCurrentlyPlaying:
-        # Nothing playing, start fresh
-        startMedia(switch)
-    else:
-        # One is playing (but not this)
-        if delayPassed():
-            # turn  the other one off
-            stopMedia()
-            # start on new switch
-            startMedia(switch)
-        else:
-            # Delay is not over, put on queue
-            switchOnQueue = switch
+
+    self.starttime = datetime.now()
+    self.switchPlaying = queue
+    self.queue = None
+
+    # TODO: turn media actually on
+    print('Turning media on:', self.switchPlaying)
+    # TODO: log start of interaction
 
 
 def turnOff():
-    if delayPassed():
-        stopMedia()
 
-
-def startMedia(switch):
-    # TODO: start the actual media
-    global starttime
-    starttime = datetime.now()
-    global switchCurrentlyPlaying
-    switchCurrentlyPlaying = switch
-    global switchOnQueue
-    switchOnQueue = None # Cannot be any queue
-    print(starttime, 'Starting on switch', switch)
-
-
-def stopMedia():
-    # TODO stop the actual media
-    global switchCurrentlyPlaying
-    global starttime
-    
+    # TODO: log the end of interaction
     playtime = round((datetime.now() - starttime).total_seconds(),2)
-    print(datetime.now(), 'Stopping on switch', switchCurrentlyPlaying, playtime)
-    
-    switchCurrentlyPlaying = None
-    starttime = None
-    
+
+    # TODO: turn media actually off
+    print('Turning media off:', self.switchPlaying, playtime)
+
+
+    self.starttime = None
+    self.switchPlaying = None
+
+
+def updateSwitches():
+
+    # 1. Swithc on queue but no switches playing media
+    #       -> Turn on
+    # 2. Switch on queue but already playing
+    #       -> Do nothing / don't add on the queue
+    # 3. Switch on queue but another one playing
+    #       -> Check if delay has passed -> leave to queue or start playing
+    # 4. All switches closed but one is playing
+    #       -> Check if delay has passed -> continue or stop playing
+
+    if self.switchPlaying == None:
+        # media is not currently playing
+        if self.queue != None:
+            # Turn new switch on
+            turnOn()
+    else:
+        # media is currently playing
+        if self.queue != self.switchPlaying:
+            if delayPassed():
+                turnOff()
+                turnOn()
+        elif not any(self.switchesOpen):
+            if delayPassed():
+                turnOff()
