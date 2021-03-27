@@ -116,7 +116,7 @@ class Logger:
         ID = self.ix_id
         date = self.ix_date
         startime = self.ix_start
-        duration = (endtime - self.ix_start).total_seconds()
+        duration = round(endtime - self.ix_start).total_seconds(),2)
         mode = globals.testMode
         switch = self.ix_switch
         content = self.ix_content

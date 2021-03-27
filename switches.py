@@ -68,6 +68,8 @@ class Switches():
     def turnOn(self):
 
         self.starttime = datetime.now()
+        self.endtime = None
+
         if self.queue != None:
             self.switchPlaying = self.queue
             self.queue = None
@@ -86,10 +88,8 @@ class Switches():
 
     def turnOff(self):
 
-        # TODO: log the end of interaction
-        playtime = round((datetime.now() - self.starttime).total_seconds(),2)
-
-        logger.log_interaction_end(self.endtime)
+        self.endtime = datetime.now()
+        logger.log_interaction_end(self.endtime,)
 
         # TODO: turn media actually off
         print('Turning media off:', self.switchPlaying, playtime)
@@ -128,7 +128,6 @@ class Switches():
             if self.queue != None:
                 # Turn new switch on
                 self.turnOn()
-                self.endtime = None
         else:
             # media is currently playing
             if self.queue != None:
@@ -140,7 +139,6 @@ class Switches():
                     # all switches closed too
                     if self.delayPassed():
                         self.turnOff()
-                        self.endtime = datetime.now()
                 else:
                     # either the switch currently playing is open or another one
                         # another one must be in second_queue
