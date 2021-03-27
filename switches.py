@@ -28,6 +28,7 @@ class Switches():
         self.switchesOpen = [False, False, False, False]
         self.switchPlaying = None
         self.queue = None
+        self.second_queue = None # for rare cases of X is changed to Y but X is still kept open: when Y closes, X should be put back
         self.starttime = None
         self.delay = 3 # seconds
 
@@ -68,8 +69,12 @@ class Switches():
     def turnOn(self):
 
         self.starttime = datetime.now()
-        self.switchPlaying = self.queue
-        self.queue = None
+        if self.queue != None:
+            self.switchPlaying = self.queue
+            self.queue = None
+        else:
+            self.switchPlaying = self.second_queue
+            self.second_queue = None
 
         # TODO: turn media actually on
         print('Turning media on:', self.switchPlaying)
@@ -98,8 +103,8 @@ class Switches():
 
         if self.switchesOpen[changedSwitch]:
             # switch that was turned off is still open
-            self.queue = changedSwitch
-            
+            self.second_queue = changedSwitch
+
 
     def updateSwitches(self):
 
@@ -130,5 +135,11 @@ class Switches():
                     if self.delayPassed():
                         self.turnOff()
                 else:
-                    # the switch playing is still open, don't turn off
-                    pass
+                    # either the switch currently playing is open or another one
+                        # another one must be in second_queue
+                    if not self.switchesOpen[self.switchPlaying] and self.second_queue != None:
+                        # the switch playing is not open anymore, but another switch is
+                        self.changeSwitch()
+                    else:
+                        # the switch playing is still open, don't turn off
+                        pass
