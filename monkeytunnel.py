@@ -106,6 +106,7 @@ if __name__ == "__main__":
             if switches.switchPlaying and not camera.recording:
                 # TODO: turn on
                 camera.recording = True
+                print('Starting to record')
 
             elif not switches.switchPlaying and camera.recording:
 
@@ -114,6 +115,7 @@ if __name__ == "__main__":
                 if timeSinceActivity > camera.delay:
                     # TODO: turn off
                     camera.recording = False
+                    print('Stopping record')
 
             sleep(0.2)
 

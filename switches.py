@@ -40,8 +40,6 @@ class Switches():
         switch = self.channels.get(channel)
 
         if GPIO.input(channel) == GPIO.HIGH:
-
-            print('Switch', switch, 'is open.')
             self.switchesOpen[switch] = True
             #log([datetime.now(),'flip','Flip open {}'.format(count), since_boot])
 
@@ -50,7 +48,6 @@ class Switches():
                 self.queue = switch
 
         else:
-            print('Switch', switch, 'is closed.')
             self.switchesOpen[switch] = False
             #log([datetime.now(),'flip','Flip closed {}'.format(count), since_boot])
 
