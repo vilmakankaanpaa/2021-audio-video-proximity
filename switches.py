@@ -89,6 +89,18 @@ class Switches():
         self.switchPlaying = None
 
 
+    def changeSwitch(self):
+
+        changedSwitch = self.switchPlaying
+
+        self.turnOff()
+        self.turnOn()
+
+        if self.switchesOpen[changedSwitch]:
+            # switch that was turned off is still open
+            self.queue = sw1
+            
+
     def updateSwitches(self):
 
         # 1. Swithc on queue but no switches playing media
@@ -110,8 +122,7 @@ class Switches():
             # media is currently playing
             if self.queue != None:
                 if self.delayPassed():
-                    self.turnOff()
-                    self.turnOn()
+                    self.changeSwitch()
             else:
                 # queue is empty
                 if not any(self.switchesOpen):
