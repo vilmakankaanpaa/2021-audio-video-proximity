@@ -5,7 +5,10 @@ def init():
     testMode = 1
 
     global usingAudio
+    usingAudio = False
     global usingVideo
+    usingVideo = False
+    
     if testMode == 1:
         usingAudio = True
     elif testMode == 2:

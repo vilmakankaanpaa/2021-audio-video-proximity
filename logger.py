@@ -7,19 +7,19 @@ from time import sleep
 
 import configs
 import globals
-import filemanager
-from filemanager import printlog
+#import filemanager
+#from filemanager import printlog
 from gsheetsservice import SheetsService
-from gdriveservice import DriveService
+#from gdriveservice import DriveService
 
 sys.excepthook = sys.__excepthook__
 
 class Logger:
 
-    def __init__(self, pid):
+    def __init__(self):
 
         # program run id to match data from same run easily
-        self.pid = str(pid) + str(uuid.uuid4())[0:4]
+        self.pid = str(globals.pid) + str(uuid.uuid4())[0:4]
 
         # Timer for counting how often data from sensors is logged
         self.sensorlog_timer = datetime.now()
@@ -54,6 +54,47 @@ class Logger:
             except Exception as e:
                 conn.close()
                 raise e
+
+
+    def ping(self):
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        data = [timestamp]
+        try:
+            self.gsheets.log_to_drive([data], 'ping')
+        except Exception as e:
+            print('Ping error', type(e).__name__)
+
+
+    def log_program_run_info(self):
+
+        # Logged only once in the start of monkeytunnel.py
+
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        data = [
+            self.pid,
+            timestamp,
+            globals.testMode,
+            globals.usingVideo,
+            globals.usingAudio,
+            globals.recordingOn]
+
+        # for gdrive.log_to_drive this needs to be in format
+        # list(lists); [[row1],[row2],..]
+        data = [data]
+
+        try:
+            #self.test_ie_for_logging()
+            #printlog('Logger','Logging program run info to sheets.')
+            print('Logging program info..')
+            dataLeft = self.gsheets.log_to_drive(data, 'progrun')
+            #printlog('Logger','Finished logging.')
+            print('Finished logging')
+
+        except Exception as e:
+            #printlog('Logger','ERROR: Could not log program status: {}, {}'.format(
+             #               type(e).__name__, e))
+            print('Error: could not log prog info')
+            #filemanager.log_local(data, sheet=configs.local_program_log)
 
 '''
     def upload_logfiles(self):
@@ -233,14 +274,6 @@ class Logger:
                 filemanager.log_local(data, sheet=configs.local_ix_log)
 '''
 
-    def ping(self):
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        data = [timestamp]
-        try:
-            self.gsheets.log_to_drive([data], 'ping')
-        except Exception as e:
-            print('Ping error', type(e).__name__)
-
 '''
     def log_sensor_status(self, sensorsInRange, sensorVolts, playingAudio, playingVideo, cameraIsRecording, anyInRange, ixID=None):
 
@@ -299,31 +332,3 @@ class Logger:
             filemanager.log_local(data, sheet=configs.local_sensor_log)
             printlog('Logger','Finished logging.')
 '''
-
-    def log_program_run_info(self):
-
-        # Logged only once in the start of monkeytunnel.py
-
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        data = [
-            self.pid,
-            timestamp,
-            globals.testMode,
-            globals.usingVideo,
-            globals.usingAudio,
-            globals.recordingOn]
-
-        # for gdrive.log_to_drive this needs to be in format
-        # list(lists); [[row1],[row2],..]
-        data = [data]
-
-        try:
-            self.test_ie_for_logging()
-            printlog('Logger','Logging program run info to sheets.')
-            dataLeft = self.gsheets.log_to_drive(data, 'progrun')
-            printlog('Logger','Finished logging.')
-
-        except Exception as e:
-            printlog('Logger','ERROR: Could not log program status: {}, {}'.format(
-                            type(e).__name__, e))
-            filemanager.log_local(data, sheet=configs.local_program_log)

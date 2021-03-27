@@ -1,7 +1,8 @@
 import sys
 import gspread
 from httplib2 import Http
-from oauth2client.service_account import ServiceAccountCredentials
+from google.oauth2 import service_account
+from googleapiclient.discovery import build
 from datetime import datetime
 
 # Local source
@@ -32,7 +33,7 @@ class SheetsService:
 
         # Service for Google Sheets
         printlog('Sheets','Logging in to Google Sheets..')
-        service = build('sheets', 'v4', credentials=credentials)
+        self.service = build('sheets', 'v4', credentials=self.creds)
 
         #self._reset_sheets() # TODO: is this really needed?
 
@@ -62,11 +63,11 @@ class SheetsService:
 
     def _check_connection(self):
         # TODO: how to check connection?
+        #if self.creds.access_token_expired:
+        #    printlog('Sheets','Access token had expired. Logging in.')
+        #    self.client.login()
+        #    self._open_sheets()
         pass
-        # if self.creds.access_token_expired:
-        #     printlog('Sheets','Access token had expired. Logging in.')
-        #     self.client.login()
-        #     self._open_sheets()
 
     def _reduce_nof_rows_left(self, amount):
         # TODO are the quotas still same?
@@ -86,6 +87,8 @@ class SheetsService:
             timeLeft = 0
 
     def log_to_drive(self, data, sheet):
+        
+        print('logging to drive')
 
         rowLimit = self.nof_rows_left
         if rowLimit == 0:
@@ -115,14 +118,14 @@ class SheetsService:
 
         try:
 
-            result = service.spreadsheets().values().append(
+            result = self.service.spreadsheets().values().append(
                 spreadsheetId=spreadsheet_id, range=range_name,
                 valueInputOption=value_input_option, body=body).execute()
 
             print('{0} cells appended.'.format(result \
                                                    .get('updates') \
                                                    .get('updatedCells')))
-       except:
+        except:
             printlog('Sheets', 'ERROR: Uplaoding to sheets failed.')
 
         self._reduce_nof_rows_left(len(dataToLog))

@@ -6,7 +6,7 @@ from datetime import datetime, date, time
 
 # Local sources
 #from filemanager import check_disk_space, printlog, get_directory_for_recordings
-#from logger import Logger
+from logger import Logger
 #from audioplayer import AudioPlayer
 #from videoplayer import VideoPlayer
 from camera import Camera
@@ -92,7 +92,7 @@ if __name__ == "__main__":
         if globals.recordingOn:
             camera = Camera()
 
-        logger = Logger(pid)
+        logger = Logger()
         logger.log_program_run_info()
 
         logger.ping()
