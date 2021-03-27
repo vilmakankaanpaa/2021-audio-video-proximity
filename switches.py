@@ -75,6 +75,10 @@ class Switches():
             self.switchPlaying = self.second_queue
             self.second_queue = None
 
+        # New interaction starts whenever new video turns on
+        logger.log_interaction_start(self.switchPlaying)
+        #printlog('Main','Interaction started')
+
         # TODO: turn media actually on
         print('Turning media on:', self.switchPlaying)
         # TODO: log start of interaction
@@ -84,6 +88,8 @@ class Switches():
 
         # TODO: log the end of interaction
         playtime = round((datetime.now() - self.starttime).total_seconds(),2)
+
+        logger.log_interaction_end(self.endtime)
 
         # TODO: turn media actually off
         print('Turning media off:', self.switchPlaying, playtime)

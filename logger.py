@@ -33,6 +33,8 @@ class Logger:
         self.ix_id = None
         self.ix_date = None
         self.ix_start = None
+        self.ix_switch = None
+        self.ix_content = None
         self.ix_recording = None
         self.ix_folder_today = {}
 
@@ -95,6 +97,66 @@ class Logger:
              #               type(e).__name__, e))
             print('Error: could not log prog info')
             #filemanager.log_local(data, sheet=configs.local_program_log)
+
+
+    def log_interaction_start(self, switch):
+
+        # TODO: based on switch, get the content too
+
+        self.ix_id = str(uuid.uuid4())[0:6]
+        self.ix_date = date.isoformat(date.today())
+        self.ix_start = datetime.now()
+        self.ix_switch = switch
+        self.ix_content = globals.mediaorder[switch]
+
+
+    def log_interaction_end(self, endtime):
+
+        pid = self.pid
+        ID = self.ix_id
+        date = self.ix_date
+        startime = self.ix_start
+        duration = (endtime - self.ix_start).total_seconds()
+        mode = globals.testMode
+        switch = self.ix_switch
+        content = self.ix_content
+        video = self.ix_recording + '.h264'
+
+        data = [self.pid, ID, date, mode, switch, content, startime.strftime("%Y-%m-%d %H:%M:%S"), endtime.strftime("%Y-%m-%d %H:%M:%S"), duration, video]
+
+        self.ix_tempdata.append(data)
+
+        # reset
+        self.ix_id = None
+        self.ix_date = None
+        self.ix_start = None
+        self.ix_switch = None
+        self.ix_content = None
+        self.ix_recording = None
+
+
+    def new_recording_name(self):
+
+        self.ix_recording = (self.ix_start).strftime(
+                                "%Y-%m-%d_%H-%M") + '_' + self.ix_id
+        return self.ix_recording
+
+
+    def upload_ix_logs(self):
+
+        data = self.ix_tempdata
+        if (len(data) > 0):
+            #try:
+                #self.test_ie_for_logging()
+                #printlog('Logger','Uploading interaction logs to sheets.')
+            self.ix_tempdata = self.gsheets.log_to_drive(data, 'ix')
+                #printlog('Logger','Finished logging.')
+
+            #except Exception as e:
+                #printlog('Logger','ERROR: Could not upload ix data: {}, {}'.format(
+                #            type(e).__name__, e))
+                #filemanager.log_local(data, sheet=configs.local_ix_log)
+
 
 '''
     def upload_logfiles(self):
@@ -205,15 +267,9 @@ class Logger:
         duration = round((datetime.now() - startTime).total_seconds() / 60, 2)
         printlog('Logger','Uploaded {} recordings, duration {}'.format(
                     MAX, duration))
-
-
-    def new_recording_name(self):
-
-        self.ix_recording = (self.ix_start).strftime(
-                                "%Y-%m-%d_%H-%M") + '_' + self.ix_id
-        return self.ix_recording
-
 '''
+
+
 '''
     def test_ie_for_logging(self):
         try:
@@ -221,57 +277,6 @@ class Logger:
         except:
             printlog('Logger','ERROR: No internet – could not log to sheets.')
             raise
-
-
-    def log_interaction_start(self):
-
-        self.ix_id = str(uuid.uuid4())[0:6]
-        self.ix_date = date.isoformat(date.today())
-        self.ix_start = datetime.now()
-
-        return self.ix_id
-
-    def log_interaction_end(self, realEndTime=None):
-
-        pid = self.pid
-        ID = self.ix_id
-        date = self.ix_date
-        startime = self.ix_start
-
-        if realEndTime:
-            endtime = realEndTime
-        else:
-            endtime = datetime.now()
-
-        duration = (endtime - self.ix_start).total_seconds()
-        phase = configs.TEST_PHASE
-        video = self.ix_recording + '.h264'
-        # id, starttime, endtime, duration
-        data = [self.pid, ID, date, startime.strftime("%Y-%m-%d %H:%M:%S"),
-            endtime.strftime("%Y-%m-%d %H:%M:%S"), duration, phase, video]
-
-        self.ix_tempdata.append(data)
-
-        # reset
-        self.ix_id = None
-        self.ix_date = None
-        self.ix_start = None
-        self.ix_recording = None
-
-    def upload_ix_logs(self):
-
-        data = self.ix_tempdata
-        if (len(data) > 0):
-            try:
-                self.test_ie_for_logging()
-                printlog('Logger','Uploading interaction logs to sheets.')
-                self.ix_tempdata = self.gsheets.log_to_drive(data, 'ix')
-                printlog('Logger','Finished logging.')
-
-            except Exception as e:
-                printlog('Logger','ERROR: Could not upload ix data: {}, {}'.format(
-                            type(e).__name__, e))
-                filemanager.log_local(data, sheet=configs.local_ix_log)
 '''
 
 '''

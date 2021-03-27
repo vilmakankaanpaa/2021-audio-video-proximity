@@ -8,7 +8,7 @@ def init():
     usingAudio = False
     global usingVideo
     usingVideo = False
-    
+
     if testMode == 1:
         usingAudio = True
     elif testMode == 2:
@@ -23,3 +23,6 @@ def init():
     videoAudio = False
 
     global pid
+
+    global mediaorder
+    mediaorder = [None, None, None, None]

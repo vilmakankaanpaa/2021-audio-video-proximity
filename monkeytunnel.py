@@ -61,6 +61,9 @@ if __name__ == "__main__":
         switches = Switches()
         print('switches setup')
 
+        # TODO: shuffle the order and type
+        global globals.mediaorder = ['Zen','rain','traffic','music']
+
         # Variables for keep track of the state of system
         #playingAudio = False
         #playingVideo = False
@@ -73,14 +76,14 @@ if __name__ == "__main__":
         # Timer for when files (recordings, logfiles) should be uploaded
         #uploadFiles_timer = datetime.now()
         # Timer for when data should be uploaded (interactions & sensors readings)
-        #uploadData_timer = datetime.now()
+        uploadData_timer = datetime.now()
         # Timer for when disk space should be checked
         #checkSpace_timer = datetime.now()
 
         pingTimer = datetime.now()
 
         # Timer to avoid uploading data during and right after interactions
-        #ix_timer = datetime.now()
+        ix_timer = datetime.now()
 
         #if usingAudio:
         #    audioPlayer = AudioPlayer()
@@ -110,10 +113,13 @@ if __name__ == "__main__":
 
             switches.updateSwitches()
 
-            if switches.switchPlaying and not camera.recording:
-                # TODO: turn on
-                camera.recording = True
-                print('Starting to record')
+            if switches.switchPlaying
+
+                if not camera.recording:
+                    file = logger.new_recording_name()
+                    # TODO: turn on
+                    camera.recording = True
+                    print('Starting to record')
 
             elif not switches.switchPlaying and camera.recording:
 
@@ -123,8 +129,6 @@ if __name__ == "__main__":
                     # TODO: turn off
                     camera.recording = False
                     print('Stopping record')
-
-            sleep(0.2)
 
             # Checking if should update the request quota for Google Sheets
             # It is 100 requests per 100 seconds (e.g. logging of 100 rows)
@@ -150,22 +154,22 @@ if __name__ == "__main__":
             #        videoPlayer = VideoPlayer(videoPath=configs.VIDEO_PATH,
              #                   useVideoAudio=configs.VIDEO_AUDIO_ON)
 
-
-
-            #timeSinceIx = (datetime.now() - ix_timer).total_seconds() / 60
-
+            timeSinceIx = (datetime.now() - switch.endtime).total_seconds() / 60
             # Upload log data to Sheets every 6 minutes
             # Sometimes the Google Sheets kept logging in every time logging
             # was done and this slowed down the program a lot. So in case happening,
             # it will be done less often
-            '''
             if (datetime.now() - uploadData_timer).total_seconds() / 60 > 6:
-                if not logger.ix_id and timeSinceIx > 1:
-                    printlog('Main','Uploading data from logs..')
+                if not switches.switchPlaying and timeSinceIx > 1:
+                    # No interaction at th emoment and last ended over 1 min ago
+                    #printlog('Main','Uploading data from logs..')
                     logger.upload_ix_logs()
-                    logger.upload_sensor_logs()
+                    #logger.upload_sensor_logs()
                     uploadData_timer = datetime.now()
 
+            sleep(0.2)
+
+            '''
             # Check disk space every 4 minutes
             if (datetime.now() - checkSpace_timer).total_seconds() / 60 > 4:
                 ensure_disk_space(logger, camDirectory)
