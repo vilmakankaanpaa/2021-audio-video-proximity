@@ -116,13 +116,21 @@ class Logger:
         ID = self.ix_id
         date = self.ix_date
         startime = self.ix_start
-        duration = round(endtime - self.ix_start).total_seconds(),2)
-        mode = globals.testMode
+        duration = round((endtime - self.ix_start).total_seconds(),2)
+        
+        stimulus = 'no-stimulus'
+        if globals.testMode == 1:
+            stimulus = 'auditory'
+        elif globals.testMode == 2:
+            stimulus = 'visual'
+            
         switch = self.ix_switch
         content = self.ix_content
         video = self.ix_recording + '.h264'
 
-        data = [self.pid, ID, date, mode, switch, content, startime.strftime("%Y-%m-%d %H:%M:%S"), endtime.strftime("%Y-%m-%d %H:%M:%S"), duration, video]
+        data = [self.pid, ID, date, stimulus, switch, content,
+                startime.strftime("%Y-%m-%d %H:%M:%S"),
+                endtime.strftime("%Y-%m-%d %H:%M:%S"), duration, video]
 
         self.ix_tempdata.append(data)
 
@@ -132,7 +140,6 @@ class Logger:
         self.ix_start = None
         self.ix_switch = None
         self.ix_content = None
-        self.ix_recording = None
 
 
     def new_recording_name(self):

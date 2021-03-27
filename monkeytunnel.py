@@ -159,7 +159,8 @@ if __name__ == "__main__":
             # Sometimes the Google Sheets kept logging in every time logging
             # was done and this slowed down the program a lot. So in case happening,
             # it will be done less often
-            if (datetime.now() - uploadData_timer).total_seconds() / 60 > 6:
+            # TODO: change timer threshold back
+            if (datetime.now() - uploadData_timer).total_seconds() / 60 > 1:
                 if not switches.switchPlaying and timeSinceIx > 1:
                     # No interaction at th emoment and last ended over 1 min ago
                     #printlog('Main','Uploading data from logs..')
