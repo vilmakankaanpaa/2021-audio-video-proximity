@@ -9,7 +9,7 @@ import configs
 import globals
 #import filemanager
 #from filemanager import printlog
-from gsheetsservice import SheetsService
+from googleservive import GoogleService
 #from gdriveservice import DriveService
 
 sys.excepthook = sys.__excepthook__
@@ -38,8 +38,7 @@ class Logger:
         self.ix_recording = None
         self.ix_folder_today = {}
 
-#        self.gdrive = DriveService()
-        self.gsheets = SheetsService()
+        self.gservice = GoogleService()
 
     def internet_connected(self):
 
@@ -62,7 +61,7 @@ class Logger:
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         data = [timestamp]
         try:
-            self.gsheets.log_to_drive([data], 'ping')
+            self.gservice.log_to_drive([data], 'ping')
         except Exception as e:
             print('Ping error', type(e).__name__)
 
@@ -88,7 +87,7 @@ class Logger:
             #self.test_ie_for_logging()
             #printlog('Logger','Logging program run info to sheets.')
             print('Logging program info..')
-            dataLeft = self.gsheets.log_to_drive(data, 'progrun')
+            dataLeft = self.gservice.log_to_drive(data, 'progrun')
             #printlog('Logger','Finished logging.')
             print('Finished logging')
 
@@ -117,13 +116,13 @@ class Logger:
         date = self.ix_date
         startime = self.ix_start
         duration = round((endtime - self.ix_start).total_seconds(),2)
-        
+
         stimulus = 'no-stimulus'
         if globals.testMode == 1:
             stimulus = 'auditory'
         elif globals.testMode == 2:
             stimulus = 'visual'
-            
+
         switch = self.ix_switch
         content = self.ix_content
         video = self.ix_recording + '.h264'
@@ -156,7 +155,7 @@ class Logger:
             #try:
                 #self.test_ie_for_logging()
                 #printlog('Logger','Uploading interaction logs to sheets.')
-            self.ix_tempdata = self.gsheets.log_to_drive(data, 'ix')
+            self.ix_tempdata = self.gservice.log_to_drive(data, 'ix')
                 #printlog('Logger','Finished logging.')
 
             #except Exception as e:
