@@ -34,7 +34,7 @@ class Switches():
         self.delay = 3 # seconds
 
         self.logger = logger
-        
+
     # Called when one of the four switches is triggered
     def react(self, channel):
 
@@ -83,7 +83,7 @@ class Switches():
         #printlog('Main','Interaction started')
 
         # TODO: turn media actually on
-        print('Turning media on:', self.switchPlaying)
+        printlog('Turning media on:', self.switchPlaying)
         # TODO: log start of interaction
 
 
@@ -91,13 +91,13 @@ class Switches():
 
         self.endtime = datetime.now()
         self.logger.log_interaction_end(self.endtime,)
-        
+
         # TODO: log the end of interaction
         playtime = round((datetime.now() - self.starttime).total_seconds(),2)
 
 
         # TODO: turn media actually off
-        print('Turning media off:', self.switchPlaying, playtime)
+        printlog('Turning media off:', self.switchPlaying, playtime)
 
 
         self.starttime = None

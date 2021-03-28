@@ -32,14 +32,12 @@ class SheetsService:
         self.creds = service_account.Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPE)
 
         # Service for Google Sheets
-        #printlog('Sheets','Logging in to Google Sheets..')
-        print('Logging to sheets')
-        self.service = build('sheets', 'v4', credentials=self.creds)
-        print('Logging to drive')
-        self.driveService = build('drive', 'v3', credentials=self.creds)
+        printlog('Sheets','Logging into Google Sheets..')
+        self.gsheets = build('sheets', 'v4', credentials=self.creds)
+        printlog('Drive','Logging into Google Sheets..')
+        self.gdrive = build('drive', 'v3', credentials=self.creds)
+        # self.creds.expiry = None so the credentials should not expire ever
 
-        #print(self.creds.expiry) # this is "None" so the credentials should not expire ever
-        #self._check_connection()
         #self._reset_sheets() # TODO: is this really needed?
 
 
@@ -85,8 +83,6 @@ class SheetsService:
             timeLeft = 0
 
     def log_to_drive(self, data, sheet):
-
-        print('logging to drive')
 
         rowLimit = self.nof_rows_left
         if rowLimit == 0:

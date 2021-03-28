@@ -5,7 +5,7 @@ from time import sleep
 from datetime import datetime, date, time
 
 # Local sources
-#from filemanager import check_disk_space, printlog, get_directory_for_recordings
+from filemanager import check_disk_space, printlog, get_directory_for_recordings
 from logger import Logger
 #from audioplayer import AudioPlayer
 #from videoplayer import VideoPlayer
@@ -50,16 +50,14 @@ if __name__ == "__main__":
 
     globals.init()
 
-    print(datetime.isoformat(datetime.now()))
+    printlog(datetime.isoformat(datetime.now()))
     globals.pid = os.getpid()
 
-    print('pid:',globals.pid)
-
-    #printlog('Main','Starting up monkeytunnel..')
+    printlog('Main','Starting up monkeytunnel..')
     logger = Logger()
     try:
         switches = Switches(logger)
-        print('switches setup')
+        printlog('Main','Setting up switches')
 
         # TODO: shuffle the order and type
         globals.mediaorder = ['Zen','rain','traffic','music']
@@ -96,21 +94,17 @@ if __name__ == "__main__":
             camera = Camera()
 
         logger.log_program_run_info()
-
         logger.ping()
 
         cameraDelay = 10 # seconds
-        
         lastActivity = datetime.now()
 
         while True:
-
 
             if (datetime.now() - pingTimer).total_seconds() / 60 > 10:
                 #ping every 10 minutes
                 logger.ping()
                 pingTimer = datetime.now()
-
 
             switches.updateSwitches()
 
@@ -120,7 +114,7 @@ if __name__ == "__main__":
                     file = logger.new_recording_name()
                     # TODO: turn on
                     camera.recording = True
-                    print('Starting to record')
+                    printlog('Starting to record')
 
             elif not switches.switchPlaying and camera.recording:
 
@@ -129,7 +123,7 @@ if __name__ == "__main__":
                 if timeSinceActivity > camera.delay:
                     # TODO: turn off
                     camera.recording = False
-                    print('Stopping record')
+                    printlog('Stopping record')
 
             # Checking if should update the request quota for Google Sheets
             # It is 100 requests per 100 seconds (e.g. logging of 100 rows)
@@ -156,7 +150,7 @@ if __name__ == "__main__":
              #                   useVideoAudio=configs.VIDEO_AUDIO_ON)
             if switches.endtime != None:
                 lastActivity = switches.endtime
-                
+
             timeSinceIx = (datetime.now() - switches.endtime).total_seconds() / 60
             # Upload log data to Sheets every 6 minutes
             # Sometimes the Google Sheets kept logging in every time logging
@@ -202,7 +196,7 @@ if __name__ == "__main__":
 
 
     except KeyboardInterrupt:
-        print('Exiting, KeyboardInterrupt')
+        printlog('Exiting, KeyboardInterrupt')
 
     finally:
         # Remove the channel setup always
