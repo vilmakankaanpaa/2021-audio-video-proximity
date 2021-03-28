@@ -30,7 +30,7 @@ class AudioPlayer(MPyg321Player):
             return False
 
 
-    def play(self, file):
+    def play_audio(self, file):
 
         # TODO: cannot be paused with this system
         #if self.status == 2: # paused

@@ -2,6 +2,8 @@
 import RPi.GPIO as GPIO
 from datetime import datetime
 from filemanager import printlog
+from audioplayer import AudioPlayer
+from videoplayer import VideoPlayer
 import globals
 import configs
 
@@ -37,7 +39,7 @@ class Switches():
         self.delay = 3 # seconds
 
         self.logger = logger
-        self.audioPlayer = audioPlayer()
+        self.audioPlayer = AudioPlayer()
         #self.videoPlayer = videoPlayer()
 
     # Called when one of the four switches is triggered
@@ -93,7 +95,7 @@ class Switches():
         if globals.usingAudio:
             if self.audioPlayer.has_quit():
                 self.audioPlayer = AudioPlayer()
-            self.audioPlayer.play(configs.AUDIO1)
+            self.audioPlayer.play_audio(configs.AUDIO1)
         #elif globals.usingVideo:
         #    if videoPlayer.has_quit():
         #        if quit, spawn new
