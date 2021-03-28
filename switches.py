@@ -91,16 +91,15 @@ class Switches():
 
         # TODO: turn media actually on
         printlog('Switches','Turning media on: {}'.format(self.switchPlaying))
-
+        
+        mediaFile = globals.mediaorder[self.switchPlaying]
         if globals.usingAudio:
             if self.audioPlayer.has_quit():
                 self.audioPlayer = AudioPlayer()
-            filePath = globals.orderAudio[self.switchPlaying]
-            self.audioPlayer.play_audio()
+            self.audioPlayer.play_audio(mediaFile)
 
         elif globals.usingVideo:
-            filePath = globals.orderVideo[self.switchPlaying]
-            videoPlayer = VideoPlayer(filePath, globals.videoAudio)
+            self.videoPlayer = VideoPlayer(mediaFile, globals.videoAudio)
 
         else:
             # no stimulus
@@ -124,7 +123,7 @@ class Switches():
             self.audioPlayer.stop()
 
         if self.videoPlayer != None:
-            if self.videoPlayer.is_playing():
+            print('Video playing?', self.videoPlayer.is_playing())
             self.videoPlayer.stop_video()
             self.videoPlayer = None
 

@@ -60,9 +60,10 @@ if __name__ == "__main__":
         printlog('Main','Setting up switches')
 
         # TODO: shuffle the order and type
-        globals.orderAudio = [configs.AUDIO1,configs.AUDIO2,configs.AUDIO3,configs.AUDIO4]
-
-        globals.orderVideo = [configs.VIDEO1,configs.VIDEO2,configs.VIDEO3,configs.VIDEO4]
+        if globals.usingAudio:
+            globals.mediaorder = [configs.AUDIO1,configs.AUDIO2,configs.AUDIO3,configs.AUDIO4]
+        elif globals.usingVideo:
+            globals.mediaorder = [configs.VIDEO1,configs.VIDEO2,configs.VIDEO3,configs.VIDEO4]
 
         camDirectory = None
         #logfilesUploadedToday = False
@@ -102,6 +103,9 @@ if __name__ == "__main__":
             # Checks the state of switches and handles what to do with media: should it start or stop or content switched.
             # Also logs when interaction starts and ends.
             switches.updateSwitches()
+            
+            if switches.endtime != None:
+                lastActivity = switches.endtime
 
             if globals.recordingOn:
 
@@ -114,15 +118,12 @@ if __name__ == "__main__":
 
                 elif not switches.switchPlaying and camera.is_recording:
                     # Stop recording after certain time since interaction ended
-                    timeSinceActivity = round((datetime.now() - switches.endtime).total_seconds(),2)
+                    timeSinceActivity = round((datetime.now() - lastActivity).total_seconds(),2)
 
                     if timeSinceActivity > camera.delay:
                         camera.stop_recording()
                         printlog('Main','Stopping recording')
 
-
-            if switches.endtime != None:
-                lastActivity = switches.endtime
 
             timeSinceIx = (datetime.now() - lastActivity).total_seconds() / 60
             # Upload log data to Sheets every 6 minutes

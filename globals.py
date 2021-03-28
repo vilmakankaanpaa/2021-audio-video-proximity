@@ -2,7 +2,7 @@
 def init():
     # 0 = no-stimulus, 1 = audio, 2 = video
     global testMode
-    testMode = 1
+    testMode = 2
 
     global usingAudio
     usingAudio = False
@@ -24,8 +24,5 @@ def init():
 
     global pid
 
-    global orderVideo
-    orderVideo = [None, None, None, None]
-
-    global orderAudio
-    orderAudio = [None, None, None, None]
+    global mediaorder
+    mediaorder = [None, None, None, None]

@@ -10,9 +10,7 @@ from datetime import datetime
 class VideoPlayer():
 
     def __init__(self, videoPath,  useVideoAudio):
-
-        # 0 - no video, 1 - video ready, 2 - playing video, 3 - paused, 4 - quit
-
+        
         self.audio = useVideoAudio
         self.videoPath = videoPath
         """
@@ -23,18 +21,13 @@ class VideoPlayer():
         """
 
         self.player = OMXPlayer(self.videoPath, args="-o alsa:hw:1,0 --no-osd --aspect-mode fill --loop")
-        self.pause_video()
 
         if not self.audio:
             self.player.mute()
 
 
     def is_playing(self):
-
-        if self.status == 2:
-            return True
-        else:
-            return False
+        return self.player.is_playing()
 
 
     # def has_quit(self):
@@ -44,10 +37,10 @@ class VideoPlayer():
     #         return False
 
 
-    def play_video(self):
-        self.player.show_video()
-        self.player.play()
-        self.status = 2
+    #def play_video(self):
+    #    self.player.show_video()
+    #    self.player.play()
+    #    self.status = 2
 
 # TODO: use pause to avoid spawning new all the time
     # def pause_video(self):
@@ -57,5 +50,4 @@ class VideoPlayer():
 
 
     def stop_video(self):
-        self.player.quit()
-        self.status = 4
+        self.player.stop()
