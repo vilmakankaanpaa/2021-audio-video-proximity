@@ -1,7 +1,7 @@
 # Configurations for paths and URLs
 
 # roots
-root = '/home/pi/sakis-video-tunnel/'
+root = '/home/pi/sakis-tunnel-2021/'
 external_disk = '/mnt/kingston/'
 
 # paths to use

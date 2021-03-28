@@ -1,6 +1,7 @@
 
 import RPi.GPIO as GPIO
 from datetime import datetime
+from filemanager import printlog
 
 
 class Switches():
@@ -80,10 +81,10 @@ class Switches():
 
         # New interaction starts whenever new video turns on
         self.logger.log_interaction_start(self.switchPlaying)
-        printlog('Main','Interaction started')
+        printlog('Switches','Interaction started')
 
         # TODO: turn media actually on
-        printlog('Turning media on:', self.switchPlaying)
+        printlog('Switches','Turning media on: {}'.format(self.switchPlaying))
 
         #if usingAudio:
         #    playingAudio = audioPlayer.is_playing()
@@ -110,7 +111,7 @@ class Switches():
 
 
         # TODO: turn media actually off
-        printlog('Turning media off:', self.switchPlaying, playtime)
+        printlog('Switches','Turning media off: {}'.format(self.switchPlaying))
 
 
         self.starttime = None

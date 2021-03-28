@@ -108,7 +108,7 @@ if __name__ == "__main__":
             # Also logs when interaction starts and ends.
             switches.updateSwitches()
 
-            if recordingOn:
+            if globals.recordingOn:
 
                 if switches.switchPlaying and not camera.is_recording:
                     # When media is playing, camera should be recording.
