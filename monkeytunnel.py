@@ -62,17 +62,11 @@ if __name__ == "__main__":
         # TODO: shuffle the order and type
         globals.mediaorder = ['Zen','rain','traffic','music']
 
-        # Variables for keep track of the state of system
-        #playingAudio = False
-        #playingVideo = False
-        #cameraIsRecording = False
-        #camDirectory = None
+        camDirectory = None
         #logfilesUploadedToday = False
 
-        # sensornote: setted the threshold here
-
         # Timer for when files (recordings, logfiles) should be uploaded
-        #uploadFiles_timer = datetime.now()
+        uploadFiles_timer = datetime.now()
         # Timer for when data should be uploaded (interactions & sensors readings)
         uploadData_timer = datetime.now()
         # Timer for when disk space should be checked
@@ -106,48 +100,32 @@ if __name__ == "__main__":
                 logger.ping()
                 pingTimer = datetime.now()
 
-            switches.updateSwitches()
-
-            if switches.switchPlaying:
-
-                if not camera.recording:
-                    file = logger.new_recording_name()
-                    # TODO: turn on
-                    camera.recording = True
-                    printlog('Main','Starting to record')
-
-            elif not switches.switchPlaying and camera.recording:
-
-                timeSinceActivity = round((datetime.now() - switches.endtime).total_seconds(),2)
-
-                if timeSinceActivity > camera.delay:
-                    # TODO: turn off
-                    camera.recording = False
-                    printlog('Main','Stopping record')
-
             # Checking if should update the request quota for Google Sheets
             # It is 100 requests per 100 seconds (e.g. logging of 100 rows)
-            #logger.gsheets.check_quota_timer()
+            logger.gservice.check_quota_timer()
 
-            # snesornote: reading sensors here
-            # sensornote: handling the FALSe readings here
-            # sensornote: determined if monkey was detected or not
+            # Checks the state of switches and handles what to do with media: should it start or stop or content switched.
+            # Also logs when interaction starts and ends.
+            switches.updateSwitches()
 
-            #if recordingOn:
-            #    cameraIsRecording = camera.is_recording()
+            if recordingOn:
 
-            #if usingAudio:
-            #    playingAudio = audioPlayer.is_playing()
-            #    if not playingAudio and audioPlayer.has_quit():
-                    # if quit, spawn new
-            #        audioPlayer = AudioPlayer()
+                if switches.switchPlaying and not camera.is_recording:
+                    # When media is playing, camera should be recording.
+                    file = logger.new_recording_name()
+                    camDirectory = get_directory_for_recordings()
+                    camera.start_recording(file, camDirectory)
+                    printlog('Main','Starting to record')
 
-            #if usingVideo:
-            #    playingVideo = videoPlayer.is_playing()
-            #    if not playingVideo and videoPlayer.has_quit():
-                    # if quit, spawn new
-            #        videoPlayer = VideoPlayer(videoPath=configs.VIDEO_PATH,
-             #                   useVideoAudio=configs.VIDEO_AUDIO_ON)
+                elif not switches.switchPlaying and camera.is_recording:
+                    # Stop recording after certain time since interaction ended
+                    timeSinceActivity = round((datetime.now() - switches.endtime).total_seconds(),2)
+
+                    if timeSinceActivity > camera.delay:
+                        camera.stop_recording()
+                        printlog('Main','Stopping recording')
+
+
             if switches.endtime != None:
                 lastActivity = switches.endtime
 

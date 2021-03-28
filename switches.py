@@ -80,11 +80,24 @@ class Switches():
 
         # New interaction starts whenever new video turns on
         self.logger.log_interaction_start(self.switchPlaying)
-        #printlog('Main','Interaction started')
+        printlog('Main','Interaction started')
 
         # TODO: turn media actually on
         printlog('Turning media on:', self.switchPlaying)
-        # TODO: log start of interaction
+
+        #if usingAudio:
+        #    playingAudio = audioPlayer.is_playing()
+        #    if not playingAudio and audioPlayer.has_quit():
+                # if quit, spawn new
+        #        audioPlayer = AudioPlayer()
+
+        #if usingVideo:
+        #    playingVideo = videoPlayer.is_playing()
+        #    if not playingVideo and videoPlayer.has_quit():
+                # if quit, spawn new
+        #        videoPlayer = VideoPlayer(videoPath=configs.VIDEO_PATH,
+         #                   useVideoAudio=configs.VIDEO_AUDIO_ON)
+
 
 
     def turnOff(self):

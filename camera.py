@@ -8,23 +8,19 @@ class Camera():
     def __init__(self):
 
         self.camera = PiCamera()
-        self.recording = False
+        self.is_recording = False
         self.delay = 10 # seconds, delay to stop recording after interaction
-
-
-    def is_recording(self):
-        return self.recording
 
 
     def start_recording(self, videoName, directory):
         # this will determine whether the usb can be opened
         self.camera.start_recording(directory + videoName + '.h264')
-        self.recording = True
+        self.is_recording = True
 
 
     def stop_recording(self):
         self.camera.stop_recording()
-        self.recording = False
+        self.is_recording = False
 
 
     def start_preview(self):
@@ -41,7 +37,7 @@ class Camera():
         # Note: it’s important to sleep for at least two seconds
         # before capturing an image, because this gives the camera’s
         # sensor time to sense the light levels.
-        path = '/home/pi/sakis-video-tunnel/'
+        path = '/home/pi/sakis-tunnel-2021/'
         sleep(5)
         self.camera.capture(path + imageName + '.jpg')
         self.camera.stop_preview()
