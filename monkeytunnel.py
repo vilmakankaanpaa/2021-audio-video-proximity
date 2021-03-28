@@ -70,7 +70,7 @@ if __name__ == "__main__":
         # Timer for when data should be uploaded (interactions & sensors readings)
         uploadData_timer = datetime.now()
         # Timer for when disk space should be checked
-        #checkSpace_timer = datetime.now()
+        checkSpace_timer = datetime.now()
 
         pingTimer = datetime.now()
 

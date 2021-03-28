@@ -7,10 +7,9 @@ from time import sleep
 
 import configs
 import globals
-#import filemanager
-#from filemanager import printlog
+import filemanager
+from filemanager import printlog
 from googleservice import GoogleService
-#from gdriveservice import DriveService
 
 sys.excepthook = sys.__excepthook__
 
@@ -232,7 +231,7 @@ class Logger:
 
         duration = round((datetime.now() - startTime).total_seconds() / 60, 2)
         printlog('Logger','Uploaded {} recordings, duration {}'.format(
-                    MAX, duration))
+                    i, duration))
 
 
 '''
