@@ -33,5 +33,5 @@ SENSORS_SHEET = 'sensor-readings'
 PING_SHEET = 'ping-alive'
 
 # Google Drive API parameters for uploading listDriveFiles
-GDRIVE_FOLDER_ID = '15-VeIBr0SVHk2_aWBVe_F2UmiXJw0tr7'  #"Recordings"
-GDRIVE_FOLDER_ID_LOGS = '1fM7o2FK_5D_PxNM8PCx6b8cfGwPvBY86'  #"Local logs" folder in drive
+GDRIVE_FOLDER_ID = '1F-kDuVRUCY_HZTpls-HjgoMZfQsHHsFy'  #recordings
+GDRIVE_FOLDER_ID_LOGS = '1ZhqiXGb0yIBRg-h_UlASro2tIVav0YmO'  #system logs
