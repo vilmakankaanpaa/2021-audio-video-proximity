@@ -37,11 +37,11 @@ class VideoPlayer():
             return False
 
 
-    def has_quit(self):
-        if self.status == 4:
-            return True
-        else:
-            return False
+    # def has_quit(self):
+    #     if self.status == 4:
+    #         return True
+    #     else:
+    #         return False
 
 
     def play_video(self):
@@ -49,11 +49,11 @@ class VideoPlayer():
         self.player.play()
         self.status = 2
 
-
-    def pause_video(self):
-        self.player.pause()
-        self.player.hide_video()
-        self.status = 3
+# TODO: use pause to avoid spawning new all the time
+    # def pause_video(self):
+    #     self.player.pause()
+    #     self.player.hide_video()
+    #     self.status = 3
 
 
     def stop_video(self):

@@ -40,7 +40,7 @@ class Switches():
 
         self.logger = logger
         self.audioPlayer = AudioPlayer()
-        #self.videoPlayer = videoPlayer()
+        self.videoPlayer = None
 
     # Called when one of the four switches is triggered
     def react(self, channel):
@@ -95,12 +95,12 @@ class Switches():
         if globals.usingAudio:
             if self.audioPlayer.has_quit():
                 self.audioPlayer = AudioPlayer()
-            self.audioPlayer.play_audio(configs.AUDIO1)
-        #elif globals.usingVideo:
-        #    if videoPlayer.has_quit():
-        #        if quit, spawn new
-        #        videoPlayer = VideoPlayer(videoPath=configs.VIDEO_PATH,
-        #                   useVideoAudio=configs.VIDEO_AUDIO_ON)
+            filePath = globals.orderAudio[self.switchPlaying]
+            self.audioPlayer.play_audio()
+
+        elif globals.usingVideo:
+            filePath = globals.orderVideo[self.switchPlaying]
+            videoPlayer = VideoPlayer(filePath, globals.videoAudio)
 
         else:
             # no stimulus
@@ -123,8 +123,10 @@ class Switches():
         if self.audioPlayer.is_playing():
             self.audioPlayer.stop()
 
-        #if self.videoPlayer.is_playing():
-        #    self.videoPlayer.stop_video()
+        if self.videoPlayer != None:
+            if self.videoPlayer.is_playing():
+            self.videoPlayer.stop_video()
+            self.videoPlayer = None
 
         self.starttime = None
         self.switchPlaying = None

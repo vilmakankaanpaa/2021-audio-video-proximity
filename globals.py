@@ -24,5 +24,8 @@ def init():
 
     global pid
 
-    global mediaorder
-    mediaorder = [None, None, None, None]
+    global orderVideo
+    orderVideo = [None, None, None, None]
+
+    global orderAudio
+    orderAudio = [None, None, None, None]

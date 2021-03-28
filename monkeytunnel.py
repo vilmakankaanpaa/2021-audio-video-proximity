@@ -60,7 +60,9 @@ if __name__ == "__main__":
         printlog('Main','Setting up switches')
 
         # TODO: shuffle the order and type
-        globals.mediaorder = ['Zen','rain','traffic','music']
+        globals.orderAudio = [configs.AUDIO1,configs.AUDIO2,configs.AUDIO3,configs.AUDIO4]
+
+        globals.orderVideo = [configs.VIDEO1,configs.VIDEO2,configs.VIDEO3,configs.VIDEO4]
 
         camDirectory = None
         #logfilesUploadedToday = False
@@ -77,13 +79,6 @@ if __name__ == "__main__":
         # Timer to avoid uploading data during and right after interactions
         ix_timer = datetime.now()
 
-        #if usingAudio:
-        #    audioPlayer = AudioPlayer()
-
-        #elif usingVideo:
-            # TODO how to initialize with many videos?
-        #    videoPlayer = VideoPlayer(videoPath=configs.VIDEO_PATH,
-        #                            useVideoAudio=configs.VIDEO_AUDIO_ON)
         if globals.recordingOn:
             camera = Camera()
 
