@@ -2,6 +2,8 @@
 import RPi.GPIO as GPIO
 from datetime import datetime
 from filemanager import printlog
+import globals
+import configs
 
 
 class Switches():
@@ -35,6 +37,8 @@ class Switches():
         self.delay = 3 # seconds
 
         self.logger = logger
+        self.audioPlayer = audioPlayer()
+        #self.videoPlayer = videoPlayer()
 
     # Called when one of the four switches is triggered
     def react(self, channel):
@@ -86,18 +90,19 @@ class Switches():
         # TODO: turn media actually on
         printlog('Switches','Turning media on: {}'.format(self.switchPlaying))
 
-        #if usingAudio:
-        #    playingAudio = audioPlayer.is_playing()
-        #    if not playingAudio and audioPlayer.has_quit():
-                # if quit, spawn new
-        #        audioPlayer = AudioPlayer()
-
-        #if usingVideo:
-        #    playingVideo = videoPlayer.is_playing()
-        #    if not playingVideo and videoPlayer.has_quit():
-                # if quit, spawn new
+        if globals.usingAudio:
+            if self.audioPlayer.has_quit():
+                self.audioPlayer = AudioPlayer()
+            self.audioPlayer.play(configs.AUDIO1)
+        #elif globals.usingVideo:
+        #    if videoPlayer.has_quit():
+        #        if quit, spawn new
         #        videoPlayer = VideoPlayer(videoPath=configs.VIDEO_PATH,
-         #                   useVideoAudio=configs.VIDEO_AUDIO_ON)
+        #                   useVideoAudio=configs.VIDEO_AUDIO_ON)
+
+        else:
+            # no stimulus
+            pass
 
 
 
@@ -113,6 +118,11 @@ class Switches():
         # TODO: turn media actually off
         printlog('Switches','Turning media off: {}'.format(self.switchPlaying))
 
+        if self.audioPlayer.is_playing():
+            self.audioPlayer.stop()
+
+        #if self.videoPlayer.is_playing():
+        #    self.videoPlayer.stop_video()
 
         self.starttime = None
         self.switchPlaying = None

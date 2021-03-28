@@ -12,6 +12,8 @@ class AudioPlayer(MPyg321Player):
     # 3 - stopped
     # 4 - has quit
 
+    # use self.stop(), self.pause()
+
     def is_playing(self):
 
         if self.status == 1: # playing
@@ -28,15 +30,19 @@ class AudioPlayer(MPyg321Player):
             return False
 
 
-    def play_audio(self):
+    def play(self, file):
 
-        if self.status == 2: # paused
-            self.resume()
-        elif self.status != 1: # ready (0) or stopped (3)
+        # TODO: cannot be paused with this system
+        #if self.status == 2: # paused
+        #    self.resume()
+        #elif self.status != 1: # ready (0) or stopped (3)
             # currently not paused and not playing -> start
-            self.play_song(configs.AUDIO_PATH)
-        else:
-            pass
+        self.play_song(file, loop=True)
+        #else:
+        #    pass
 
-    def pause_audio(self):
-        self.pause()
+    #def pause(self):
+    #    self.pause()
+
+    #def stop(self):
+    #    self.stop()
