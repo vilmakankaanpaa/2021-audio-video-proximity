@@ -164,6 +164,77 @@ class Logger:
                 #filemanager.log_local(data, sheet=configs.local_ix_log)
 
 
+    def get_folder_id_today(self):
+
+        dateToday = date.isoformat(date.today())
+
+        if dateToday in self.ix_folder_today:
+            folderId = self.ix_folder_today[dateToday]
+            return folderId
+
+        _, folders = self.gservice.list_content()
+
+        try:
+            folderId = folders[dateToday]
+        except:
+            folderId = self.gservice.create_folder(
+                        folderName=dateToday,
+                        parentFolder=configs.GDRIVE_FOLDER_ID)
+
+        self.ix_folder_today[dateToday] = folderId
+        return folderId
+
+
+    def upload_recordings(self, max_nof_uploads=0):
+
+        nof_records = filemanager.nof_recordings()
+        # if there are files in folder left from previous day in the local dir,
+        # the date-folder will end up being wrong but this is not really
+        # an issue since there wont be that many videos..
+
+        if nof_records == 0:
+            printlog('Logger','No recordings to upload.')
+            return
+
+        try:
+            self.internet_connected()
+        except:
+            printlog('Logger','ERROR: No internet – could not upload files.')
+            return
+
+        folderId = self.get_folder_id_today()
+        uploadedFiles = []
+        # TODO: empty both locations if USB has not been accessed for some time?
+        records, directory = filemanager.list_recordings()
+
+        MAX = len(records)
+        if max_nof_uploads > 0:
+            MAX = max_nof_uploads
+
+        startTime = datetime.now()
+
+        i = 0
+        for filename in records:
+            if i == MAX:
+                break
+            if filename != self.ix_recording:
+                # skip if currently being recorded!
+                try:
+                    self.gservice.upload_recording(filename, folderId, directory)
+                    filemanager.delete_local_file(directory + filename)
+                    i += 1
+
+                except Exception as e:
+                    printlog('Logger','ERROR: Could not upload file: {}, {}'.format(
+                                type(e).__name__, e))
+                    if type(e).__name__ == "TimeoutError":
+                        break
+
+        duration = round((datetime.now() - startTime).total_seconds() / 60, 2)
+        printlog('Logger','Uploaded {} recordings, duration {}'.format(
+                    MAX, duration))
+
+
 '''
     def upload_logfiles(self):
 
@@ -202,80 +273,6 @@ class Logger:
         duration = round((datetime.now() - startTime).total_seconds() / 60, 2)
         printlog('Logger','Uploaded local files. Duration: {}'.format(duration))
 '''
-
-'''
-    def get_folder_id_today(self):
-
-        dateToday = date.isoformat(date.today())
-
-        if dateToday in self.ix_folder_today:
-            folderId = self.ix_folder_today[dateToday]
-            return folderId
-
-        _, folders = self.gdrive.list_content()
-
-        try:
-            folderId = folders[dateToday]
-        except:
-            folderId = self.gdrive.create_folder(
-                        folderName=dateToday,
-                        parentFolder=configs.GDRIVE_FOLDER_ID)
-
-        self.ix_folder_today[dateToday] = folderId
-        return folderId
-'''
-
-'''
-    def upload_recordings(self, max_nof_uploads=0):
-
-        nof_records = filemanager.nof_recordings()
-        # if there are files in folder left from previous day in the local dir,
-        # the date-folder will end up being wrong but this is not really
-        # an issue since there wont be that many videos..
-
-        if nof_records == 0:
-            printlog('Logger','No recordings to upload.')
-            return
-
-        try:
-            self.internet_connected()
-        except:
-            printlog('Logger','ERROR: No internet – could not upload files.')
-            return
-
-        folderId = self.get_folder_id_today()
-        uploadedFiles = []
-        records, directory = filemanager.list_recordings()
-
-        MAX = len(records)
-        if max_nof_uploads > 0:
-            MAX = max_nof_uploads
-
-        startTime = datetime.now()
-
-        i = 0
-        for filename in records:
-            if i == MAX:
-                break
-            if filename != self.ix_recording:
-                # skip if currently being recorded!
-                try:
-                    self.gdrive.upload_recording(filename, folderId, directory)
-                    filemanager.delete_local_file(directory + filename)
-                    i += 1
-
-                except Exception as e:
-                    printlog('Logger','ERROR: Could not upload file: {}, {}'.format(
-                                type(e).__name__, e))
-                    if type(e).__name__ == "TimeoutError":
-                        break
-
-        duration = round((datetime.now() - startTime).total_seconds() / 60, 2)
-        printlog('Logger','Uploaded {} recordings, duration {}'.format(
-                    MAX, duration))
-'''
-
-
 '''
     def test_ie_for_logging(self):
         try:

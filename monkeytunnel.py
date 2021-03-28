@@ -16,11 +16,11 @@ import globals
 
 sys.excepthook = sys.__excepthook__
 
-def ensure_disk_space(logger, recDirectory):
+def ensure_disk_space(logger, directory):
 
     printlog('Main','Checking disk space.')
 
-    if recDirectory == configs.RECORDINGS_PATH:
+    if directory == configs.RECORDINGS_PATH:
         # Path to the USB
 
         freeSpace = check_disk_space(configs.external_disk)
@@ -33,7 +33,7 @@ def ensure_disk_space(logger, recDirectory):
             # the functioning of the tunnel for too long..
             logger.upload_recordings(max_nof_uploads=5)
 
-    elif recDirectory == configs.RECORDINGS_PATH_2:
+    elif directory == configs.RECORDINGS_PATH_2:
         # PATH to local directory
 
         printlog('Main','ERROR: Camera has been recording to Pi local folder!')
@@ -137,20 +137,22 @@ if __name__ == "__main__":
             # TODO: change timer threshold back
             if (datetime.now() - uploadData_timer).total_seconds() / 60 > 1:
                 if not switches.switchPlaying and timeSinceIx > 1:
-                    # No interaction at th emoment and last ended over 1 min ago
-                    #printlog('Main','Uploading data from logs..')
+                    # Upload data logs after some time passed since activity
+                    printlog('Main','Uploading data from ix logs..')
                     logger.upload_ix_logs()
                     #logger.upload_sensor_logs()
                     uploadData_timer = datetime.now()
+                    printlog('Main','Try upload recordings..')
+                    logger.upload_recordings(50)
 
-            sleep(0.2)
-
-            '''
             # Check disk space every 4 minutes
             if (datetime.now() - checkSpace_timer).total_seconds() / 60 > 4:
                 ensure_disk_space(logger, camDirectory)
                 checkSpace_timer = datetime.now()
 
+            sleep(0.2)
+
+            '''
             # Upload recordings and log files in the evening
             hourNow = datetime.now().hour
             if not logger.ix_id and timeSinceIx > 1:
