@@ -32,9 +32,13 @@ class SheetsService:
         self.creds = service_account.Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPE)
 
         # Service for Google Sheets
-        printlog('Sheets','Logging in to Google Sheets..')
-        self.service = build('sheets', 'v4', credentials=self.creds)
+        #printlog('Sheets','Logging in to Google Sheets..')
+        print('Logging to sheets')
+        self.sheetsService = build('sheets', 'v4', credentials=self.creds)
+        print('Logging to drive')
+        self.driveService = build('sheets', 'v3', credentials=self.creds)
 
+        self._check_connection()
         #self._reset_sheets() # TODO: is this really needed?
 
 
@@ -67,7 +71,12 @@ class SheetsService:
         #    printlog('Sheets','Access token had expired. Logging in.')
         #    self.client.login()
         #    self._open_sheets()
-        pass
+        print('Checking connection')
+        if self.creds.access_token_expired:
+            print('Access token had expired. Refreshing token for Drive.')
+            #printlog('Drive','Access token had expired. Refreshing token for Drive.')
+            self.creds.refresh(Http())
+
 
     def _reduce_nof_rows_left(self, amount):
         # TODO are the quotas still same?
@@ -87,7 +96,7 @@ class SheetsService:
             timeLeft = 0
 
     def log_to_drive(self, data, sheet):
-        
+
         print('logging to drive')
 
         rowLimit = self.nof_rows_left
