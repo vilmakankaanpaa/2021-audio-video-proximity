@@ -56,9 +56,8 @@ if __name__ == "__main__":
     print('pid:',globals.pid)
 
     #printlog('Main','Starting up monkeytunnel..')
-
+    logger = Logger()
     try:
-        logger = Logger()
         switches = Switches(logger)
         print('switches setup')
 
@@ -101,6 +100,8 @@ if __name__ == "__main__":
         logger.ping()
 
         cameraDelay = 10 # seconds
+        
+        lastActivity = datetime.now()
 
         while True:
 
@@ -154,7 +155,9 @@ if __name__ == "__main__":
             #        videoPlayer = VideoPlayer(videoPath=configs.VIDEO_PATH,
              #                   useVideoAudio=configs.VIDEO_AUDIO_ON)
             if switches.endtime != None:
-                timeSinceIx = (datetime.now() - switches.endtime).total_seconds() / 60
+                lastActivity = switches.endtime
+                
+            timeSinceIx = (datetime.now() - switches.endtime).total_seconds() / 60
             # Upload log data to Sheets every 6 minutes
             # Sometimes the Google Sheets kept logging in every time logging
             # was done and this slowed down the program a lot. So in case happening,

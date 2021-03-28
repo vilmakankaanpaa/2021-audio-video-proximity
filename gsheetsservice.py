@@ -34,11 +34,12 @@ class SheetsService:
         # Service for Google Sheets
         #printlog('Sheets','Logging in to Google Sheets..')
         print('Logging to sheets')
-        self.sheetsService = build('sheets', 'v4', credentials=self.creds)
+        self.service = build('sheets', 'v4', credentials=self.creds)
         print('Logging to drive')
-        self.driveService = build('sheets', 'v3', credentials=self.creds)
+        self.driveService = build('drive', 'v3', credentials=self.creds)
 
-        self._check_connection()
+        #print(self.creds.expiry) # this is "None" so the credentials should not expire ever
+        #self._check_connection()
         #self._reset_sheets() # TODO: is this really needed?
 
 
@@ -64,18 +65,6 @@ class SheetsService:
     #     self.progrun_sheet = self.client.open(configs.DOCNAME).worksheet(configs.PROGRUN_SHEET)
     #     self.sensor_sheet = self.client.open(configs.DOCNAME).worksheet(configs.SENSOR_SHEET)
     #     self.ping_sheet = self.client.open(configs.DOCNAME).worksheet(configs.PING_SHEET)
-
-    def _check_connection(self):
-        # TODO: how to check connection?
-        #if self.creds.access_token_expired:
-        #    printlog('Sheets','Access token had expired. Logging in.')
-        #    self.client.login()
-        #    self._open_sheets()
-        print('Checking connection')
-        if self.creds.access_token_expired:
-            print('Access token had expired. Refreshing token for Drive.')
-            #printlog('Drive','Access token had expired. Refreshing token for Drive.')
-            self.creds.refresh(Http())
 
 
     def _reduce_nof_rows_left(self, amount):
@@ -136,6 +125,7 @@ class SheetsService:
                                                    .get('updatedCells')))
         except:
             printlog('Sheets', 'ERROR: Uplaoding to sheets failed.')
+            raise # TODO: take off
 
         self._reduce_nof_rows_left(len(dataToLog))
         dataLeft = []
