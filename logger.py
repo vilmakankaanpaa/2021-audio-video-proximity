@@ -9,7 +9,7 @@ import configs
 import globals
 #import filemanager
 #from filemanager import printlog
-from googleservive import GoogleService
+from googleservice import GoogleService
 #from gdriveservice import DriveService
 
 sys.excepthook = sys.__excepthook__

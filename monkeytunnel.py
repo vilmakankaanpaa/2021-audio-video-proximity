@@ -50,7 +50,7 @@ if __name__ == "__main__":
 
     globals.init()
 
-    printlog(datetime.isoformat(datetime.now()))
+    printlog('Main',datetime.isoformat(datetime.now()))
     globals.pid = os.getpid()
 
     printlog('Main','Starting up monkeytunnel..')
@@ -114,7 +114,7 @@ if __name__ == "__main__":
                     file = logger.new_recording_name()
                     # TODO: turn on
                     camera.recording = True
-                    printlog('Starting to record')
+                    printlog('Main','Starting to record')
 
             elif not switches.switchPlaying and camera.recording:
 
@@ -123,7 +123,7 @@ if __name__ == "__main__":
                 if timeSinceActivity > camera.delay:
                     # TODO: turn off
                     camera.recording = False
-                    printlog('Stopping record')
+                    printlog('Main','Stopping record')
 
             # Checking if should update the request quota for Google Sheets
             # It is 100 requests per 100 seconds (e.g. logging of 100 rows)
@@ -151,7 +151,7 @@ if __name__ == "__main__":
             if switches.endtime != None:
                 lastActivity = switches.endtime
 
-            timeSinceIx = (datetime.now() - switches.endtime).total_seconds() / 60
+            timeSinceIx = (datetime.now() - lastActivity).total_seconds() / 60
             # Upload log data to Sheets every 6 minutes
             # Sometimes the Google Sheets kept logging in every time logging
             # was done and this slowed down the program a lot. So in case happening,
