@@ -3,5 +3,4 @@ omxplayer-wrapper==0.3.3
 mpg321==0.3.2
 mpyg321==1.1.0
 apiclient==1.0.4
-gspread==3.6.0
 google-api-python-client==1.11.0

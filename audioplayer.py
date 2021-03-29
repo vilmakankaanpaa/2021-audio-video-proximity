@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 from mpyg321.mpyg321 import MPyg321Player, PlayerStatus

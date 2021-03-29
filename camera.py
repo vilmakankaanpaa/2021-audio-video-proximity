@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+#!/usr/bin/env python3
 
 # Following instructions here
 # https://projects.raspberrypi.org/en/projects/getting-started-with-picamera/4
