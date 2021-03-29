@@ -3,7 +3,8 @@
 
 import sys
 #from httplib2 import Http
-from google.oauth2 import service_account
+#from google.oauth2 import service_account
+from oauth2client.service_account import ServiceAccountCredentials
 from googleapiclient.discovery import build
 from apiclient.http import MediaFileUpload
 from datetime import datetime
@@ -32,7 +33,9 @@ class GoogleService:
         SERVICE_ACCOUNT_FILE = '/home/pi/sakis-tunnel-2021/service_account.json'
         SCOPE = ['https://www.googleapis.com/auth/drive', 'https://www.googleapis.com/auth/spreadsheets']
 
-        self.creds = service_account.Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPE)
+        #self.creds = service_account.Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPE)
+
+        self.creds = ServiceAccountCredentials.from_json_keyfile_name(SERVICE_ACCOUNT_FILE,SCOPE)
 
         # Service for Google Sheets
         printlog('Sheets','Logging into Google Sheets..')
