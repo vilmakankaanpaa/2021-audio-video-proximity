@@ -1,4 +1,6 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 
 from omxplayer.player import OMXPlayer
 from pathlib import Path
@@ -10,7 +12,7 @@ from datetime import datetime
 class VideoPlayer():
 
     def __init__(self, videoPath,  useVideoAudio):
-        
+
         self.audio = useVideoAudio
         self.videoPath = videoPath
         """

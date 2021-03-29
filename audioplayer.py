@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from mpyg321.mpyg321 import MPyg321Player, PlayerStatus
 from time import sleep
 

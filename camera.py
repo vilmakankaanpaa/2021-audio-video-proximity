@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 # Following instructions here
 # https://projects.raspberrypi.org/en/projects/getting-started-with-picamera/4
 from picamera import PiCamera

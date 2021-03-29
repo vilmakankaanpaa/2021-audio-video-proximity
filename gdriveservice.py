@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import sys
 from apiclient.discovery  import build
 from httplib2 import Http

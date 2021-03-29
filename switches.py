@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 
 import RPi.GPIO as GPIO
 from datetime import datetime
@@ -89,7 +90,7 @@ class Switches():
         # New interaction starts whenever new media turns on
         self.logger.log_interaction_start(self.switchPlaying)
         printlog('Switches','Interaction started')
-        
+
         # Start recording
         if globals.recordingOn and not self.camera.is_recording:
             file = self.logger.new_recording_name()
