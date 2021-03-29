@@ -12,3 +12,9 @@ token.json
 
 # Recordings of the camera module
 camera-records
+
+# print outputs
+output.txt
+
+# local mac file
+.DS_store
