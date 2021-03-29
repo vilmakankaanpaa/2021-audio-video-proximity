@@ -3,6 +3,7 @@ import sys
 import RPi.GPIO as GPIO
 from time import sleep
 from datetime import datetime, date, time
+import random
 
 # Local sources
 from filemanager import check_disk_space, printlog, get_directory_for_recordings
@@ -89,6 +90,9 @@ if __name__ == "__main__":
 
         cameraDelay = 10 # seconds
         lastActivity = datetime.now()
+        
+        random.shuffle(globals.mediaorder)
+        print(globals.mediaorder)
 
         while True:
 
