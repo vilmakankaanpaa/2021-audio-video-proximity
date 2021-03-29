@@ -86,16 +86,16 @@ class Switches():
             self.switchPlaying = self.second_queue
             self.second_queue = None
 
-        # Start recording
-        if globals.recordingOn not self.camera.is_recording:
-            file = logger.new_recording_name()
-            directory = get_directory_for_recordings()
-            self.camera.start_recording(file, directory)
-            printlog('Main','Starting to record')
-
         # New interaction starts whenever new media turns on
         self.logger.log_interaction_start(self.switchPlaying)
         printlog('Switches','Interaction started')
+        
+        # Start recording
+        if globals.recordingOn and not self.camera.is_recording:
+            file = self.logger.new_recording_name()
+            directory = get_directory_for_recordings()
+            self.camera.start_recording(file, directory)
+            printlog('Main','Starting to record')
 
         filename = globals.mediaorder[self.switchPlaying]
         if globals.usingAudio:
