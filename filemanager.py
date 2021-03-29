@@ -18,6 +18,7 @@ def printlog(srcfile, msg):
     data = [[timestamp, srcfile, msg]]
 
     log_local(data=data, sheet=configs.local_printlog)
+    print(timestamp,msg)
 
 
 def log_local(data, sheet):
@@ -42,7 +43,7 @@ def list_recordings():
 
     dir = get_directory_for_recordings()
     dirContent = os.listdir(dir)
-    printlog('Filemanager','Size of dir:', len(dirContent))
+    printlog('Filemanager','Size of dir: {}'.fortmat(len(dirContent)))
     for filename in dirContent:
         if filename.endswith('.h264'):
             videos.append(filename)

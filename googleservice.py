@@ -23,7 +23,6 @@ class GoogleService:
         self.sheets = {
                     'ix': configs.IX_SHEET,
                     'progrun': configs.STARTS_SHEET,
-                    'sensors': configs.SENSORS_SHEET,
                     'ping': configs.PING_SHEET
                 }
 
@@ -88,7 +87,7 @@ class GoogleService:
         try:
             range_name = self.sheets[sheet]
         except:
-            printlog('Gservice',,'ERROR: No such sheet.')
+            printlog('Gservice','ERROR: No such sheet.')
 
         try:
 
