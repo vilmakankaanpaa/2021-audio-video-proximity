@@ -43,7 +43,7 @@ def list_recordings():
 
     dir = get_directory_for_recordings()
     dirContent = os.listdir(dir)
-    printlog('Filemanager','Size of dir: {}'.fortmat(len(dirContent)))
+    printlog('Filemanager','Size of dir: {}'.format(len(dirContent)))
     for filename in dirContent:
         if filename.endswith('.h264'):
             videos.append(filename)

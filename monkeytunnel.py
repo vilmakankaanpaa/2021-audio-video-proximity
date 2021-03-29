@@ -22,7 +22,7 @@ def ensure_disk_space(logger):
 
     printlog('Main','Checking disk space.')
 
-    directory = logger.get_directory_for_recordings()
+    directory = get_directory_for_recordings()
     # TODO: don't depend on the given directory
     if directory == configs.RECORDINGS_PATH:
         # Path to the USB
@@ -55,23 +55,38 @@ def check_testMode():
     modeSet = globals.modeSince
     modeSince = datetime.now()-modeSet
     minutes = modeSince.total_seconds() / 60
-    #if minutes >= 4320:
+    
+    if globals.testMode == 0:
+        printlog('Main','Changing mode from no-stimulus to audio') 
+        if minutes > 10080:
+            globals.testMode = 1
+            globals.usingAudio = True
+            globals.usingVideo = False
+            globals.mediaorder = [configs.audio1,configs.audio2,configs.audio3,configs.audio4]
+            random.shuffle(globals.mediaorder)
+            globals.modeSince = datetime.now()
+            return
+            
+    #TODO:if minutes >= 4320:
     if minutes >= 2:
         if globals.testMode == 1:
+            printlog('Main','Changing mode from audio to video')
             # Was audio, start video
             globals.testMode = 2
             globals.usingAudio = False
             globals.usingVideo = True
             globals.mediaorder = [configs.video1,configs.video2,configs.video3,configs.video4]
 
-        elif globals.testMode == 2 or globals.testMode == 0:
-            # Was video (or no-stimulus), start audio
+        elif globals.testMode == 2:
+            printlog('Main','Changing mode from video to audio')
+            # Was video, start audio
             globals.testMode = 1
             globals.usingAudio = True
             globals.usingVideo = False
             globals.mediaorder = [configs.audio1,configs.audio2,configs.audio3,configs.audio4]
 
         random.shuffle(globals.mediaorder)
+        globals.modeSince = datetime.now()
 
 if __name__ == "__main__":
 
@@ -114,6 +129,8 @@ if __name__ == "__main__":
 
         logger.log_program_run_info()
         logger.ping()
+        
+        printlog('Main','Ready for use!')
 
         while True:
 
