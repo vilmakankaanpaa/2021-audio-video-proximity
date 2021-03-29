@@ -1,9 +1,11 @@
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 import sys
 import os
 import uuid
-import http.client as httplib
+#import http.client as httplib
+import requests
 from datetime import datetime, date
 from time import sleep
 
@@ -48,13 +50,14 @@ class Logger:
         diff = int((datetime.now() - self.ie_check_timer).total_seconds())
         if (diff > (4*60)): # every four minutes max
             self.ie_check_timer = datetime.now()
-            conn = httplib.HTTPConnection("www.google.fi", timeout=2)
+            #conn = httplib.HTTPConnection("www.google.fi", timeout=2)
             try:
-                conn.request("HEAD", "/")
-                conn.close()
+                r = requests.get('https://google.fi',timeout=2)
+                #conn.request("HEAD", "/")
+                #conn.close()
 
             except Exception as e:
-                conn.close()
+                #conn.close()
                 raise e
 
 

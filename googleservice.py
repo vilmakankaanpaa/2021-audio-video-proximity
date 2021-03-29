@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import sys
-import gspread
-from httplib2 import Http
+#from httplib2 import Http
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from apiclient.http import MediaFileUpload

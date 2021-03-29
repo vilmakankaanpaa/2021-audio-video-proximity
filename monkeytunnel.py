@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+#!/usr/bin/env python3
+
 import os
 import sys
 import RPi.GPIO as GPIO
@@ -52,7 +54,9 @@ def ensure_disk_space(logger):
 
 def check_testMode():
 
-    minutes = (datetime.now() - globals.modeSince).total_seconds() / 60
+    modeSet = globals.modeSince
+    modeSince = datetime.now()-modeSet
+    minutes = modeSince.total_seconds() / 60
     #if minutes >= 4320:
     if minutes >= 2:
         if globals.testMode == 1:
