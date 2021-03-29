@@ -21,7 +21,7 @@ def ensure_disk_space(logger):
 
     printlog('Main','Checking disk space.')
 
-    directory = logger.get_directory_for_recordings()
+    directory = get_directory_for_recordings()
     # TODO: don't depend on the given directory
     if directory == configs.RECORDINGS_PATH:
         # Path to the USB
@@ -51,9 +51,23 @@ def ensure_disk_space(logger):
 
 def check_testMode():
 
-    minutes = (datetime.now() – globals.modeSince).total_seconds() / 60
+    minutes = (datetime.now() - globals.modeSince).total_seconds() / 60
+    
+    if globals.testMode == 0:
+        if minutes >10080: # one week
+            globals.testMode = 1 # start audio
+            globals.usingAudio = True
+            globals.usingVideo = False
+            globals.mediaorder = [configs.audio1,configs.audio2,configs.audio3,configs.audio4]
+
+            random.shuffle(globals.mediaorder)
+            globals.modeSince = datetime.now()
+            return
+    
+    #TODO: change back
     #if minutes >= 4320:
-    if minutes >= 2:
+    if minutes > 2:
+        print('Changing mode')
         if globals.testMode == 1:
             # Was audio, start video
             globals.testMode = 2
@@ -61,7 +75,7 @@ def check_testMode():
             globals.usingVideo = True
             globals.mediaorder = [configs.video1,configs.video2,configs.video3,configs.video4]
 
-        elif globals.testMode == 2 or globals.testMode == 0:
+        elif globals.testMode == 2:
             # Was video (or no-stimulus), start audio
             globals.testMode = 1
             globals.usingAudio = True
@@ -69,6 +83,7 @@ def check_testMode():
             globals.mediaorder = [configs.audio1,configs.audio2,configs.audio3,configs.audio4]
 
         random.shuffle(globals.mediaorder)
+        globals.modeSince = datetime.now()
 
 if __name__ == "__main__":
 
@@ -193,6 +208,7 @@ if __name__ == "__main__":
     finally:
         # Remove the channel setup always
         GPIO.cleanup()
-        camera.stop_recording()
+        if camera.is_recording:
+            camera.stop_recording()
         # TOOD use globals audioplayer etc to be able to stop them here?
         # or just do killall omxplayer.bin ?
