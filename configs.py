@@ -8,16 +8,20 @@ external_disk = '/media/pi/KINGSTON1/'
 RECORDINGS_PATH = external_disk + 'camera-records/'
 RECORDINGS_PATH_2 = root + 'camera-records/'
 
-# audio files
-AUDIO1 = root + 'audio/zen.mp3'
-AUDIO2 = root + 'audio/rain.mp3'
-AUDIO3 = root + 'audio/traffic.mp3'
-AUDIO4 = root + 'audio/music.mp3'
+# file names
+audiopath = root + 'audio/'
+# use 'configs.audiopath' + audioX + '.mp3'
+audio1 = 'zen'
+audio2 = 'rain'
+audio3 = 'traffic'
+audio4 = 'music'
 # video files
-VIDEO1 = root + 'video/forest.mp4'
-VIDEO2 = root + 'video/underwater.mp4'
-VIDEO3 = root + 'video/worms.mp4'
-VIDEO4 = root + 'video/abstract.mp4'
+videopath = root + 'video/'
+# use 'configs.videopath' + audioX + '.mp4'
+video1 = 'forest'
+video2 = 'underwater'
+video3 = 'worms'
+video4 = 'abstract'
 
 # local logfile names
 local_ix_log = 'ix_backup.csv'

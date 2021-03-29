@@ -63,9 +63,9 @@ if __name__ == "__main__":
 
         # TODO: shuffle the order and type
         if globals.usingAudio:
-            globals.mediaorder = [configs.AUDIO1,configs.AUDIO2,configs.AUDIO3,configs.AUDIO4]
+            globals.mediaorder = [configs.audio1,configs.audio2,configs.audio3,configs.audio4]
         elif globals.usingVideo:
-            globals.mediaorder = [configs.VIDEO1,configs.VIDEO2,configs.VIDEO3,configs.VIDEO4]
+            globals.mediaorder = [configs.video1,configs.video2,configs.video3,configs.video4]
 
         camDirectory = None
         #logfilesUploadedToday = False
@@ -90,7 +90,7 @@ if __name__ == "__main__":
 
         cameraDelay = 10 # seconds
         lastActivity = datetime.now()
-        
+
         random.shuffle(globals.mediaorder)
         print(globals.mediaorder)
 
@@ -108,7 +108,7 @@ if __name__ == "__main__":
             # Checks the state of switches and handles what to do with media: should it start or stop or content switched.
             # Also logs when interaction starts and ends.
             switches.updateSwitches()
-            
+
             if switches.endtime != None:
                 lastActivity = switches.endtime
 
