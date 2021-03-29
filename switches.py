@@ -93,14 +93,14 @@ class Switches():
 
         # New interaction starts whenever new media turns on
         self.logger.log_interaction_start(self.switchPlaying)
-        printlog('Switches','Interaction started')
+        printlog('Switches','Interaction started,')
 
         # Start recording
         if globals.recordingOn and not self.camera.is_recording:
             file = self.logger.new_recording_name()
             directory = get_directory_for_recordings()
             self.camera.start_recording(file, directory)
-            printlog('Switches','Starting to record')
+            printlog('Switches','Starting to record.')
 
         filename = globals.mediaorder[self.switchPlaying]
         if globals.usingAudio:
@@ -125,13 +125,14 @@ class Switches():
 
         self.endtime = datetime.now()
         self.logger.log_interaction_end(self.endtime,)
-
-        printlog('Switches','Turning media off: {}'.format(self.switchPlaying))
+        printlog('Switches','Interaction ended.')
 
         if self.audioPlayer.is_playing():
+            printlog('Switches','Turning audio off.'.format(self.switchPlaying))
             self.audioPlayer.stop()
 
         if self.videoPlayer != None:
+            printlog('Switches','Turning video off.'.format(self.switchPlaying))
             if self.videoPlayer.is_playing():
                 self.videoPlayer.stop_video()
                 self.videoPlayer = None
