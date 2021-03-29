@@ -57,18 +57,18 @@ def check_testMode():
     minutes = modeSince.total_seconds() / 60
     
     if globals.testMode == 0:
-        printlog('Main','Changing mode from no-stimulus to audio') 
         if minutes > 10080:
+            printlog('Main','Changing mode from no-stimulus to audio') 
             globals.testMode = 1
             globals.usingAudio = True
             globals.usingVideo = False
             globals.mediaorder = [configs.audio1,configs.audio2,configs.audio3,configs.audio4]
             random.shuffle(globals.mediaorder)
             globals.modeSince = datetime.now()
+            printlog('Main','Mediaorder: {}.'.format(globals.mediaorder))
             return
             
-    #TODO:if minutes >= 4320:
-    if minutes >= 2:
+    if minutes >= 4320:
         if globals.testMode == 1:
             printlog('Main','Changing mode from audio to video')
             # Was audio, start video
@@ -87,6 +87,7 @@ def check_testMode():
 
         random.shuffle(globals.mediaorder)
         globals.modeSince = datetime.now()
+        printlog('Main','Mediaorder: {}.'.format(globals.mediaorder))
 
 if __name__ == "__main__":
 
@@ -104,7 +105,9 @@ if __name__ == "__main__":
         globals.mediaorder = [configs.video1,configs.video2,configs.video3,configs.video4]
 
     # TODO: don't use shuffling unless doing changing stimulus automatically during system run and this works well
-    #random.shuffle(globals.mediaorder)
+    random.shuffle(globals.mediaorder)
+    
+    printlog('Main','Mediaorder: {}.'.format(globals.mediaorder))
 
     logger = Logger()
     camera = Camera()
@@ -167,24 +170,17 @@ if __name__ == "__main__":
             # Sometimes the Google Sheets kept logging in every time logging
             # was done and this slowed down the program a lot. So in case happening,
             # it will be done less often
-            # TODO: change timer threshold back
-            if (datetime.now() - uploadData_timer).total_seconds() / 60 > 1:
+            if (datetime.now() - uploadData_timer).total_seconds() / 60 > 6:
                 if not switches.switchPlaying and timeSinceIx > 1:
                     # Upload data logs after some time passed since activity
                     printlog('Main','Uploading data from ix logs..')
                     logger.upload_ix_logs()
-                    #logger.upload_sensor_logs()
                     uploadData_timer = datetime.now()
-                    printlog('Main','Try upload recordings..')
-                    logger.upload_recordings(50)
 
             # Check disk space every 4 minutes
             if (datetime.now() - checkSpace_timer).total_seconds() / 60 > 4:
                 ensure_disk_space(logger)
                 checkSpace_timer = datetime.now()
-
-            sleep(0.2)
-
 
             # Upload recordings and log files in the evening
             hourNow = datetime.now().hour
@@ -205,6 +201,8 @@ if __name__ == "__main__":
 
                 elif hourNow == 0:
                     logfilesUploadedToday = False
+            
+            sleep(0.4)
 
 
     except KeyboardInterrupt:
