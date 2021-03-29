@@ -1,7 +1,7 @@
 
 import RPi.GPIO as GPIO
 from datetime import datetime
-from filemanager import printlog
+from filemanager import printlog, get_directory_for_recordings
 from audioplayer import AudioPlayer
 from videoplayer import VideoPlayer
 import globals
@@ -10,7 +10,7 @@ import configs
 
 class Switches():
 
-    def __init__(self, logger):
+    def __init__(self, logger, camera):
 
         # Use Broadcom (the GPIO numbering)
         GPIO.setmode(GPIO.BCM)
@@ -39,6 +39,7 @@ class Switches():
         self.delay = 3 # seconds
 
         self.logger = logger
+        self.camera = camera
         self.audioPlayer = AudioPlayer()
         self.videoPlayer = None
 
@@ -85,12 +86,16 @@ class Switches():
             self.switchPlaying = self.second_queue
             self.second_queue = None
 
-        # New interaction starts whenever new video turns on
+        # Start recording
+        if globals.recordingOn not self.camera.is_recording:
+            file = logger.new_recording_name()
+            directory = get_directory_for_recordings()
+            self.camera.start_recording(file, directory)
+            printlog('Main','Starting to record')
+
+        # New interaction starts whenever new media turns on
         self.logger.log_interaction_start(self.switchPlaying)
         printlog('Switches','Interaction started')
-
-        # TODO: turn media actually on
-        printlog('Switches','Turning media on: {}'.format(self.switchPlaying))
 
         filename = globals.mediaorder[self.switchPlaying]
         if globals.usingAudio:
@@ -108,17 +113,11 @@ class Switches():
             pass
 
 
-
     def turnOff(self):
 
         self.endtime = datetime.now()
         self.logger.log_interaction_end(self.endtime,)
 
-        # TODO: log the end of interaction
-        playtime = round((datetime.now() - self.starttime).total_seconds(),2)
-
-
-        # TODO: turn media actually off
         printlog('Switches','Turning media off: {}'.format(self.switchPlaying))
 
         if self.audioPlayer.is_playing():

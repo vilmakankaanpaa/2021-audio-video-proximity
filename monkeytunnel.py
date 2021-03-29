@@ -21,6 +21,7 @@ def ensure_disk_space(logger, directory):
 
     printlog('Main','Checking disk space.')
 
+    # TODO: don't depend on the given directory
     if directory == configs.RECORDINGS_PATH:
         # Path to the USB
 
@@ -57,8 +58,12 @@ if __name__ == "__main__":
 
     printlog('Main','Starting up monkeytunnel..')
     logger = Logger()
+    camera = Camera()
+
     try:
-        switches = Switches(logger)
+
+        switches = Switches(logger, camera)
+
         printlog('Main','Setting up switches')
 
         # TODO: shuffle the order and type
@@ -81,9 +86,6 @@ if __name__ == "__main__":
 
         # Timer to avoid uploading data during and right after interactions
         ix_timer = datetime.now()
-
-        if globals.recordingOn:
-            camera = Camera()
 
         logger.log_program_run_info()
         logger.ping()
@@ -113,15 +115,7 @@ if __name__ == "__main__":
                 lastActivity = switches.endtime
 
             if globals.recordingOn:
-
-                if switches.switchPlaying and not camera.is_recording:
-                    # When media is playing, camera should be recording.
-                    file = logger.new_recording_name()
-                    camDirectory = get_directory_for_recordings()
-                    camera.start_recording(file, camDirectory)
-                    printlog('Main','Starting to record')
-
-                elif not switches.switchPlaying and camera.is_recording:
+                if not switches.switchPlaying and camera.is_recording:
                     # Stop recording after certain time since interaction ended
                     timeSinceActivity = round((datetime.now() - lastActivity).total_seconds(),2)
 
@@ -182,3 +176,6 @@ if __name__ == "__main__":
     finally:
         # Remove the channel setup always
         GPIO.cleanup()
+        camera.stop_recording()
+        # TOOD use globals audioplayer etc to be able to stop them here?
+        # or just do killall omxplayer.bin ?
