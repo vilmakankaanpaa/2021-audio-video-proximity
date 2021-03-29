@@ -91,7 +91,7 @@ class Switches():
 
         # TODO: turn media actually on
         printlog('Switches','Turning media on: {}'.format(self.switchPlaying))
-        
+
         mediaFile = globals.mediaorder[self.switchPlaying]
         if globals.usingAudio:
             if self.audioPlayer.has_quit():
@@ -123,9 +123,9 @@ class Switches():
             self.audioPlayer.stop()
 
         if self.videoPlayer != None:
-            print('Video playing?', self.videoPlayer.is_playing())
-            self.videoPlayer.stop_video()
-            self.videoPlayer = None
+            if self.videoPlayer.is_playing():
+                self.videoPlayer.stop_video()
+                self.videoPlayer = None
 
         self.starttime = None
         self.switchPlaying = None
