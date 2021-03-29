@@ -24,7 +24,7 @@ def ensure_disk_space(logger, directory):
         # Path to the USB
 
         freeSpace = check_disk_space(configs.external_disk)
-        printlog('Main','Directory {}, free: {}'.format(recDirectory, freeSpace))
+        printlog('Main','Directory {}, free: {}'.format(directory, freeSpace))
 
         if freeSpace < 0.04: # this is ca. 1.1/28.0 GB of the USB stick left
             # if space is scarce, we need to upload some files ASAP
@@ -38,7 +38,8 @@ def ensure_disk_space(logger, directory):
 
         printlog('Main','ERROR: Camera has been recording to Pi local folder!')
         freeSpace = check_disk_space(configs.root)
-        if freeSpace < 0.02: # 2% of the 7.8 GB of the total free space on Pi, so less than 156MB
+        printlog('Main','Directory {}, free: {}'.format(directory, freeSpace))
+        if freeSpace < 0.10: # 10% of the ca. 17 GB of free space on Pi
             printlog('Main','Disk space on Pi getting small! Uploading files already.')
             # Pi is so small that we just need them all out.
             logger.upload_recordings()
