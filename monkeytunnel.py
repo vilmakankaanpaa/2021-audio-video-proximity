@@ -11,8 +11,6 @@ import random
 # Local sources
 from filemanager import check_disk_space, printlog, get_directory_for_recordings
 from logger import Logger
-#from audioplayer import AudioPlayer
-#from videoplayer import VideoPlayer
 from camera import Camera
 from switches import Switches
 import configs
@@ -108,7 +106,8 @@ if __name__ == "__main__":
 
     cameraDelay = 10 # seconds
     lastActivity = datetime.now()
-    #logfilesUploadedToday = False
+
+    logfilesUploadedToday = False
 
     try:
         switches = Switches(logger, camera)
@@ -143,7 +142,7 @@ if __name__ == "__main__":
 
                     if timeSinceActivity > camera.delay:
                         camera.stop_recording()
-                        printlog('Main','Stopping recording')
+                        printlog('Main','Stopping to record.')
 
 
             timeSinceIx = (datetime.now() - lastActivity).total_seconds() / 60
@@ -169,10 +168,10 @@ if __name__ == "__main__":
 
             sleep(0.2)
 
-            '''
+
             # Upload recordings and log files in the evening
             hourNow = datetime.now().hour
-            if not logger.ix_id and timeSinceIx > 1:
+            if not switches.switchPlaying and timeSinceIx > 1:
                 if (hourNow == 22 or hourNow == 23):
                     if (datetime.now()-uploadFiles_timer).total_seconds() / 60 > 25:
                         # During these hours, only check about 4 times if there are any
@@ -189,15 +188,15 @@ if __name__ == "__main__":
 
                 elif hourNow == 0:
                     logfilesUploadedToday = False
-            '''
 
 
     except KeyboardInterrupt:
-        printlog('Exiting, KeyboardInterrupt')
+        printlog('Main','Exiting, KeyboardInterrupt')
 
     finally:
         # Remove the channel setup always
         GPIO.cleanup()
-        camera.stop_recording()
+        if camera.is_recording:
+            camera.stop_recording()
         # TOOD use globals audioplayer etc to be able to stop them here?
         # or just do killall omxplayer.bin ?

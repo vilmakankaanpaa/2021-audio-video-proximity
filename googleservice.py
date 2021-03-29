@@ -35,40 +35,13 @@ class GoogleService:
 
         self.creds = service_account.Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPE)
 
-        #self.creds = ServiceAccountCredentials.from_json_keyfile_name(SERVICE_ACCOUNT_FILE,SCOPE)
-
         # Service for Google Sheets
-        printlog('Sheets','Logging into Google Sheets..')
+        printlog('Gservice','Logging into Google Sheets..')
         self.gsheets = build('sheets', 'v4', credentials=self.creds)
-        printlog('Drive','Logging into Google Sheets..')
+        printlog('Gservice','Logging into Google Sheets..')
         self.gdrive = build('drive', 'v3', credentials=self.creds)
         # self.creds.expiry = None so the credentials should not expire ever
 
-        #self._reset_sheets() # TODO: is this really needed?
-
-
-    # def _reset_sheets(self):
-    #     # reset sheet rows if empty (since rows are appended and default sheet
-    #     # already has empty rows)
-    #     if len(self.ix_sheet.get_all_values()) == 1:
-    #         self.ix_sheet.resize(rows=1,cols=8)
-    #
-    #     if len(self.progrun_sheet.get_all_values()) == 1:
-    #         self.progrun_sheet.resize(rows=1,cols=9)
-    #
-    #     if len(self.sensor_sheet.get_all_values()) == 1:
-    #         self.sensor_sheet.resize(rows=1,cols=12)
-    #
-    #     if len(self.ping_sheet.get_all_values()) == 1:
-    #         self.ping_sheet.resize(rows=1,cols=1)
-    #
-    # def _open_sheets(self):
-    #
-    #     printlog('Sheets','Opening worksheets..')
-    #     self.ix_sheet = self.client.open(configs.DOCNAME).worksheet(configs.IX_SHEET)
-    #     self.progrun_sheet = self.client.open(configs.DOCNAME).worksheet(configs.PROGRUN_SHEET)
-    #     self.sensor_sheet = self.client.open(configs.DOCNAME).worksheet(configs.SENSOR_SHEET)
-    #     self.ping_sheet = self.client.open(configs.DOCNAME).worksheet(configs.PING_SHEET)
 
 # Sheets
 
@@ -77,8 +50,9 @@ class GoogleService:
         pass
         self.nof_rows_left = (self.nof_rows_left - amount)
         if (self.nof_rows_left < 10):
-            printlog('Sheets','Less than 10 ({}) rows left in quota'.format(self.nof_rows_left))
+            printlog('Gservice','Less than 10 ({}) rows left in quota'.format(self.nof_rows_left))
         return self.nof_rows_left
+
 
     def check_quota_timer(self):
         # reset log timer every 100s – quota for google is 100 requests per 100 seconds
@@ -88,6 +62,7 @@ class GoogleService:
             self.quota_timer = datetime.now()
             self.nof_rows_left = 100
             timeLeft = 0
+
 
     def log_to_drive(self, data, sheet):
 
@@ -103,8 +78,6 @@ class GoogleService:
             dataToLog = data[0:rowLimit]
             truncated = True
 
-        #self._check_connection()
-
         spreadsheet_id = self.spreadsheet_id
         value_input_option = 'USER_ENTERED'
 
@@ -115,7 +88,7 @@ class GoogleService:
         try:
             range_name = self.sheets[sheet]
         except:
-            printlog('Sheets','ERROR: No such sheet.')
+            printlog('Gservice',,'ERROR: No such sheet.')
 
         try:
 
@@ -123,12 +96,11 @@ class GoogleService:
                 spreadsheetId=spreadsheet_id, range=range_name,
                 valueInputOption=value_input_option, body=body).execute()
 
-            print('{0} cells appended.'.format(result \
+            printlog('Gservice','{0} cells appended.'.format(result \
                                                    .get('updates') \
                                                    .get('updatedCells')))
         except:
-            printlog('Sheets', 'ERROR: Uplaoding to sheets failed.')
-            raise # TODO: take off
+            printlog('Gservice', 'ERROR: Uplaoding to sheets failed.')
 
         self._reduce_nof_rows_left(len(dataToLog))
         dataLeft = []
@@ -160,8 +132,8 @@ class GoogleService:
             raise e
 
         fileId = file.get('id')
-        #printlog('Drive','Uploaded file {} of type {} with id {}.'.format(
-        #        metadata['name'], metadata['mimeType'], fileId))
+        printlog('Drive','Uploaded file {} of type {} with id {}.'.format(
+                metadata['name'], metadata['mimeType'], fileId))
         return fileId
 
 
@@ -236,9 +208,9 @@ class GoogleService:
 
         try:
             self.gdrive.files().delete(fileId=resourceId).execute()
-            print('Deleted resource with id {}'.format(resourceId))
+            printlog('Gservice','Deleted resource with id {}'.format(resourceId))
         except Exception as e:
-            print('ERROR: Could not delete file. Emessage:', e)
+            printlog('Gservice','ERROR: Could not delete file. Emessage:', e)
 
 
     def delete_videos(self):

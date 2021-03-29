@@ -4,7 +4,6 @@
 import sys
 import os
 import uuid
-#import http.client as httplib
 import requests
 from datetime import datetime, date
 from time import sleep
@@ -24,13 +23,10 @@ class Logger:
         # program run id to match data from same run easily
         self.pid = str(globals.pid) + str(uuid.uuid4())[0:4]
 
-        # Timer for counting how often data from sensors is logged
-        self.sensorlog_timer = datetime.now()
         # Timer for how often internet is being checked
         self.ie_check_timer = datetime.now()
 
         self.ix_tempdata = []
-        self.sensors_tempdata = []
 
         # Info on ongoing interaction with the tunnel
         self.ix_id = None
@@ -43,6 +39,7 @@ class Logger:
 
         self.gservice = GoogleService()
 
+
     def internet_connected(self):
 
         print('Checking internet connection')
@@ -50,21 +47,26 @@ class Logger:
         diff = int((datetime.now() - self.ie_check_timer).total_seconds())
         if (diff > (4*60)): # every four minutes max
             self.ie_check_timer = datetime.now()
-            #conn = httplib.HTTPConnection("www.google.fi", timeout=2)
             try:
                 r = requests.get('https://google.fi',timeout=2)
-                #conn.request("HEAD", "/")
-                #conn.close()
 
             except Exception as e:
-                #conn.close()
                 raise e
+
+
+    def test_ie_for_logging(self):
+        try:
+            self.internet_connected()
+        except:
+            printlog('Logger','ERROR: No internet – could not log to sheets.')
+            raise
 
 
     def ping(self):
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         data = [timestamp]
         try:
+            self.test_ie_for_logging()
             self.gservice.log_to_drive([data], 'ping')
         except Exception as e:
             print('Ping error', type(e).__name__)
@@ -88,23 +90,17 @@ class Logger:
         data = [data]
 
         try:
-            #self.test_ie_for_logging()
-            #printlog('Logger','Logging program run info to sheets.')
-            print('Logging program info..')
+            self.test_ie_for_logging()
+            printlog('Logger','Logging program run info to sheets.')
             dataLeft = self.gservice.log_to_drive(data, 'progrun')
-            #printlog('Logger','Finished logging.')
-            print('Finished logging')
+            printlog('Logger','Finished logging.')
 
         except Exception as e:
-            #printlog('Logger','ERROR: Could not log program status: {}, {}'.format(
-             #               type(e).__name__, e))
-            print('Error: could not log prog info')
-            #filemanager.log_local(data, sheet=configs.local_program_log)
+            printlog('Logger','ERROR: Could not log program status: {}, {}'.format(type(e).__name__, e))
+            filemanager.log_local(data, sheet=configs.local_program_log)
 
 
     def log_interaction_start(self, switch):
-
-        # TODO: based on switch, get the content too
 
         self.ix_id = str(uuid.uuid4())[0:6]
         self.ix_date = date.isoformat(date.today())
@@ -147,8 +143,7 @@ class Logger:
 
     def new_recording_name(self):
 
-        self.ix_recording = (self.ix_start).strftime(
-                                "%Y-%m-%d_%H-%M") + '_' + self.ix_id
+        self.ix_recording = (self.ix_start).strftime("%Y-%m-%d_%H-%M") + '_' + self.ix_id
         return self.ix_recording
 
 
@@ -156,16 +151,15 @@ class Logger:
 
         data = self.ix_tempdata
         if (len(data) > 0):
-            #try:
-                #self.test_ie_for_logging()
-                #printlog('Logger','Uploading interaction logs to sheets.')
-            self.ix_tempdata = self.gservice.log_to_drive(data, 'ix')
-                #printlog('Logger','Finished logging.')
+            try:
+                self.test_ie_for_logging()
+                printlog('Logger','Uploading interaction logs to sheets.')
+                self.ix_tempdata = self.gservice.log_to_drive(data, 'ix')
+                printlog('Logger','Finished logging.')
 
-            #except Exception as e:
-                #printlog('Logger','ERROR: Could not upload ix data: {}, {}'.format(
-                #            type(e).__name__, e))
-                #filemanager.log_local(data, sheet=configs.local_ix_log)
+            except Exception as e:
+                printlog('Logger','ERROR: Could not upload ix data: {}, {}'.format(type(e).__name__, e))
+                filemanager.log_local(data, sheet=configs.local_ix_log)
 
 
     def get_folder_id_today(self):
@@ -239,14 +233,13 @@ class Logger:
                     i, duration))
 
 
-'''
     def upload_logfiles(self):
 
         logfiles = [
                 configs.local_ix_log,
-                configs.local_sensor_log,
                 configs.local_program_log,
-                configs.local_printlog
+                configs.local_printlog,
+                configs.local_output
                 ]
 
         try:
@@ -268,7 +261,7 @@ class Logger:
                     sleep(0.5)
 
                 try:
-                    self.gdrive.upload_logfile(fileName=file)
+                    self.gservice.upload_logfile(fileName=file)
                     filemanager.delete_local_file(path=file)
                 except Exception as e:
                     printlog('Logger','ERROR: Could not upload logfile {}: {}, {}'.format(
@@ -276,71 +269,3 @@ class Logger:
 
         duration = round((datetime.now() - startTime).total_seconds() / 60, 2)
         printlog('Logger','Uploaded local files. Duration: {}'.format(duration))
-'''
-'''
-    def test_ie_for_logging(self):
-        try:
-            self.internet_connected()
-        except:
-            printlog('Logger','ERROR: No internet – could not log to sheets.')
-            raise
-'''
-
-'''
-    def log_sensor_status(self, sensorsInRange, sensorVolts, playingAudio, playingVideo, cameraIsRecording, anyInRange, ixID=None):
-
-        ixOngoing = False
-        if ixID:
-            ixOngoing = True
-
-        passedTime = (datetime.now() - self.sensorlog_timer).total_seconds()
-
-        # log only at these intervals
-        #if not ixOngoing and (passedTime / 60 < 5):
-        if not ixOngoing:
-            return
-
-        elif ixOngoing and passedTime < 1:
-            # Every second when active
-            return
-
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        sensor1_r = sensorsInRange[0]
-        sensor2_r = sensorsInRange[1]
-        sensor3_r = sensorsInRange[2]
-
-        sensor1_v = ('%.2f' % sensorVolts[0])
-        sensor2_v = ('%.2f' % sensorVolts[1])
-        sensor3_v = ('%.2f' % sensorVolts[2])
-
-        #print('IxID:', ixID)
-        #for i in range(3):
-        #    print(sensorsInRange[i], sensorVolts[i])
-
-        self.sensors_tempdata.append(
-            [self.pid, ixID, timestamp, sensor1_r, sensor1_v, sensor2_r, sensor2_v,
-             sensor3_r, sensor3_v, playingAudio, playingVideo, cameraIsRecording])
-        self.sensorlog_timer = datetime.now()
-'''
-'''
-    def upload_sensor_logs(self):
-
-        data = self.sensors_tempdata
-        """
-        if len(data) > 0:
-            try:
-                self.test_ie_for_logging()
-                printlog('Logger','Uploading sensor logs to sheets.')
-                self.sensors_tempdata = self.gsheets.log_to_drive(data, 'sensors')
-                printlog('Logger','Finished logging.')
-
-            except Exception as e:
-                printlog('Logger','ERROR: Could not upload sensor data: {}, {}'.format(
-                            type(e).__name__, e))
-                filemanager.log_local(data, sheet=configs.local_sensor_log)
-        """
-        if len(data) > 0:
-            printlog('Logger','Uploading sensor logs to local sheet.')
-            filemanager.log_local(data, sheet=configs.local_sensor_log)
-            printlog('Logger','Finished logging.')
-'''

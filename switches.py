@@ -45,22 +45,23 @@ class Switches():
         self.audioPlayer = AudioPlayer()
         self.videoPlayer = None
 
-    # Called when one of the four switches is triggered
+
     def react(self, channel):
+    # Called when one of the four switches is triggered
 
         switch = self.channels.get(channel)
 
         if GPIO.input(channel) == GPIO.HIGH:
             self.switchesOpen[switch] = True
-            #log([datetime.now(),'flip','Flip open {}'.format(count), since_boot])
+            printlog('Switches','Switch {} open.'.format(switch))
 
-            # set switch always on queue first to start playing next
+            # Set switch always on queue first to start playing next
             if switch != self.switchPlaying:
                 self.queue = switch
 
         else:
             self.switchesOpen[switch] = False
-            #log([datetime.now(),'flip','Flip closed {}'.format(count), since_boot])
+            printlog('Switches','Switch {} closed.'.format(switch))
 
             if switch == self.queue:
                 # when switch was on queue but it closes before getting to play
@@ -68,6 +69,7 @@ class Switches():
 
 
     def delayPassed(self):
+    # Check if delay for starting/stopping/changing media has passed
 
         playtime = round((datetime.now() - self.starttime).total_seconds(),2)
         if playtime > self.delay:
@@ -77,6 +79,7 @@ class Switches():
 
 
     def turnOn(self):
+    # Turn media on
 
         self.starttime = datetime.now()
         self.endtime = None
@@ -97,16 +100,18 @@ class Switches():
             file = self.logger.new_recording_name()
             directory = get_directory_for_recordings()
             self.camera.start_recording(file, directory)
-            printlog('Main','Starting to record')
+            printlog('Switches','Starting to record')
 
         filename = globals.mediaorder[self.switchPlaying]
         if globals.usingAudio:
+            printlog('Switches','Playing audio {}.'.format(filename))
             filepath = configs.audiopath + filename + '.mp3'
             if self.audioPlayer.has_quit():
                 self.audioPlayer = AudioPlayer()
             self.audioPlayer.play_audio(filepath)
 
         elif globals.usingVideo:
+            printlog('Switches','Playing video {}.'.format(filename))
             filepath = configs.videopath + filename + '.mp4'
             self.videoPlayer = VideoPlayer(filepath, globals.videoAudio)
 
@@ -116,6 +121,7 @@ class Switches():
 
 
     def turnOff(self):
+    # Turn media off
 
         self.endtime = datetime.now()
         self.logger.log_interaction_end(self.endtime,)
@@ -135,7 +141,7 @@ class Switches():
 
 
     def changeSwitch(self):
-
+    # For cases when switch X is palying but the switch Y will be turned on.
         changedSwitch = self.switchPlaying
 
         self.turnOff()
@@ -148,15 +154,15 @@ class Switches():
 
     def updateSwitches(self):
 
-        # 1. Swithc on queue but no switches playing media
-        #       -> Turn on
-        # 2. Switch on queue but already playing
-        #       -> Do nothing / don't add on the queue
-        # 3. Switch on queue but another one playing
-        #       -> Check if delay has passed -> leave to queue or start playing
-        # 4. No queue, delay passed, switch still open -> keep playing
-        # 5. All switches closed but one is playing
-        #       -> Check if delay has passed -> continue or stop playing
+    # 1. Swithc on queue but no switches playing media
+    #       -> Turn on
+    # 2. Switch on queue but already playing
+    #       -> Do nothing / don't add on the queue
+    # 3. Switch on queue but another one playing
+    #       -> Check if delay has passed -> leave to queue or start playing
+    # 4. No queue, delay passed, switch still open -> keep playing
+    # 5. All switches closed but one is playing
+    #       -> Check if delay has passed -> continue or stop playing
 
         if self.switchPlaying == None:
             # media is not currently playing

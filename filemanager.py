@@ -14,11 +14,10 @@ sys.excepthook = sys.__excepthook__
 
 def printlog(srcfile, msg):
 
-    print(msg)
-    #timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    #data = [[timestamp, srcfile, msg]]
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    data = [[timestamp, srcfile, msg]]
 
-    #log_local(data=data, sheet=configs.local_printlog)
+    log_local(data=data, sheet=configs.local_printlog)
 
 
 def log_local(data, sheet):
@@ -43,7 +42,7 @@ def list_recordings():
 
     dir = get_directory_for_recordings()
     dirContent = os.listdir(dir)
-    print('Size of dir:', len(dirContent))
+    printlog('Filemanager','Size of dir:', len(dirContent))
     for filename in dirContent:
         if filename.endswith('.h264'):
             videos.append(filename)
