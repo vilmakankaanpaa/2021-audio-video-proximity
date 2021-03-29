@@ -17,10 +17,11 @@ import globals
 
 sys.excepthook = sys.__excepthook__
 
-def ensure_disk_space(logger, directory):
+def ensure_disk_space(logger):
 
     printlog('Main','Checking disk space.')
 
+    directory = logger.get_directory_for_recordings()
     # TODO: don't depend on the given directory
     if directory == configs.RECORDINGS_PATH:
         # Path to the USB
@@ -48,55 +49,71 @@ def ensure_disk_space(logger, directory):
     else:
         pass
 
+def check_testMode():
+
+    minutes = (datetime.now() – globals.modeSince).total_seconds() / 60
+    #if minutes >= 4320:
+    if minutes >= 2:
+        if globals.testMode == 1:
+            # Was audio, start video
+            globals.testMode = 2
+            globals.usingAudio = False
+            globals.usingVideo = True
+            globals.mediaorder = [configs.video1,configs.video2,configs.video3,configs.video4]
+
+        elif globals.testMode == 2 or globals.testMode == 0:
+            # Was video (or no-stimulus), start audio
+            globals.testMode = 1
+            globals.usingAudio = True
+            globals.usingVideo = False
+            globals.mediaorder = [configs.audio1,configs.audio2,configs.audio3,configs.audio4]
+
+        random.shuffle(globals.mediaorder)
 
 if __name__ == "__main__":
 
     globals.init()
 
     printlog('Main',datetime.isoformat(datetime.now()))
+    globals.modeSince = datetime.now()
     globals.pid = os.getpid()
 
     printlog('Main','Starting up monkeytunnel..')
+
+    if globals.usingAudio:
+        globals.mediaorder = [configs.audio1,configs.audio2,configs.audio3,configs.audio4]
+    elif globals.usingVideo:
+        globals.mediaorder = [configs.video1,configs.video2,configs.video3,configs.video4]
+
+    # TODO: don't use shuffling unless doing changing stimulus automatically during system run and this works well
+    #random.shuffle(globals.mediaorder)
+
     logger = Logger()
     camera = Camera()
 
+    # Timer for when files (recordings, logfiles) should be uploaded
+    uploadFiles_timer = datetime.now()
+    # Timer for when data should be uploaded (interactions & sensors readings)
+    uploadData_timer = datetime.now()
+    # Timer for when disk space should be checked
+    checkSpace_timer = datetime.now()
+    pingTimer = datetime.now()
+    # Timer to avoid uploading data during and right after interactions
+    ix_timer = datetime.now()
+
+    cameraDelay = 10 # seconds
+    lastActivity = datetime.now()
+    #logfilesUploadedToday = False
+
     try:
-
         switches = Switches(logger, camera)
-
-        printlog('Main','Setting up switches')
-
-        # TODO: shuffle the order and type
-        if globals.usingAudio:
-            globals.mediaorder = [configs.audio1,configs.audio2,configs.audio3,configs.audio4]
-        elif globals.usingVideo:
-            globals.mediaorder = [configs.video1,configs.video2,configs.video3,configs.video4]
-
-        camDirectory = None
-        #logfilesUploadedToday = False
-
-        # Timer for when files (recordings, logfiles) should be uploaded
-        uploadFiles_timer = datetime.now()
-        # Timer for when data should be uploaded (interactions & sensors readings)
-        uploadData_timer = datetime.now()
-        # Timer for when disk space should be checked
-        checkSpace_timer = datetime.now()
-
-        pingTimer = datetime.now()
-
-        # Timer to avoid uploading data during and right after interactions
-        ix_timer = datetime.now()
 
         logger.log_program_run_info()
         logger.ping()
 
-        cameraDelay = 10 # seconds
-        lastActivity = datetime.now()
-
-        random.shuffle(globals.mediaorder)
-        print(globals.mediaorder)
-
         while True:
+
+            check_testMode()
 
             if (datetime.now() - pingTimer).total_seconds() / 60 > 10:
                 #ping every 10 minutes
@@ -142,7 +159,7 @@ if __name__ == "__main__":
 
             # Check disk space every 4 minutes
             if (datetime.now() - checkSpace_timer).total_seconds() / 60 > 4:
-                ensure_disk_space(logger, camDirectory)
+                ensure_disk_space(logger)
                 checkSpace_timer = datetime.now()
 
             sleep(0.2)

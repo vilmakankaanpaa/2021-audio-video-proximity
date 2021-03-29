@@ -1,8 +1,16 @@
 # Global variables
 def init():
+
+    # Manually changing the mode:
+    # 1. Change testMode
+    # 2. Change the mediaorder set in monkeytunnel.py
+
     # 0 = no-stimulus, 1 = audio, 2 = video
     global testMode
-    testMode = 2
+    testMode = 0
+
+    global mediaorder
+    mediaorder = [None, None, None, None]
 
     global usingAudio
     usingAudio = False
@@ -23,6 +31,4 @@ def init():
     videoAudio = False
 
     global pid
-
-    global mediaorder
-    mediaorder = [None, None, None, None]
+    global modeSince
