@@ -9,7 +9,7 @@ from datetime import datetime, date, time
 import random
 
 # Local sources
-from filemanager import check_disk_space, printlog, get_directory_for_recordings
+from filemanager import check_disk_space, printlog, get_directory_for_recordings, log_local
 from logger import Logger
 from camera import Camera
 from microphone import Microphone
@@ -248,7 +248,7 @@ if __name__ == "__main__":
             printlog('Exit','Stopping mic recording.')
             mic.stop()
 
-        if globals.videoplayer != None:
+        if globals.videoPlayer != None:
             printlog('Exit','Stopping video.')
             globals.videoPlayer.stop_video()
 
@@ -257,6 +257,8 @@ if __name__ == "__main__":
             globals.audioPlayer.stop()
 
         ix_data = logger.ix_tempdata
-        if lend(ix_data) != 0:
+        if len(ix_data) != 0:
             printlog('Exit','Logging ix data to csv.')
-            filemanager.log_local(ix_data, sheet=configs.local_ix_log)
+            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            file = timestamp + '_ix_backup.csv'
+            log_local(ix_data, sheet=file)
