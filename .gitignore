@@ -12,6 +12,7 @@ token.json
 
 # Recordings of the camera module
 camera-records
+mic-records
 
 # print outputs
 output.txt

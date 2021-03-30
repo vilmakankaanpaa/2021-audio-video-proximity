@@ -5,9 +5,9 @@ class Microphone():
     def __init__(self):
         self.recorder = None
 
-    def start_microphone(self, filename):
+    def record(self, filepath):
 
-        self.recorder = subprocess.Popen(args=["arecord", "--format=S16_LE", "--rate=2500", "--file-type=wav", filename])
+        self.recorder = subprocess.Popen(args=["arecord", "--format=S16_LE", "--file-type=wav", filepath], stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True)
 
-    def stop_microphone(self):
-        self.recorded.terminate()
+    def stop(self):
+        self.recorder.terminate()
