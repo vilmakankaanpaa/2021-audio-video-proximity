@@ -73,11 +73,10 @@ class Switches():
     # Fetch readings from all switches
 
         readings = []
-        for i in range(22,26):
+        for channel in range(22,26):
             value = GPIO.input(channel)
             readings.append(value)
 
-        printlog('Switches','Readings: {}'.format(readings))
         return readings
 
 
@@ -179,30 +178,34 @@ class Switches():
     # 5. No queue (new switches), delay passed, switch closed; But a switch that was changed from previously is still open in second_queue. -> switch back to this switch.
     # 6. All switches closed but one is playing
     #       -> Check if delay has passed -> continue or stop playing
+        try:
 
-        if self.switchPlaying == None:
-            # media is not currently playing
-            if self.queue != None:
-                # Turn new switch on
-                self.turnOn()
-        else:
-            # media is currently playing
-            if self.queue != None:
-                if self.delayPassed():
-                    self.changeSwitch()
+            if self.switchPlaying == None:
+                # media is not currently playing
+                if self.queue != None:
+                    # Turn new switch on
+                    self.turnOn()
             else:
-                # queue is empty
-                if not any(self.switchesOpen):
-                    # all switches closed too
+                # media is currently playing
+                if self.queue != None:
                     if self.delayPassed():
-                        self.turnOff()
+                        self.changeSwitch()
                 else:
-                    # either the switch currently playing is open or another one
-                        # must be in second_queue
-                    if not self.switchesOpen[self.switchPlaying] and self.second_queue != None:
-                        # the switch playing is not open anymore, but another switch is
+                    # queue is empty
+                    if not any(self.switchesOpen):
+                        # all switches closed too
                         if self.delayPassed():
-                            self.changeSwitch()
+                            self.turnOff()
                     else:
-                        # the switch playing is still open, don't turn off
-                        pass
+                        # either the switch currently playing is open or another one
+                            # must be in second_queue
+                        if not self.switchesOpen[self.switchPlaying] and self.second_queue != None:
+                            # the switch playing is not open anymore, but another switch is
+                            if self.delayPassed():
+                                self.changeSwitch()
+                        else:
+                            # the switch playing is still open, don't turn off
+                            pass
+        except Exception as e:
+            printlog('Switches','ERROR with updating media: {}'.format(type(e).__name__, e))
+            logger.log_system_status('Switches','ERROR with updating media: {}'.format(type(e).__name__, e))

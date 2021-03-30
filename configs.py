@@ -38,6 +38,7 @@ SPREADSHEET_ID = '1-sFTPHnKqSMEMJ6mKf0D3lMXn77QECNJbL_vR-Prskg'
 IX_SHEET = 'interactions'
 STARTS_SHEET = 'system-starts'
 PING_SHEET = 'ping-alive'
+SYSTEM_SHEET = 'system-status'
 
 # Google Drive API parameters for uploading listDriveFiles
 GDRIVE_FOLDER_ID = '1F-kDuVRUCY_HZTpls-HjgoMZfQsHHsFy'  #recordings

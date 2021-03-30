@@ -18,9 +18,8 @@ import globals
 
 sys.excepthook = sys.__excepthook__
 
-def ensure_disk_space(logger):
 
-    printlog('Main','Checking disk space.')
+def ensure_disk_space(logger):
 
     directory = get_directory_for_recordings()
     # TODO: don't depend on the given directory
@@ -28,11 +27,11 @@ def ensure_disk_space(logger):
         # Path to the USB
 
         freeSpace = check_disk_space(configs.external_disk)
-        printlog('Main','Directory {}, free: {}'.format(directory, freeSpace))
+        logger.log_system_status('Main','Directory {}, free: {}'.format(directory, freeSpace))
 
         if freeSpace < 0.04: # this is ca. 1.1/28.0 GB of the USB stick left
             # if space is scarce, we need to upload some files ASAP
-            printlog('Main','Disk space on USB getting small! Uploading files already.')
+            logger.log_system_status('Main','Disk space on USB getting small! Uploading files already.')
             # But let's not upload all in order not to disturb
             # the functioning of the tunnel for too long..
             logger.upload_recordings(max_nof_uploads=5)
@@ -40,15 +39,16 @@ def ensure_disk_space(logger):
     elif directory == configs.RECORDINGS_PATH_2:
         # PATH to local directory
 
-        printlog('Main','ERROR: Camera has been recording to Pi local folder!')
+        logger.log_system_status('Main','Issue: Camera is recording local folder.')
         freeSpace = check_disk_space(configs.root)
         printlog('Main','Directory {}, free: {}'.format(directory, freeSpace))
         if freeSpace < 0.10: # 10% of the ca. 17 GB of free space on Pi
-            printlog('Main','Disk space on Pi getting small! Uploading files already.')
+            logger.log_system_status('Main','Disk space on Pi getting small! Uploading files already.')
             # Pi is so small that we just need them all out.
             logger.upload_recordings()
     else:
         pass
+
 
 def check_testMode():
 
@@ -60,6 +60,7 @@ def check_testMode():
         #if minutes > 10080:
         if minutes > 1:
             printlog('Main','Changing mode from no-stimulus to audio')
+            logger.log_system_status('Main','Changing from no-stimulus to audio.')
             globals.testMode = 1
             globals.usingAudio = True
             globals.usingVideo = False
@@ -73,6 +74,7 @@ def check_testMode():
     if minutes > 2:
         if globals.testMode == 1:
             printlog('Main','Changing mode from audio to video')
+            logger.log_system_status('Main','Changing from audio to video.')
             # Was audio, start video
             globals.testMode = 2
             globals.usingAudio = False
@@ -81,6 +83,7 @@ def check_testMode():
 
         elif globals.testMode == 2:
             printlog('Main','Changing mode from video to audio')
+            logger.log_system_status('Main','Changing from video to audio.')
             # Was video, start audio
             globals.testMode = 1
             globals.usingAudio = True
@@ -90,6 +93,8 @@ def check_testMode():
         random.shuffle(globals.mediaorder)
         globals.modeSince = datetime.now()
         printlog('Main','Mediaorder: {}.'.format(globals.mediaorder))
+        logger.log_system_status('Main',''Mediaorder: {}.'.format(globals.mediaorder))
+
 
 if __name__ == "__main__":
 
@@ -100,6 +105,7 @@ if __name__ == "__main__":
     globals.pid = os.getpid()
 
     printlog('Main','Starting up monkeytunnel..')
+
 
     if globals.testMode == 1:
         globals.mediaorder = [configs.audio1,configs.audio2,configs.audio3,configs.audio4]
@@ -148,14 +154,13 @@ if __name__ == "__main__":
 
             if (datetime.now() - pingTimer).total_seconds() / 60 > 10:
                 #ping every 10 minutes
-                logger.ping()
+                readings = switches.get_readings()
+                logger.log_system_status('Main','Switch readings: {}'.format(readings))
                 pingTimer = datetime.now()
 
             # Checking if should update the request quota for Google Sheets
             # It is 100 requests per 100 seconds (e.g. logging of 100 rows)
             logger.gservice.check_quota_timer()
-
-            readings = switches.get_readings()
 
             # Checks the state of switches and handles what to do with media: should it start or stop or content switched.
             # Also logs when interaction starts and ends.
@@ -175,8 +180,11 @@ if __name__ == "__main__":
                     timeSinceActivity = round((datetime.now() - lastActivity).total_seconds(),2)
 
                     if timeSinceActivity > camera.delay:
-                        camera.stop_recording()
-                        printlog('Main','Stopping to record, time since: {}.'.format(timeSinceActivity))
+                        try:
+                            camera.stop_recording()
+                            printlog('Main','Stopping to record, time since: {}.'.format(timeSinceActivity))
+                        except Exception as e:
+                            logger.log_system_status('Main','Error when trying to stop camera from recording: {}'.format(type(e).__name__, e))
 
 
             timeSinceIx = (datetime.now() - lastActivity).total_seconds() / 60
@@ -193,8 +201,12 @@ if __name__ == "__main__":
 
             # Check disk space every 4 minutes
             if (datetime.now() - checkSpace_timer).total_seconds() / 60 > 4:
-                ensure_disk_space(logger)
-                checkSpace_timer = datetime.now()
+                try:
+                    ensure_disk_space(logger)
+                    checkSpace_timer = datetime.now()
+                except Exception as e:
+                    printlog('Main','Error in reading / logging disk space: {}'.format(type(e).__name__, e))
+
 
             # Upload recordings and log files in the evening
             hourNow = datetime.now().hour

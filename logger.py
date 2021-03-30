@@ -62,14 +62,15 @@ class Logger:
             raise
 
 
-    def ping(self):
+    def log_system_status(self, src, msg):
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        data = [timestamp]
+
+        data = [timestamp, src, msg]
         try:
             self.test_ie_for_logging()
-            self.gservice.log_to_drive([data], 'ping')
+            self.gservice.log_to_drive([data], 'system')
         except Exception as e:
-            print('Ping error', type(e).__name__)
+            printlog('Logger','System status update error:{}'.format(type(e).__name__, e))
 
 
     def log_program_run_info(self):
@@ -225,6 +226,8 @@ class Logger:
                 except Exception as e:
                     printlog('Logger','ERROR: Could not upload file: {}, {}'.format(
                                 type(e).__name__, e))
+                    logger.log_system_status('Switches','Error when uploading recordings: {}'.format(type(e).__name__, e))
+
                     if type(e).__name__ == "TimeoutError":
                         break
 

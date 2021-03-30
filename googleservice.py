@@ -23,7 +23,8 @@ class GoogleService:
         self.sheets = {
                     'ix': configs.IX_SHEET,
                     'progrun': configs.STARTS_SHEET,
-                    'ping': configs.PING_SHEET
+                    'ping': configs.PING_SHEET,
+                    'system': configs.SYSTEM_SHEET
                 }
 
         self.nof_rows_left = 100
@@ -35,10 +36,13 @@ class GoogleService:
         self.creds = service_account.Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPE)
 
         # Service for Google Sheets
-        printlog('Gservice','Logging into Google Sheets..')
-        self.gsheets = build('sheets', 'v4', credentials=self.creds)
-        printlog('Gservice','Logging into Google Sheets..')
-        self.gdrive = build('drive', 'v3', credentials=self.creds)
+        try:
+            printlog('Gservice','Logging into Google Sheets..')
+            self.gsheets = build('sheets', 'v4', credentials=self.creds)
+            printlog('Gservice','Logging into Google Sheets..')
+            self.gdrive = build('drive', 'v3', credentials=self.creds)
+        except Exception as e:
+            printlog('Gservice','Could not log into google services: {}'.format(type(e).__name__, e))
         # self.creds.expiry = None so the credentials should not expire ever
 
 
