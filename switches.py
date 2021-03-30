@@ -7,7 +7,6 @@ from datetime import datetime
 from filemanager import printlog, get_directory_for_recordings
 from audioplayer import AudioPlayer
 from videoplayer import VideoPlayer
-import logger
 import globals
 import configs
 
@@ -123,7 +122,7 @@ class Switches():
 
             except Exception as e:
                 printlog('Switches','ERROR: Could not start recording. {}'.format(type(e).__name__, e))
-                logger.log_system_status('Switches','ERROR: Could not start recording. {}'.format(type(e).__name__, e))
+                self.logger.log_system_status('Switches','ERROR: Could not start recording. {}'.format(type(e).__name__, e))
 
         sleep(0.1)
 
@@ -139,7 +138,7 @@ class Switches():
 
             except Exception as e:
                 printlog('Switches','ERROR: Could not start audio. {}'.format(type(e).__name__, e))
-                logger.log_system_status('Switches','ERROR: Could not start audio. {}'.format(type(e).__name__, e))
+                self.logger.log_system_status('Switches','ERROR: Could not start audio. {}'.format(type(e).__name__, e))
 
         elif globals.usingVideo:
             printlog('Switches','Playing video {}.'.format(filename))
@@ -150,7 +149,7 @@ class Switches():
 
             except Exception as e:
                 printlog('Switches','ERROR: Could not start video. {}'.format(type(e).__name__, e))
-                logger.log_system_status('Switches','ERROR: Could not start video. {}'.format(type(e).__name__, e))
+                self.logger.log_system_status('Switches','ERROR: Could not start video. {}'.format(type(e).__name__, e))
 
         else:
             # no stimulus
@@ -237,4 +236,4 @@ class Switches():
 
         except Exception as e:
             printlog('Switches','ERROR with updating media: {}'.format(type(e).__name__, e))
-            logger.log_system_status('Switches','ERROR with updating media: {}'.format(type(e).__name__, e))
+            self.logger.log_system_status('Switches','ERROR with updating media: {}'.format(type(e).__name__, e))
