@@ -7,6 +7,7 @@ from datetime import datetime
 from filemanager import printlog, get_directory_for_recordings
 from audioplayer import AudioPlayer
 from videoplayer import VideoPlayer
+import logger
 import globals
 import configs
 
@@ -26,10 +27,10 @@ class Switches():
         # Adding what happens when switch value changes. We are not using
         # bouncetime because we need to make sure to record all changes.
         # The quick changes are going to handled in other ways.
-        GPIO.add_event_detect(22, GPIO.BOTH, callback=self.react)
-        GPIO.add_event_detect(23, GPIO.BOTH, callback=self.react)
-        GPIO.add_event_detect(24, GPIO.BOTH, callback=self.react)
-        GPIO.add_event_detect(25, GPIO.BOTH, callback=self.react)
+        GPIO.add_event_detect(22, GPIO.BOTH, callback=self.react,bouncetime=500)
+        GPIO.add_event_detect(23, GPIO.BOTH, callback=self.react,bouncetime=500)
+        GPIO.add_event_detect(24, GPIO.BOTH, callback=self.react,bouncetime=500)
+        GPIO.add_event_detect(25, GPIO.BOTH, callback=self.react,bouncetime=500)
 
         # GPIO channels of the switches on RPI
         self.channels = {22:0, 23:1, 24:2, 25:3}
@@ -99,9 +100,12 @@ class Switches():
         if self.queue != None:
             self.switchPlaying = self.queue
             self.queue = None
-        else:
+        elif self.second_queue != None:
             self.switchPlaying = self.second_queue
             self.second_queue = None
+        else:
+            # Media switching too fast and the system variables are maybe not up to date
+            return
 
         # New interaction starts whenever new media turns on
         self.logger.log_interaction_start(self.switchPlaying)
@@ -109,27 +113,45 @@ class Switches():
 
         # Start recording
         if globals.recordingOn and not self.camera.is_recording:
-            file = self.logger.new_recording_name()
-            directory = get_directory_for_recordings()
-            self.camera.start_recording(file, directory)
-            printlog('Switches','Starting to record.')
+            try:
+                file = self.logger.new_recording_name()
+                directory = get_directory_for_recordings()
+                self.camera.start_recording(file, directory)
+                printlog('Switches','Starting to record.')
+            except Exception as e:
+                printlog('Switches','ERROR: Could not start recording. {}'.format(type(e).__name__, e))
+                logger.log_system_status('Switches','ERROR: Could not start recording. {}'.format(type(e).__name__, e)))
 
         filename = globals.mediaorder[self.switchPlaying]
         if globals.usingAudio:
             printlog('Switches','Playing audio {}.'.format(filename))
             filepath = configs.audiopath + filename + '.mp3'
-            if self.audioPlayer.has_quit():
-                self.audioPlayer = AudioPlayer()
-            self.audioPlayer.play_audio(filepath)
+
+            try:
+                if self.audioPlayer.has_quit():
+                    self.audioPlayer = AudioPlayer()
+                    self.audioPlayer.play_audio(filepath)
+
+            except Exception as e:
+                printlog('Switches','ERROR: Could not start audio. {}'.format(type(e).__name__, e))
+                logger.log_system_status('Switches','ERROR: Could not start audio. {}'.format(type(e).__name__, e)))
 
         elif globals.usingVideo:
             printlog('Switches','Playing video {}.'.format(filename))
             filepath = configs.videopath + filename + '.mp4'
-            self.videoPlayer = VideoPlayer(filepath, globals.videoAudio)
+
+            try:
+                self.videoPlayer = VideoPlayer(filepath, globals.videoAudio)
+
+            except Exception as e:
+                printlog('Switches','ERROR: Could not start video. {}'.format(type(e).__name__, e))
+                logger.log_system_status('Switches','ERROR: Could not start video. {}'.format(type(e).__name__, e)))
 
         else:
             # no stimulus
-            pass
+            return
+
+        sleep(0.3)
 
 
     def turnOff(self):
@@ -152,13 +174,14 @@ class Switches():
         self.starttime = None
         self.switchPlaying = None
 
+        sleep(0.3)
+
 
     def changeSwitch(self):
     # For cases when switch X is palying but the switch Y will be turned on.
         changedSwitch = self.switchPlaying
 
         self.turnOff()
-        sleep(0.3)
         self.turnOn()
 
         if self.switchesOpen[changedSwitch]:
@@ -206,6 +229,7 @@ class Switches():
                         else:
                             # the switch playing is still open, don't turn off
                             pass
+
         except Exception as e:
             printlog('Switches','ERROR with updating media: {}'.format(type(e).__name__, e))
             logger.log_system_status('Switches','ERROR with updating media: {}'.format(type(e).__name__, e))
