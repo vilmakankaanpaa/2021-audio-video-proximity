@@ -136,7 +136,7 @@ class Switches():
 
         self.endtime = datetime.now()
         self.logger.log_interaction_end(self.endtime,)
-        printlog('Switches','Interaction ended.')                
+        printlog('Switches','Interaction ended.')
 
         self.starttime = None
         self.switchPlaying = None
@@ -157,14 +157,15 @@ class Switches():
 
     def updateSwitches(self):
 
-    # 1. Swithc on queue but no switches playing media
+    # 1. Switch on queue but no switches playing media
     #       -> Turn on
-    # 2. Switch on queue but already playing
-    #       -> Do nothing / don't add on the queue
-    # 3. Switch on queue but another one playing
-    #       -> Check if delay has passed -> leave to queue or start playing
+    # 2. Switch on queue but it's already playing
+    #       -> Do nothing / don't even add on the queue
+    # 3. Switch on queue but another switch playing
+    #       -> Wait until delay passed -> leave to queue or start playing
     # 4. No queue, delay passed, switch still open -> keep playing
-    # 5. All switches closed but one is playing
+    # 5. No queue (new switches), delay passed, switch closed; But a switch that was changed from previously is still open in second_queue. -> switch back to this switch.
+    # 6. All switches closed but one is playing
     #       -> Check if delay has passed -> continue or stop playing
 
         if self.switchPlaying == None:
@@ -188,7 +189,8 @@ class Switches():
                         # must be in second_queue
                     if not self.switchesOpen[self.switchPlaying] and self.second_queue != None:
                         # the switch playing is not open anymore, but another switch is
-                        self.changeSwitch()
+                        if self.delayPassed():
+                            self.changeSwitch()
                     else:
                         # the switch playing is still open, don't turn off
                         pass
