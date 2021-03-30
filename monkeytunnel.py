@@ -55,10 +55,10 @@ def check_testMode():
     modeSet = globals.modeSince
     modeSince = datetime.now()-modeSet
     minutes = modeSince.total_seconds() / 60
-    
+
     if globals.testMode == 0:
         if minutes > 10080:
-            printlog('Main','Changing mode from no-stimulus to audio') 
+            printlog('Main','Changing mode from no-stimulus to audio')
             globals.testMode = 1
             globals.usingAudio = True
             globals.usingVideo = False
@@ -67,7 +67,7 @@ def check_testMode():
             globals.modeSince = datetime.now()
             printlog('Main','Mediaorder: {}.'.format(globals.mediaorder))
             return
-            
+
     if minutes >= 4320:
         if globals.testMode == 1:
             printlog('Main','Changing mode from audio to video')
@@ -99,14 +99,20 @@ if __name__ == "__main__":
 
     printlog('Main','Starting up monkeytunnel..')
 
-    if globals.usingAudio:
+    if globals.testMode == 1:
         globals.mediaorder = [configs.audio1,configs.audio2,configs.audio3,configs.audio4]
-    elif globals.usingVideo:
+    elif globals.testMode == 2:
         globals.mediaorder = [configs.video1,configs.video2,configs.video3,configs.video4]
+    elif globals.testMode == 3:
+        globals.mediaorder =
+        [configs.video5,configs.video5,configs.video5,configs.video5]
+    else:
+        globals.mediaorder =
+        [None, None, None, None]
 
     # TODO: don't use shuffling unless doing changing stimulus automatically during system run and this works well
     random.shuffle(globals.mediaorder)
-    
+
     printlog('Main','Mediaorder: {}.'.format(globals.mediaorder))
 
     logger = Logger()
@@ -124,6 +130,7 @@ if __name__ == "__main__":
 
     cameraDelay = 10 # seconds
     lastActivity = datetime.now()
+    activated = False
 
     logfilesUploadedToday = False
 
@@ -132,7 +139,7 @@ if __name__ == "__main__":
 
         logger.log_program_run_info()
         logger.ping()
-        
+
         printlog('Main','Ready for use!')
 
         while True:
@@ -152,17 +159,23 @@ if __name__ == "__main__":
             # Also logs when interaction starts and ends.
             switches.updateSwitches()
 
+            if ix_id = None:
+                activated = False
+            else:
+                activated = True
+
             if switches.endtime != None:
                 lastActivity = switches.endtime
+                printlog('Main','Last activity: {}.'.format(lastActivity))
 
             if globals.recordingOn:
-                if not switches.switchPlaying and camera.is_recording:
+                if not activated and camera.is_recording:
                     # Stop recording after certain time since interaction ended
                     timeSinceActivity = round((datetime.now() - lastActivity).total_seconds(),2)
 
                     if timeSinceActivity > camera.delay:
                         camera.stop_recording()
-                        printlog('Main','Stopping to record.')
+                        printlog('Main','Stopping to record, time since: {}.'.format(timeSinceActivity))
 
 
             timeSinceIx = (datetime.now() - lastActivity).total_seconds() / 60
@@ -171,7 +184,7 @@ if __name__ == "__main__":
             # was done and this slowed down the program a lot. So in case happening,
             # it will be done less often
             if (datetime.now() - uploadData_timer).total_seconds() / 60 > 6:
-                if not switches.switchPlaying and timeSinceIx > 1:
+                if not activated and timeSinceIx > 1:
                     # Upload data logs after some time passed since activity
                     printlog('Main','Uploading data from ix logs..')
                     logger.upload_ix_logs()
@@ -184,7 +197,7 @@ if __name__ == "__main__":
 
             # Upload recordings and log files in the evening
             hourNow = datetime.now().hour
-            if not switches.switchPlaying and timeSinceIx > 1:
+            if not activated and timeSinceIx > 1:
                 if (hourNow == 22 or hourNow == 23):
                     if (datetime.now()-uploadFiles_timer).total_seconds() / 60 > 25:
                         # During these hours, only check about 4 times if there are any
@@ -201,7 +214,7 @@ if __name__ == "__main__":
 
                 elif hourNow == 0:
                     logfilesUploadedToday = False
-            
+
             sleep(0.4)
 
 
@@ -212,6 +225,7 @@ if __name__ == "__main__":
         # Remove the channel setup always
         GPIO.cleanup()
         if camera.is_recording:
+            printlog('Exit','Stopping recording.')
             camera.stop_recording()
         # TOOD use globals audioplayer etc to be able to stop them here?
         # or just do killall omxplayer.bin ?

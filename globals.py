@@ -8,9 +8,9 @@ def init():
     # 1. Change testMode
     # 2. Change the mediaorder set in monkeytunnel.py
 
-    # 0 = no-stimulus, 1 = audio, 2 = video
+    # 0 = no-stimulus, 1 = audio, 2 = video, 3 = no stimulus but play black video
     global testMode
-    testMode = 0
+    testMode = 3
 
     global mediaorder
     mediaorder = [None, None, None, None]
@@ -23,6 +23,8 @@ def init():
     if testMode == 1:
         usingAudio = True
     elif testMode == 2:
+        usingVideo = True
+    elif testMode == 3: # No stimulus, but with black video
         usingVideo = True
 
     # use camera to record interactions

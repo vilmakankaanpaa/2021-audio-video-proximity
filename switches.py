@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import RPi.GPIO as GPIO
+from time import sleep
 from datetime import datetime
 from filemanager import printlog, get_directory_for_recordings
 from audioplayer import AudioPlayer
@@ -123,10 +124,6 @@ class Switches():
     def turnOff(self):
     # Turn media off
 
-        self.endtime = datetime.now()
-        self.logger.log_interaction_end(self.endtime,)
-        printlog('Switches','Interaction ended.')
-
         if self.audioPlayer.is_playing():
             printlog('Switches','Turning audio off.'.format(self.switchPlaying))
             self.audioPlayer.stop()
@@ -137,6 +134,10 @@ class Switches():
                 self.videoPlayer.stop_video()
                 self.videoPlayer = None
 
+        self.endtime = datetime.now()
+        self.logger.log_interaction_end(self.endtime,)
+        printlog('Switches','Interaction ended.')                
+
         self.starttime = None
         self.switchPlaying = None
 
@@ -146,6 +147,7 @@ class Switches():
         changedSwitch = self.switchPlaying
 
         self.turnOff()
+        sleep(0.3)
         self.turnOn()
 
         if self.switchesOpen[changedSwitch]:
@@ -183,7 +185,7 @@ class Switches():
                         self.turnOff()
                 else:
                     # either the switch currently playing is open or another one
-                        # another one must be in second_queue
+                        # must be in second_queue
                     if not self.switchesOpen[self.switchPlaying] and self.second_queue != None:
                         # the switch playing is not open anymore, but another switch is
                         self.changeSwitch()
