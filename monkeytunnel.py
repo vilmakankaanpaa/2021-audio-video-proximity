@@ -56,9 +56,9 @@ def check_testMode():
     modeSince = datetime.now()-modeSet
     minutes = modeSince.total_seconds() / 60
 
-    if globals.testMode == 0:
+    if globals.testMode == 0 or globals.testMode == 3:
         #if minutes > 10080:
-        if minutes > 2:
+        if minutes > 1:
             printlog('Main','Changing mode from no-stimulus to audio')
             globals.testMode = 1
             globals.usingAudio = True
@@ -106,11 +106,9 @@ if __name__ == "__main__":
     elif globals.testMode == 2:
         globals.mediaorder = [configs.video1,configs.video2,configs.video3,configs.video4]
     elif globals.testMode == 3:
-        globals.mediaorder =
-        [configs.video5,configs.video5,configs.video5,configs.video5]
+        globals.mediaorder = [configs.video5,configs.video5,configs.video5,configs.video5]
     else:
-        globals.mediaorder =
-        [None, None, None, None]
+        globals.mediaorder = [None, None, None, None]
 
     # TODO: don't use shuffling unless doing changing stimulus automatically during system run and this works well
     random.shuffle(globals.mediaorder)
@@ -161,14 +159,13 @@ if __name__ == "__main__":
             # Also logs when interaction starts and ends.
             switches.updateSwitches()
 
-            if ix_id = None:
+            if logger.ix_id == None:
                 activated = False
             else:
                 activated = True
 
             if switches.endtime != None:
                 lastActivity = switches.endtime
-                printlog('Main','Last activity: {}.'.format(lastActivity))
 
             if globals.recordingOn:
                 if not activated and camera.is_recording:
