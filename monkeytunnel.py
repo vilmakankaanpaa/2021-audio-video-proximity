@@ -93,7 +93,7 @@ def check_testMode():
         random.shuffle(globals.mediaorder)
         globals.modeSince = datetime.now()
         printlog('Main','Mediaorder: {}.'.format(globals.mediaorder))
-        logger.log_system_status('Main',''Mediaorder: {}.'.format(globals.mediaorder))
+        logger.log_system_status('Main','Mediaorder: {}.'.format(globals.mediaorder))
 
 
 if __name__ == "__main__":
@@ -144,7 +144,7 @@ if __name__ == "__main__":
         switches = Switches(logger, camera)
 
         logger.log_program_run_info()
-        logger.ping()
+        logger.log_system_status('Main','Tunnel started.')
 
         printlog('Main','Ready for use!')
 
