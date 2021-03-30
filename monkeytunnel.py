@@ -155,6 +155,8 @@ if __name__ == "__main__":
             # It is 100 requests per 100 seconds (e.g. logging of 100 rows)
             logger.gservice.check_quota_timer()
 
+            readings = switches.get_readings()
+
             # Checks the state of switches and handles what to do with media: should it start or stop or content switched.
             # Also logs when interaction starts and ends.
             switches.updateSwitches()

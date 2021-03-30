@@ -69,6 +69,18 @@ class Switches():
                 self.queue = None
 
 
+    def get_readings(self):
+    # Fetch readings from all switches
+
+        readings = []
+        for i in range(22,26):
+            value = GPIO.input(channel)
+            readings.append(value)
+
+        printlog('Switches','Readings: {}'.format(readings))
+        return readings
+
+
     def delayPassed(self):
     # Check if delay for starting/stopping/changing media has passed
 
