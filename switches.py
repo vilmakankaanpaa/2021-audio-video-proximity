@@ -27,10 +27,10 @@ class Switches():
         # Adding what happens when switch value changes. We are not using
         # bouncetime because we need to make sure to record all changes.
         # The quick changes are going to handled in other ways.
-        GPIO.add_event_detect(22, GPIO.BOTH, callback=self.react,bouncetime=500)
-        GPIO.add_event_detect(23, GPIO.BOTH, callback=self.react,bouncetime=500)
-        GPIO.add_event_detect(24, GPIO.BOTH, callback=self.react,bouncetime=500)
-        GPIO.add_event_detect(25, GPIO.BOTH, callback=self.react,bouncetime=500)
+        GPIO.add_event_detect(22, GPIO.BOTH, callback=self.react)
+        GPIO.add_event_detect(23, GPIO.BOTH, callback=self.react)
+        GPIO.add_event_detect(24, GPIO.BOTH, callback=self.react)
+        GPIO.add_event_detect(25, GPIO.BOTH, callback=self.react)
 
         # GPIO channels of the switches on RPI
         self.channels = {22:0, 23:1, 24:2, 25:3}
@@ -120,7 +120,7 @@ class Switches():
                 printlog('Switches','Starting to record.')
             except Exception as e:
                 printlog('Switches','ERROR: Could not start recording. {}'.format(type(e).__name__, e))
-                logger.log_system_status('Switches','ERROR: Could not start recording. {}'.format(type(e).__name__, e)))
+                logger.log_system_status('Switches','ERROR: Could not start recording. {}'.format(type(e).__name__, e))
 
         filename = globals.mediaorder[self.switchPlaying]
         if globals.usingAudio:
@@ -134,7 +134,7 @@ class Switches():
 
             except Exception as e:
                 printlog('Switches','ERROR: Could not start audio. {}'.format(type(e).__name__, e))
-                logger.log_system_status('Switches','ERROR: Could not start audio. {}'.format(type(e).__name__, e)))
+                logger.log_system_status('Switches','ERROR: Could not start audio. {}'.format(type(e).__name__, e))
 
         elif globals.usingVideo:
             printlog('Switches','Playing video {}.'.format(filename))
@@ -145,7 +145,7 @@ class Switches():
 
             except Exception as e:
                 printlog('Switches','ERROR: Could not start video. {}'.format(type(e).__name__, e))
-                logger.log_system_status('Switches','ERROR: Could not start video. {}'.format(type(e).__name__, e)))
+                logger.log_system_status('Switches','ERROR: Could not start video. {}'.format(type(e).__name__, e))
 
         else:
             # no stimulus
