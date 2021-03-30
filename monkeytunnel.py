@@ -242,7 +242,21 @@ if __name__ == "__main__":
         # Remove the channel setup always
         GPIO.cleanup()
         if camera.is_recording:
-            printlog('Exit','Stopping recording.')
+            printlog('Exit','Stopping camera recording.')
             camera.stop_recording()
-        # TOOD use globals audioplayer etc to be able to stop them here?
-        # or just do killall omxplayer.bin ?
+        if mic.is_recording:
+            printlog('Exit','Stopping mic recording.')
+            mic.stop()
+
+        if globals.videoplayer != None:
+            printlog('Exit','Stopping video.')
+            globals.videoplayer.stop_video()
+
+        if globals.audioPlayer.is_playing():
+            printlog('Exit','Stopping audio.')
+            globals.audioPlayer.stop()
+
+        ix_data = logger.ix_tempdata
+        if lend(ix_data) != 0:
+            printlog('Exit','Logging ix data to csv.')
+            filemanager.log_local(ix_data, sheet=configs.local_ix_log)

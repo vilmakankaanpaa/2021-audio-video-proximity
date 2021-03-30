@@ -37,3 +37,8 @@ def init():
 
     global pid
     global modeSince
+
+    global audioPlayer
+    audioPlayer = None
+    global videoPlayer
+    videoPlayer = None

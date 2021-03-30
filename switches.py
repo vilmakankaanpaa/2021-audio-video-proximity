@@ -44,8 +44,9 @@ class Switches():
         self.logger = logger
         self.camera = camera
         self.mic = mic
-        self.audioPlayer = AudioPlayer()
-        self.videoPlayer = None
+
+        globals.audioPlayer = AudioPlayer()
+        globals.videoPlayer = None
 
 
     def react(self, channel):
@@ -132,9 +133,9 @@ class Switches():
             filepath = configs.audiopath + filename + '.mp3'
 
             try:
-                if self.audioPlayer.has_quit():
-                    self.audioPlayer = AudioPlayer()
-                self.audioPlayer.play_audio(filepath)
+                if globals.audioPlayer.has_quit():
+                    globals.audioPlayer = AudioPlayer()
+                globals.audioPlayer.play_audio(filepath)
 
             except Exception as e:
                 printlog('Switches','ERROR: Could not start audio. {}'.format(type(e).__name__, e))
@@ -145,7 +146,7 @@ class Switches():
             filepath = configs.videopath + filename + '.mp4'
 
             try:
-                self.videoPlayer = VideoPlayer(filepath, globals.videoAudio)
+                globals.videoPlayer = VideoPlayer(filepath, globals.videoAudio)
 
             except Exception as e:
                 printlog('Switches','ERROR: Could not start video. {}'.format(type(e).__name__, e))
@@ -161,15 +162,15 @@ class Switches():
     def turnOff(self):
     # Turn media off
 
-        if self.audioPlayer.is_playing():
+        if globals.audioPlayer.is_playing():
             printlog('Switches','Turning audio off.'.format(self.switchPlaying))
-            self.audioPlayer.stop()
+            globals.audioPlayer.stop()
 
-        if self.videoPlayer != None:
+        if globals.videoPlayer != None:
             printlog('Switches','Turning video off.'.format(self.switchPlaying))
-            if self.videoPlayer.is_playing():
-                self.videoPlayer.stop_video()
-                self.videoPlayer = None
+            if globals.videoPlayer.is_playing():
+                globals.videoPlayer.stop_video()
+                globals.videoPlayer = None
 
         self.endtime = datetime.now()
         self.logger.log_interaction_end(self.endtime,)
