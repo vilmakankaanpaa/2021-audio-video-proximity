@@ -25,6 +25,7 @@ video1 = 'forest'
 video2 = 'underwater'
 video3 = 'worms'
 video4 = 'abstract'
+video5 = 'black'
 
 # local logfile names
 local_ix_log = 'ix_backup.csv'
