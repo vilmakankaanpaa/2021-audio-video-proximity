@@ -16,13 +16,13 @@ class Camera():
 
 
     def start_recording(self, videoName, directory):
-        if not self.camera.is_recording:
-            self.camera.start_recording(directory + videoName + ".h264")
+        if not self.is_recording:
+            self.camera.start_recording(directory + videoName + '.h264')
             self.is_recording = True
 
 
     def stop_recording(self):
-        if self.camera.is_recording:
+        if self.is_recording:
             self.camera.stop_recording()
             self.is_recording = False
 
