@@ -9,7 +9,7 @@ class Microphone():
     def record(self, filename):
 
         if not self.is_recording:
-            filepath = '/home/pi/mic-records/' + filename + '.wav'
+            filepath = '/home/pi/sakis-tunnel-2021/mic-records/' + filename + '.wav'
             self.recorder = subprocess.Popen(args=["arecord", "--format=S16_LE", "--file-type=wav", filepath], stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True)
             self.is_recording = True
 

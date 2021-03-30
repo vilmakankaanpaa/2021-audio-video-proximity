@@ -250,7 +250,7 @@ if __name__ == "__main__":
 
         if globals.videoplayer != None:
             printlog('Exit','Stopping video.')
-            globals.videoplayer.stop_video()
+            globals.videoPlayer.stop_video()
 
         if globals.audioPlayer.is_playing():
             printlog('Exit','Stopping audio.')
