@@ -134,7 +134,7 @@ class Switches():
             try:
                 if self.audioPlayer.has_quit():
                     self.audioPlayer = AudioPlayer()
-                    self.audioPlayer.play_audio(filepath)
+                self.audioPlayer.play_audio(filepath)
 
             except Exception as e:
                 printlog('Switches','ERROR: Could not start audio. {}'.format(type(e).__name__, e))
