@@ -14,7 +14,7 @@ import configs
 
 class Switches():
 
-    def __init__(self, logger, camera):
+    def __init__(self, logger, camera, mic):
 
         # Use Broadcom (the GPIO numbering)
         GPIO.setmode(GPIO.BCM)
@@ -44,6 +44,7 @@ class Switches():
 
         self.logger = logger
         self.camera = camera
+        self.mic = mic
         self.audioPlayer = AudioPlayer()
         self.videoPlayer = None
 
@@ -117,10 +118,14 @@ class Switches():
                 file = self.logger.new_recording_name()
                 directory = get_directory_for_recordings()
                 self.camera.start_recording(file, directory)
+                self.mic.record(file)
                 printlog('Switches','Starting to record.')
+
             except Exception as e:
                 printlog('Switches','ERROR: Could not start recording. {}'.format(type(e).__name__, e))
                 logger.log_system_status('Switches','ERROR: Could not start recording. {}'.format(type(e).__name__, e))
+
+        sleep(0.1)
 
         filename = globals.mediaorder[self.switchPlaying]
         if globals.usingAudio:

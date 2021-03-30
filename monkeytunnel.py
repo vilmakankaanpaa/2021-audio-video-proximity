@@ -12,6 +12,7 @@ import random
 from filemanager import check_disk_space, printlog, get_directory_for_recordings
 from logger import Logger
 from camera import Camera
+from microphone import Microphone
 from switches import Switches
 import configs
 import globals
@@ -123,6 +124,7 @@ if __name__ == "__main__":
 
     logger = Logger()
     camera = Camera()
+    mic = Microphone()
 
     # Timer for when files (recordings, logfiles) should be uploaded
     uploadFiles_timer = datetime.now()
@@ -141,7 +143,7 @@ if __name__ == "__main__":
     logfilesUploadedToday = False
 
     try:
-        switches = Switches(logger, camera)
+        switches = Switches(logger, camera, mic)
 
         logger.log_program_run_info()
         logger.log_system_status('Main','Tunnel started.')
@@ -182,9 +184,11 @@ if __name__ == "__main__":
                     if timeSinceActivity > camera.delay:
                         try:
                             camera.stop_recording()
+                            mic.stop()
                             printlog('Main','Stopping to record, time since: {}.'.format(timeSinceActivity))
                         except Exception as e:
-                            logger.log_system_status('Main','Error when trying to stop camera from recording: {}'.format(type(e).__name__, e))
+                            logger.log_system_status('Main','Error when trying to stop camera or mic from recording: {}'.format(type(e).__name__, e))
+
 
 
             timeSinceIx = (datetime.now() - lastActivity).total_seconds() / 60
