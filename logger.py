@@ -239,7 +239,7 @@ class Logger:
                 except Exception as e:
                     printlog('Logger','ERROR: Could not upload file: {}, {}'.format(
                                 type(e).__name__, e))
-                    logger.log_system_status('Switches','Error when uploading recordings: {}'.format(type(e).__name__, e))
+                    log_system_status('Switches','Error when uploading recordings: {}'.format(type(e).__name__, e))
                     if type(e).__name__ == "TimeoutError":
                         break
 
@@ -324,7 +324,7 @@ class Logger:
                 except Exception as e:
                     printlog('Logger','ERROR: Could not upload file: {}, {}'.format(
                                 type(e).__name__, e))
-                    logger.log_system_status('Switches','Error when uploading recordings: {}'.format(type(e).__name__, e))
+                    log_system_status('Switches','Error when uploading recordings: {}'.format(type(e).__name__, e))
                     if type(e).__name__ == "TimeoutError":
                         break
 
