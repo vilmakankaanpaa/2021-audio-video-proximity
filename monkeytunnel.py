@@ -147,7 +147,7 @@ if __name__ == "__main__":
 
         logger.log_program_run_info()
         logger.log_system_status('Main','Tunnel started.')
-        
+
         #logger.upload_recordings(30)
 
         printlog('Main','Ready for use!')
@@ -205,8 +205,8 @@ if __name__ == "__main__":
                     logger.upload_ix_logs()
                     uploadData_timer = datetime.now()
 
-            # Check disk space every 4 minutes
-            if (datetime.now() - checkSpace_timer).total_seconds() / 60 > 4:
+            # Check disk space every 20 minutes
+            if (datetime.now() - checkSpace_timer).total_seconds() / 60 > 20:
                 try:
                     ensure_disk_space(logger)
                     checkSpace_timer = datetime.now()
