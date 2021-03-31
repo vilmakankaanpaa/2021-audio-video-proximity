@@ -3,6 +3,7 @@
 
 import sys
 import os
+import subprocess
 import uuid
 import requests
 from datetime import datetime, date
@@ -213,37 +214,45 @@ class Logger:
         startTime = datetime.now()
 
         # records, directory, self.ix_recording, folderId
-        print('Trying to call the subprocess..')
-        subprocess.Popen(args=["python uploader.py", records, directory, self.ix_recording, folderId], stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True)
+        #print('Trying to call the subprocess..')
+        #if self.ix_recording == None:
+            #current = "nothing"
+        #else:
+        #    current = self.ix_recording
+        #subprocess.Popen(args=["python", "uploader.py", current, folderId])#, stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True)
 
-        # filepath = "/home/pi/sakis-tunnel-2021/uploadlog.txt"
-        # txt_file = open(filepath,'a+')
-        # uploads = txt_file.readlines()
-        #
-        # i = 0
-        # for filename in records:
-        #     if i == MAX:
-        #         break
-        #     if filename != self.ix_recording or filename in uploads:
-        #         # skip if currently being recorded!
-        #         try:
-        #             txt_file.write(filename)
-        #             self.gservice.upload_recording(filename, folderId, directory)
-        #             filemanager.delete_local_file(directory + filename)
-        #             i += 1
-        #
-        #         except Exception as e:
-        #             printlog('Logger','ERROR: Could not upload file: {}, {}'.format(
-        #                         type(e).__name__, e))
-        #             logger.log_system_status('Switches','Error when uploading recordings: {}'.format(type(e).__name__, e))
-        #
-        #             if type(e).__name__ == "TimeoutError":
-        #                 break
-        #
-        # txt_file.close()
+        filepath = "/home/pi/sakis-tunnel-2021/uploadlog.txt"
+        uploads = []
+        if os.path.exists(filepath):
+            txt_file = open(filepath,'r')
+            uploads = txt_file.readlines()
+            print(uploads)
+            txt_file.close()
+        txt_file = open(filepath,'a+')
+        
+        i = 0
+        for filename in records:
+            if i == MAX:
+                break
+            if filename != self.ix_recording or filename in uploads:
+              # skip if currently being recorded!
+                try:
+                    txt_file.write(filename)
+                    txt_file.write("\n")
+                    self.gservice.upload_recording(filename, folderId, directory)
+                    filemanager.delete_local_file(directory + filename)
+                    i += 1
+                except Exception as e:
+                    printlog('Logger','ERROR: Could not upload file: {}, {}'.format(
+                                type(e).__name__, e))
+                    logger.log_system_status('Switches','Error when uploading recordings: {}'.format(type(e).__name__, e))
+                    if type(e).__name__ == "TimeoutError":
+                        break
+        
+        txt_file.close()
         duration = round((datetime.now() - startTime).total_seconds() / 60, 2)
-        printlog('Logger','Uploaded {} recordings, duration {}'.format(
-                    i, duration))
+        printlog('Logger','Uploaded recordings, duration {}'.format(
+                    duration))
 
 
     def upload_logfiles(self):

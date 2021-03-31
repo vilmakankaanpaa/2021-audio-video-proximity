@@ -3,10 +3,10 @@ import filemanager
 
 print('subprocess')
 
-records = sys.argv[1]
-directory = sys.argv[2]
-not_permitted = sys.argv[3]
-folderId = sys.argv[4]
+records, directory = filemanager.list_recordings()
+print(sys.argv[0])
+not_permitted = sys.argv[1]
+folderId = sys.argv[2]
 
 SERVICE_ACCOUNT_FILE = '/home/pi/sakis-tunnel-2021/service_account.json'
 SCOPE = ['https://www.googleapis.com/auth/drive', 'https://www.googleapis.com/auth/spreadsheets']
