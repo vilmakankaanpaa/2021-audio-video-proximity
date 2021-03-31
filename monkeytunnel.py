@@ -58,8 +58,8 @@ def check_testMode():
     minutes = modeSince.total_seconds() / 60
 
     if globals.testMode == 0 or globals.testMode == 3:
-        #if minutes > 10080:
-        if minutes > 1:
+        if minutes > 10080:
+        #if minutes > 1:
             printlog('Main','Changing mode from no-stimulus to audio')
             logger.log_system_status('Main','Changing from no-stimulus to audio.')
             globals.testMode = 1
@@ -71,8 +71,8 @@ def check_testMode():
             printlog('Main','Mediaorder: {}.'.format(globals.mediaorder))
             return
 
-    #if minutes >= 4320:
-    if minutes > 2:
+    if minutes >= 4320:
+    #if minutes > 2:
         if globals.testMode == 1:
             printlog('Main','Changing mode from audio to video')
             logger.log_system_status('Main','Changing from audio to video.')
