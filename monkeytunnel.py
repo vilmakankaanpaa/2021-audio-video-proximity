@@ -222,7 +222,7 @@ if __name__ == "__main__":
                         # During these hours, only check about 4 times if there are any
                         # videos / logfiles to upload
                         printlog('Main','Starting to upload files from today.')
-                        logger.upload_recordings(30)
+                        #logger.upload_recordings(30)
 
                         if not logfilesUploadedToday:
                             # do this only once a day
