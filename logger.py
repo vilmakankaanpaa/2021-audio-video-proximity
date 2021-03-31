@@ -275,6 +275,67 @@ class Logger:
             return True
 
 
+    def upload_mic_recordings(self, max_nof_uploads=0):
+
+
+        records = os.listdir(configs.MIC_RECORDINGS)
+        if len(records) == 0:
+            printlog('Logger','No mic recordings to upload.')
+            return
+
+        try:
+            self.internet_connected()
+        except:
+            printlog('Logger','ERROR: No internet – could not upload files.')
+            return
+
+        folderId = self.get_folder_id_today()
+        uploadedFiles = []
+        # TODO: empty both locations if USB has not been accessed for some time?
+
+        MAX = len(records)
+        if max_nof_uploads > 0:
+            MAX = max_nof_uploads
+
+        startTime = datetime.now()
+
+        filepath = "/home/pi/sakis-tunnel-2021/mic_uploadlog.txt"
+        uploads = []
+        if os.path.exists(filepath):
+            with open(filepath, newline='') as f:
+                reader = csv.reader(f, delimiter=',')
+                for row in reader:
+                    uploads.append(row[0])
+
+        i = 0
+        for filename in records:
+            if i == MAX:
+                break
+            if filename != self.ix_recording or filename in uploads:
+                # skip if currently being recorded!
+                try:
+                    with open(filepath, 'a', newline='') as f:
+                        logwriter = csv.writer(f, delimiter=',')
+                        logwriter.writerow([filename])
+
+                    self.gservice.upload_recording(filename, folderId, directory)
+                    filemanager.delete_local_file(directory + filename)
+                    i += 1
+                except Exception as e:
+                    printlog('Logger','ERROR: Could not upload file: {}, {}'.format(
+                                type(e).__name__, e))
+                    logger.log_system_status('Switches','Error when uploading recordings: {}'.format(type(e).__name__, e))
+                    if type(e).__name__ == "TimeoutError":
+                        break
+
+        duration = round((datetime.now() - startTime).total_seconds() / 60, 2)
+        printlog('Logger','Uploaded mic recordings, duration {}'.format(
+                    duration))
+
+        if not self.check_if_all_uploaded(filepath):
+            log_system_status('Logger','There are mic files that failed to load')
+
+
     def upload_logfiles(self):
 
         logfiles = [

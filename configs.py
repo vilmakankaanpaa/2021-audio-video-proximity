@@ -10,6 +10,7 @@ external_disk = '/media/pi/KINGSTON1/'
 # paths to use
 RECORDINGS_PATH = external_disk + 'camera-records/'
 RECORDINGS_PATH_2 = root + 'camera-records/'
+MIC_RECORDINGS = root + 'mic-records/'
 
 # file names
 audiopath = root + 'audio/'
