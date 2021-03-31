@@ -3,6 +3,7 @@
 
 import sys
 import os
+import csv
 import subprocess
 import uuid
 import requests
@@ -213,32 +214,25 @@ class Logger:
 
         startTime = datetime.now()
 
-        # records, directory, self.ix_recording, folderId
-        #print('Trying to call the subprocess..')
-        #if self.ix_recording == None:
-            #current = "nothing"
-        #else:
-        #    current = self.ix_recording
-        #subprocess.Popen(args=["python", "uploader.py", current, folderId])#, stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True)
-
         filepath = "/home/pi/sakis-tunnel-2021/uploadlog.txt"
         uploads = []
         if os.path.exists(filepath):
-            txt_file = open(filepath,'r')
-            uploads = txt_file.readlines()
-            print(uploads)
-            txt_file.close()
-        txt_file = open(filepath,'a+')
-        
+            with open(filepath, newline='') as f:
+                reader = csv.reader(f, delimiter=',')
+                for row in reader:
+                    uploads.append(row[0])
+
         i = 0
         for filename in records:
             if i == MAX:
                 break
             if filename != self.ix_recording or filename in uploads:
-              # skip if currently being recorded!
+                # skip if currently being recorded!
                 try:
-                    txt_file.write(filename)
-                    txt_file.write("\n")
+                    with open(filepath, 'a', newline='') as f:
+                        logwriter = csv.writer(f, delimiter=',')
+                        logwriter.writerow([filename])
+
                     self.gservice.upload_recording(filename, folderId, directory)
                     filemanager.delete_local_file(directory + filename)
                     i += 1
@@ -248,11 +242,37 @@ class Logger:
                     logger.log_system_status('Switches','Error when uploading recordings: {}'.format(type(e).__name__, e))
                     if type(e).__name__ == "TimeoutError":
                         break
-        
-        txt_file.close()
+
         duration = round((datetime.now() - startTime).total_seconds() / 60, 2)
         printlog('Logger','Uploaded recordings, duration {}'.format(
                     duration))
+
+        if not self.check_if_all_uploaded(filepath):
+            log_system_status('Logger','There are files that failed to load')
+
+
+    def check_if_all_uploaded(self, filepath):
+
+        printlog('Logger','Checking if can remove uploadlog.txt')
+        records, directory = filemanager.list_recordings()
+        if len(records) == 0:
+            filemanager.delete_local_file(filepath)
+            return True
+        else:
+            uploads = []
+            if os.path.exists(filepath):
+                with open(filepath, newline='') as f:
+                    reader = csv.reader(f, delimiter=',')
+                    for row in reader:
+                        uploads.append(row[0])
+
+            for file in records:
+                if file in uploads:
+                    # let's not remove the logfile if there are files that failed to load previously
+                    return False
+
+            filemanager.delete_local_file(filepath)
+            return True
 
 
     def upload_logfiles(self):
