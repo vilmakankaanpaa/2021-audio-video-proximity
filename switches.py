@@ -227,10 +227,20 @@ class Switches():
                     else:
                         # either the switch currently playing is open or another one
                             # must be in second_queue
-                        if not self.switchesOpen[self.switchPlaying] and self.second_queue != None:
+                        if not self.switchesOpen[self.switchPlaying]:
                             # the switch playing is not open anymore, but another switch is
-                            if self.delayPassed():
-                                self.changeSwitch()
+                            if self.second_queue != None:
+                                if self.delayPassed():
+                                    self.changeSwitch()
+                            else:
+                                # Weird case: no queue but something else than the current one playing is open.
+                                # Just play the switch that is detected open.
+                                for i in range(0,4):
+                                    if self.switchPlaying == i:
+                                        continue
+                                    if self.switchesOpen[i]:
+                                        self.second_queue = i
+                                        self.changeSwitch()
                         else:
                             # the switch playing is still open, don't turn off
                             pass
