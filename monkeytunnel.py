@@ -149,7 +149,7 @@ if __name__ == "__main__":
         logger.log_system_status('Main','Tunnel started.')
 
         logger.upload_recordings(5)
-        logger.upload_mic_recordings(5):
+        logger.upload_mic_recordings(5)
 
         printlog('Main','Ready for use!')
 
@@ -224,7 +224,7 @@ if __name__ == "__main__":
                         # videos / logfiles to upload
                         printlog('Main','Starting to upload files from today.')
                         logger.upload_recordings(5)
-                        logger.upload_mic_recordings(5):
+                        logger.upload_mic_recordings(5)
 
                         if not logfilesUploadedToday:
                             # do this only once a day

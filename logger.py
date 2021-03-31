@@ -277,8 +277,8 @@ class Logger:
 
     def upload_mic_recordings(self, max_nof_uploads=0):
 
-
-        records = os.listdir(configs.MIC_RECORDINGS)
+        directory = configs.MIC_RECORDINGS
+        records = os.listdir(directory)
         if len(records) == 0:
             printlog('Logger','No mic recordings to upload.')
             return
