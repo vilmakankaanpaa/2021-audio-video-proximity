@@ -239,7 +239,7 @@ class Logger:
                 except Exception as e:
                     printlog('Logger','ERROR: Could not upload file: {}, {}'.format(
                                 type(e).__name__, e))
-                    log_system_status('Switches','Error when uploading recordings: {}'.format(type(e).__name__, e))
+                    self.log_system_status('Switches','Error when uploading recordings: {}'.format(type(e).__name__, e))
                     if type(e).__name__ == "TimeoutError":
                         break
 
@@ -248,7 +248,7 @@ class Logger:
                     duration))
 
         if not self.check_if_all_uploaded(filepath):
-            log_system_status('Logger','There are files that failed to load')
+            self.log_system_status('Logger','There are files that failed to load')
 
 
     def check_if_all_uploaded(self, filepath):
@@ -324,7 +324,7 @@ class Logger:
                 except Exception as e:
                     printlog('Logger','ERROR: Could not upload file: {}, {}'.format(
                                 type(e).__name__, e))
-                    log_system_status('Switches','Error when uploading recordings: {}'.format(type(e).__name__, e))
+                    self.log_system_status('Switches','Error when uploading recordings: {}'.format(type(e).__name__, e))
                     if type(e).__name__ == "TimeoutError":
                         break
 
@@ -333,7 +333,7 @@ class Logger:
                     duration))
 
         if not self.check_if_all_uploaded(filepath):
-            log_system_status('Logger','There are mic files that failed to load')
+            self.log_system_status('Logger','There are mic files that failed to load')
 
 
     def upload_logfiles(self):
