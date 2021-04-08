@@ -51,74 +51,26 @@ def ensure_disk_space(logger):
         pass
 
 
-def check_testMode():
-
-    modeSet = globals.modeSince
-    modeSince = datetime.now()-modeSet
-    minutes = modeSince.total_seconds() / 60
-
-    if globals.testMode == 0 or globals.testMode == 3:
-        if minutes > 10080:
-        #if minutes > 1:
-            printlog('Main','Changing mode from no-stimulus to audio')
-            logger.log_system_status('Main','Changing from no-stimulus to audio.')
-            globals.testMode = 1
-            globals.usingAudio = True
-            globals.usingVideo = False
-            globals.mediaorder = [configs.audio1,configs.audio2,configs.audio3,configs.audio4]
-            random.shuffle(globals.mediaorder)
-            globals.modeSince = datetime.now()
-            printlog('Main','Mediaorder: {}.'.format(globals.mediaorder))
-            return
-
-    if minutes >= 4320:
-    #if minutes > 2:
-        if globals.testMode == 1:
-            printlog('Main','Changing mode from audio to video')
-            logger.log_system_status('Main','Changing from audio to video.')
-            # Was audio, start video
-            globals.testMode = 2
-            globals.usingAudio = False
-            globals.usingVideo = True
-            globals.mediaorder = [configs.video1,configs.video2,configs.video3,configs.video4]
-
-        elif globals.testMode == 2:
-            printlog('Main','Changing mode from video to audio')
-            logger.log_system_status('Main','Changing from video to audio.')
-            # Was video, start audio
-            globals.testMode = 1
-            globals.usingAudio = True
-            globals.usingVideo = False
-            globals.mediaorder = [configs.audio1,configs.audio2,configs.audio3,configs.audio4]
-
-        random.shuffle(globals.mediaorder)
-        globals.modeSince = datetime.now()
-        printlog('Main','Mediaorder: {}.'.format(globals.mediaorder))
-        logger.log_system_status('Main','Mediaorder: {}.'.format(globals.mediaorder))
-
-
 if __name__ == "__main__":
 
     globals.init()
 
     printlog('Main',datetime.isoformat(datetime.now()))
-    globals.modeSince = datetime.now()
     globals.pid = os.getpid()
 
     printlog('Main','Starting up monkeytunnel..')
 
-
+    # Order: ABCD
     if globals.testMode == 1:
         globals.mediaorder = [configs.audio1,configs.audio2,configs.audio3,configs.audio4]
+
     elif globals.testMode == 2:
         globals.mediaorder = [configs.video1,configs.video2,configs.video3,configs.video4]
+
     elif globals.testMode == 3:
         globals.mediaorder = [configs.video5,configs.video5,configs.video5,configs.video5]
     else:
         globals.mediaorder = [None, None, None, None]
-
-    # TODO: don't use shuffling unless doing changing stimulus automatically during system run and this works well
-    random.shuffle(globals.mediaorder)
 
     printlog('Main','Mediaorder: {}.'.format(globals.mediaorder))
 
@@ -155,7 +107,7 @@ if __name__ == "__main__":
 
         while True:
 
-            check_testMode()
+            #check_testMode()
 
             if (datetime.now() - pingTimer).total_seconds() / 60 > 10:
                 #ping every 10 minutes
