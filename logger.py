@@ -86,7 +86,8 @@ class Logger:
             globals.testMode,
             globals.usingVideo,
             globals.usingAudio,
-            globals.recordingOn]
+            globals.recordingOn,
+            globals.ordername]
 
         # for gdrive.log_to_drive this needs to be in format
         # list(lists); [[row1],[row2],..]
