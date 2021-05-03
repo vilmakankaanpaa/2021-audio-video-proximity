@@ -13,7 +13,7 @@ def init():
     testMode = 1
 
     global ordername
-    ordername = 'CDAB'
+    ordername = 'ABCD'
 
     global mediaorder
     mediaorder = [None, None, None, None]
