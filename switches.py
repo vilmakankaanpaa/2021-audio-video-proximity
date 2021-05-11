@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import RPi.GPIO as GPIO
 from time import sleep
 from datetime import datetime
 from filemanager import printlog, get_directory_for_recordings
+from ir_sensors import Sensors
 from audioplayer import AudioPlayer
 from videoplayer import VideoPlayer
 import globals
@@ -15,24 +15,6 @@ class Switches():
 
     def __init__(self, logger, camera, mic):
 
-        # Use Broadcom (the GPIO numbering)
-        GPIO.setmode(GPIO.BCM)
-        # Set the GPIO pin numbers to use and
-        # use Pull Up resistance for the reed sensor wiring
-        GPIO.setup(22,GPIO.IN, pull_up_down=GPIO.PUD_UP)
-        GPIO.setup(23,GPIO.IN, pull_up_down=GPIO.PUD_UP)
-        GPIO.setup(24,GPIO.IN, pull_up_down=GPIO.PUD_UP)
-        GPIO.setup(25,GPIO.IN, pull_up_down=GPIO.PUD_UP)
-        # Adding what happens when switch value changes. We are not using
-        # bouncetime because we need to make sure to record all changes.
-        # The quick changes are going to handled in other ways.
-        GPIO.add_event_detect(22, GPIO.BOTH, callback=self.react)
-        GPIO.add_event_detect(23, GPIO.BOTH, callback=self.react)
-        GPIO.add_event_detect(24, GPIO.BOTH, callback=self.react)
-        GPIO.add_event_detect(25, GPIO.BOTH, callback=self.react)
-
-        # GPIO channels of the switches on RPI
-        self.channels = {22:0, 23:1, 24:2, 25:3}
         self.switchesOpen = [False, False, False, False]
         self.switchPlaying = None
         self.queue = None
@@ -40,6 +22,8 @@ class Switches():
         self.starttime = None
         self.endtime = None
         self.delay = 3 # seconds
+
+        self.sensors = Sensors()
 
         self.logger = logger
         self.camera = camera
@@ -49,13 +33,9 @@ class Switches():
         globals.videoPlayer = None
 
 
-    def react(self, channel):
-    # Called when one of the four switches is triggered
+    def react(self, switch):
 
-        switch = self.channels.get(channel)
-
-        if GPIO.input(channel) == GPIO.HIGH:
-            self.switchesOpen[switch] = True
+        if switch == True:
             printlog('Switches','Switch {} open.'.format(switch))
 
             # Set switch always on queue first to start playing next
@@ -63,24 +43,11 @@ class Switches():
                 self.queue = switch
 
         else:
-            self.switchesOpen[switch] = False
             printlog('Switches','Switch {} closed.'.format(switch))
 
             if switch == self.queue:
                 # when switch was on queue but it closes before getting to play
                 self.queue = None
-
-
-    def get_readings(self):
-    # Fetch readings from all switches
-
-        readings = []
-        for channel in range(22,26):
-            value = GPIO.input(channel)
-            readings.append(value)
-
-        return readings
-
 
     def delayPassed(self):
     # Check if delay for starting/stopping/changing media has passed
@@ -194,8 +161,24 @@ class Switches():
             self.second_queue = changedSwitch
 
 
-    def updateSwitches(self):
+    def update(self):
 
+        self.switchesOpen, mostRecentOpen, anyChanged = self.sensors.update()
+
+        if self.switchesOpen[self.queue] != True:
+            # Switch set in queue earlier is no longer open
+            self.queue = None
+
+        if mostRecentOpen != None:
+            if mostRecentOpen != self.switchPlaying:
+                # Set switch that was opened to the queue
+                self.queue = mostRecentOpen
+
+        if anyChanged:
+            self.manageMedia()
+
+
+    def manageMedia(self):
     # 1. Switch on queue but no switches playing media
     #       -> Turn on
     # 2. Switch on queue but it's already playing

@@ -121,10 +121,7 @@ if __name__ == "__main__":
 
             # Checks the state of switches and handles what to do with media: should it start or stop or content switched.
             # Also logs when interaction starts and ends.
-            #switches.updateSwitches()
-
-            # TODO: continue
-            sensors.update()
+            switches.update()
 
             if logger.ix_id == None:
                 activated = False
