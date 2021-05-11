@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+s c# -*- coding: utf-8 -*-
 #!/usr/bin/env python3
 
 import os
@@ -16,6 +16,7 @@ from microphone import Microphone
 from switches import Switches
 import configs
 import globals
+from ir_sensors import Sensors
 
 sys.excepthook = sys.__excepthook__
 
@@ -95,7 +96,8 @@ if __name__ == "__main__":
     logfilesUploadedToday = False
 
     try:
-        switches = Switches(logger, camera, mic)
+        #switches = Switches(logger, camera, mic)
+        sensors = Sensors(logger)
 
         logger.log_program_run_info()
         logger.log_system_status('Main','Tunnel started.')
@@ -106,8 +108,6 @@ if __name__ == "__main__":
         printlog('Main','Ready for use!')
 
         while True:
-
-            #check_testMode()
 
             if (datetime.now() - pingTimer).total_seconds() / 60 > 10:
                 #ping every 10 minutes
@@ -121,7 +121,10 @@ if __name__ == "__main__":
 
             # Checks the state of switches and handles what to do with media: should it start or stop or content switched.
             # Also logs when interaction starts and ends.
-            switches.updateSwitches()
+            #switches.updateSwitches()
+
+            # TODO: continue
+            sensors.update()
 
             if logger.ix_id == None:
                 activated = False
