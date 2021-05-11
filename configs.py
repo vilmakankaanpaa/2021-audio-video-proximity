@@ -4,7 +4,7 @@
 # Configurations for paths and URLs
 
 # roots
-root = '/home/pi/sakis-tunnel-2021/'
+root = '/home/pi/sakis-tunnel-2021-distance/'
 external_disk = '/media/pi/KINGSTON1/'
 
 # paths to use
@@ -15,17 +15,17 @@ MIC_RECORDINGS = root + 'mic-records/'
 # file names
 audiopath = root + 'audio/'
 # use 'configs.audiopath' + audioX + '.mp3'
-audio1 = 'zen'
-audio2 = 'rain'
-audio3 = 'traffic'
-audio4 = 'music'
+#audio1 = 'zen'
+audio1 = 'rain'
+audio2 = 'traffic'
+audio3 = 'music'
 # video files
 videopath = root + 'video/'
 # use 'configs.videopath' + audioX + '.mp4'
-video1 = 'forest'
-video2 = 'underwater'
-video3 = 'worms'
-video4 = 'abstract'
+#video1 = 'forest'
+video1 = 'underwater'
+video2 = 'worms'
+video3 = 'abstract'
 video5 = 'black'
 
 # local logfile names

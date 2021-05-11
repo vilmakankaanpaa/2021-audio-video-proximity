@@ -16,7 +16,7 @@ def init():
     ordername = 'ABCD'
 
     global mediaorder
-    mediaorder = [None, None, None, None]
+    mediaorder = [None, None, None]
 
     global usingAudio
     usingAudio = False

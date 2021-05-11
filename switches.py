@@ -15,7 +15,7 @@ class Switches():
 
     def __init__(self, logger, camera, mic):
 
-        self.switchesOpen = [False, False, False, False]
+        self.switchesOpen = [False, False, False]
         self.switchPlaying = None
         self.queue = None
         self.second_queue = None # for rare cases of X is changed to Y but X is still kept open: when Y closes, X should be put back
