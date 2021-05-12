@@ -144,7 +144,7 @@ if __name__ == "__main__":
                         try:
                             camera.stop_recording()
                             mic.stop()
-                            printlog('Main','Stopping to record, time since: {}.'.format(timeSinceActivity))
+                            printlog('Main','Stopping to record, time since last interaction start: {}.'.format(timeSinceActivity))
                         except Exception as e:
                             logger.log_system_status('Main','Error when trying to stop camera or mic from recording: {}'.format(type(e).__name__, e))
 
