@@ -15,26 +15,15 @@ class Sensors():
         # depend on location so good to test every time the device moves.
         self.voltThresholds = {0:0.40, 1:0.50, 2:0.50}
         self.checkThreshold = 3
-
         self.monkeyInside = False
-        # self.inRange = [False, False, False]
-        # self.previously = [False, False, False]
+        self.sensorReadings = [[False,0],[False,0],[False,0]]]
 
-        #self.sensorsInRange = {0:[False,0],1:[False,0],2:[False,0]}
-        self.sensor1 = [False,0]
-        self.sensor2 = [False,0]
-        self.sensor3 = [False,0]
-        #self.threshold = 2 # how many checks is needed to determine otherwise
-        #self.factor = 5
-        #self.currentValue = self.threshold # where the checks are on scale currently
-
+        # Determined state of sensors
         self.activatedSensors = [False, False, False]
 
         # # Save the first timestamp when sensor gave FALSE reading
-        #self.nofChecks = 0
         # self.firstFalseReadingTime = None
 
-        #self.logger = logger
 
     def read_channel(self, channel=0):
 
@@ -44,56 +33,44 @@ class Sensors():
         return volts
 
 
-    def single_sensor(self, sensor, index):
+    def single_sensor(self, sensorNo):
 
         # Read the sensor value
-        volts = self.read_channel(index)
+        volts = self.read_channel(sensorNo)
         # Based on threshold, set True or False
         inRange = volts > self.voltThresholds.get(index)
         # Did the value change?
         changed = False
-        if sensor[0] != inRange:
+        if sensorReadings[sensorNo][0] != inRange:
             changed = True
+
+        sensorReadings[sensorNo][0] = inRange
 
         # Count and mark the times the value has not changed
         counter = 0
-        current = sensor[1]
+        current = sensorReadings[sensorNo][1]
         if not changed and current <= self.checkThreshold: # allow to go one above
             counter = current + 1
         elif not changed and current > self.checkThreshold:
             counter = current
+        # elif changed, keep at 0
 
-        # if changed, keep at 0
+        sensorReadings[sensorNo][1] = counter
 
-        return inRange, counter
+        return volts
 
 
     def check_sensors(self):
 
-        #voltsList = [] # the closer, the larger volts
-        #rangeList = []
+        voltsList = [] # the closer, the larger volts
 
-#        for i in range(3):
-        #print(self.sensor1[0])
-        value, checks = self.single_sensor(self.sensor1, 0)
-        self.sensor1[0] = value
-        self.sensor1[1] = checks
-        value, checks = self.single_sensor(self.sensor2, 1)
-        self.sensor2[0] = value
-        self.sensor2[1] = checks
-        value, checks = self.single_sensor(self.sensor3, 2)
-        self.sensor3[0] = value
-        self.sensor3[1] = checks
-        #self.sensor1[0], self.sensor1[1] = self.single_sensor(self.sensor1, 0)
-        #self.sensor2[0], self.sensor2[1] = self.single_sensor(self.sensor2, 1)
-        #self.sensor3[0], self.sensor3[1] = self.single_sensor(self.sensor3, 2)
-            #voltsList.append(volts)
-            #rangeList.append(volts > self.voltThresholds.get(i))
+        for i in range(3):
+            volts = self.single_sensor(i)
+            voltsList.append(volts)
 
-        #self.previously = self.inRange
-        #self.inRange = rangeList
+        print(self.sensorReadings)
+        print(voltsList)
 
-        #return voltsList
 
     def check_changed(self):
 
@@ -102,37 +79,20 @@ class Sensors():
         mostRecentOpen = None
         changed = False
 
-        if self.sensor1[1] == self.checkThreshold:
-            changed = True
-            value = self.sensor1[0]
-            self.activatedSensors[0] = value
-            if value == True:
-                mostRecentOpen = 0
-                printlog('Switches','Switch {} open.'.format(1))
-            else:
-                printlog('Switches','Switch {} closed.'.format(0))
+        for i in [0,2,1]: # check the sensors in this order
 
-        if self.sensor3[1] == self.checkThreshold:
-            changed = True
-            value = self.sensor3[0]
-            self.activatedSensors[2] = value
-            if value == True:
-                mostRecentOpen = 2
-                printlog('Switches','Switch {} open.'.format(3))
-            else:
-                printlog('Switches','Switch {} closed.'.format(3))
+            inRange = sensorReadings[i][0]
+            nofChecks = sensorReadings[i][1]
 
-        # If it'd be possible there will be multiple activated, then the middle one should be the most recent change: checked last.
-        if self.sensor2[1] == self.checkThreshold:
-            changed = True
-            value = self.sensor2[0]
-            self.activatedSensors[1] = value
-            if value == True:
-                mostRecentOpen = 1
-                printlog('Switches','Switch {} open.'.format(2))
-            else:
-                printlog('Switches','Switch {} closed.'.format(2))
-
+            if nofChecks == self.checkThreshold:
+                changed = True
+                # set the new status of the sensor ('determined' now)
+                self.activatedSensors[i] = inRange
+                if inRange == True:
+                    mostRecentOpen = i
+                    printlog('Switches','Switch {} open.'.format(i))
+                else:
+                    printlog('Switches','Switch {} closed.'.format(i))
 
         return mostRecentOpen, changed
 
