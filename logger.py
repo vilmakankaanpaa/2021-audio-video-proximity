@@ -118,7 +118,7 @@ class Logger:
         self.ix_date = date.isoformat(date.today())
         self.ix_start = datetime.now()
         self.ix_switch = switch
-        self.ix_switchesOpen = '{},{},{}'.format(switchesOpen[0],switchesOpen[1],switchesOpen[2])
+        self.ix_switchesOpen = '{}, {}, {}'.format(switchesOpen[0],switchesOpen[1],switchesOpen[2])
         self.ix_content = globals.mediaorder[switch]
 
 

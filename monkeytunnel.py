@@ -151,10 +151,7 @@ if __name__ == "__main__":
 
 
             timeSinceIx = (datetime.now() - lastActivity).total_seconds() / 60
-            # Upload log data to Sheets every 6 minutes
-            # Sometimes the Google Sheets kept logging in every time logging
-            # was done and this slowed down the program a lot. So in case happening,
-            # it will be done less often
+            # Upload log data to Sheets every 6 minutes.
             if (datetime.now() - uploadData_timer).total_seconds() / 60 > 6:
                 if not activated and timeSinceIx > 1:
                     # Upload data logs after some time passed since activity
