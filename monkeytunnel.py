@@ -194,8 +194,6 @@ if __name__ == "__main__":
         printlog('Main','Exiting, KeyboardInterrupt')
 
     finally:
-        # Remove the channel setup always
-        GPIO.cleanup()
         if camera.is_recording:
             printlog('Exit','Stopping camera recording.')
             camera.stop_recording()

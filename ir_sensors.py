@@ -1,6 +1,7 @@
 import spidev
 
 from filemanager import printlog
+from datetime import datetime
 
 # Spidev used to connect to and read the sensors
 spi = spidev.SpiDev()
@@ -16,7 +17,7 @@ class Sensors():
         self.voltThresholds = {0:0.40, 1:0.50, 2:0.50}
         self.checkThreshold = 3
         self.monkeyInside = False
-        self.sensorReadings = [[False,0],[False,0],[False,0]]]
+        self.sensorReadings = [[False,0],[False,0],[False,0]]
 
         # Determined state of sensors
         self.activatedSensors = [False, False, False]
@@ -38,24 +39,24 @@ class Sensors():
         # Read the sensor value
         volts = self.read_channel(sensorNo)
         # Based on threshold, set True or False
-        inRange = volts > self.voltThresholds.get(index)
+        inRange = volts > self.voltThresholds.get(sensorNo)
         # Did the value change?
         changed = False
-        if sensorReadings[sensorNo][0] != inRange:
+        if self.sensorReadings[sensorNo][0] != inRange:
             changed = True
 
-        sensorReadings[sensorNo][0] = inRange
+        self.sensorReadings[sensorNo][0] = inRange
 
         # Count and mark the times the value has not changed
         counter = 0
-        current = sensorReadings[sensorNo][1]
+        current = self.sensorReadings[sensorNo][1]
         if not changed and current <= self.checkThreshold: # allow to go one above
             counter = current + 1
         elif not changed and current > self.checkThreshold:
             counter = current
         # elif changed, keep at 0
 
-        sensorReadings[sensorNo][1] = counter
+        self.sensorReadings[sensorNo][1] = counter
 
         return volts
 
@@ -68,6 +69,7 @@ class Sensors():
             volts = self.single_sensor(i)
             voltsList.append(volts)
 
+        print(datetime.isoformat(datetime.now()))
         print(self.sensorReadings)
         print(voltsList)
 
@@ -81,8 +83,8 @@ class Sensors():
 
         for i in [0,2,1]: # check the sensors in this order
 
-            inRange = sensorReadings[i][0]
-            nofChecks = sensorReadings[i][1]
+            inRange = self.sensorReadings[i][0]
+            nofChecks = self.sensorReadings[i][1]
 
             if nofChecks == self.checkThreshold:
                 changed = True
