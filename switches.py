@@ -33,22 +33,6 @@ class Switches():
         globals.videoPlayer = None
 
 
-    def react(self, switch):
-
-        if switch == True:
-            printlog('Switches','Switch {} open.'.format(switch))
-
-            # Set switch always on queue first to start playing next
-            if switch != self.switchPlaying:
-                self.queue = switch
-
-        else:
-            printlog('Switches','Switch {} closed.'.format(switch))
-
-            if switch == self.queue:
-                # when switch was on queue but it closes before getting to play
-                self.queue = None
-
     def delayPassed(self):
     # Check if delay for starting/stopping/changing media has passed
 
