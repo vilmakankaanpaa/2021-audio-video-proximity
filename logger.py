@@ -223,7 +223,7 @@ class Logger:
 
         startTime = datetime.now()
 
-        filepath = "/home/pi/sakis-tunnel-2021/uploadlog.txt"
+        filepath = configs.local_uploadlog
         uploads = []
         if os.path.exists(filepath):
             with open(filepath, newline='') as f:

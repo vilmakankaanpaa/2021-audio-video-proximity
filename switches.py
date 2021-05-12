@@ -157,7 +157,7 @@ class Switches():
         if not self.monkeyInside and any(self.switchesOpen):
             printlog('Main','Monkey came in!')
             self.monkeyInside = True
-        elif self.monkeyInside and not any(self.activatedSensors):
+        elif self.monkeyInside and not any(self.switchesOpen):
             printlog('Main','All monkeys left. :(')
             self.monkeyInside = False
 
