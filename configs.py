@@ -5,7 +5,7 @@
 
 # roots
 root = '/home/pi/sakis-tunnel-2021-distance/'
-external_disk = '/media/pi/KINGSTON1/'
+external_disk = '/media/pi/KINGSTON2/'
 
 # paths to use
 RECORDINGS_PATH = external_disk + 'camera-records/'
