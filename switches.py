@@ -65,7 +65,7 @@ class Switches():
             return
 
         # New interaction starts whenever new media turns on
-        self.logger.log_interaction_start(self.switchPlaying)
+        self.logger.log_interaction_start(self.switchPlaying, self.switchesOpen)
         printlog('Switches','Interaction started,')
 
         # Start recording
