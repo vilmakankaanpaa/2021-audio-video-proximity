@@ -109,8 +109,7 @@ if __name__ == "__main__":
 
             if (datetime.now() - pingTimer).total_seconds() / 60 > 10:
                 #ping every 10 minutes
-                readings = switches.get_readings()
-                logger.log_system_status('Main','Switch readings: {}'.format(readings))
+                logger.log_system_status('Main','Time when last activity ended: {}.'.format(lastActivity))
                 pingTimer = datetime.now()
 
             # Checking if should update the request quota for Google Sheets
@@ -144,7 +143,7 @@ if __name__ == "__main__":
                         try:
                             camera.stop_recording()
                             mic.stop()
-                            printlog('Main','Stopping to record, time since last interaction start: {}.'.format(timeSinceActivity))
+                            printlog('Main','Stopping to record, time since last interaction end: {}.'.format(timeSinceActivity))
                         except Exception as e:
                             logger.log_system_status('Main','Error when trying to stop camera or mic from recording: {}'.format(type(e).__name__, e))
 
