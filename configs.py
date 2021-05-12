@@ -33,7 +33,9 @@ local_ix_log = 'ix_backup.csv'
 local_program_log = 'progrun_backup.csv'
 local_printlog = 'printlog.csv'
 local_output = 'output.txt'
+# To store file names not being able to upload
 local_uploadlog = "uploadlog.txt"
+local_mic_uploadlog = "mic_uploadlog.txt"
 
 # Google sheets API parameters for logging data
 SPREADSHEET_ID = '1-sFTPHnKqSMEMJ6mKf0D3lMXn77QECNJbL_vR-Prskg'

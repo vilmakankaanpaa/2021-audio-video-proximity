@@ -311,7 +311,7 @@ class Logger:
 
         startTime = datetime.now()
 
-        filepath = "/home/pi/sakis-tunnel-2021/mic_uploadlog.txt"
+        filepath = configs.local_mic_uploadlog
         uploads = []
         if os.path.exists(filepath):
             with open(filepath, newline='') as f:
