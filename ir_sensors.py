@@ -19,7 +19,7 @@ class Sensors():
         self.sensorReadings = [[False,0],[False,0],[False,0]]
 
         # After how many checks the value is changed and "determined".
-        self.checkThreshold = 3
+        self.checkThreshold = 1
         # Determined state of sensors
         self.activatedSensors = [False, False, False]
 
@@ -71,9 +71,9 @@ class Sensors():
             volts = self.single_sensor(i)
             voltsList.append(volts)
 
-        print(datetime.isoformat(datetime.now()))
-        print(self.sensorReadings)
-        print(voltsList)
+        #print(datetime.isoformat(datetime.now()))
+        #print(self.sensorReadings)
+        #print(voltsList)
 
 
     def check_changed(self):
@@ -88,7 +88,7 @@ class Sensors():
             inRange = self.sensorReadings[i][0]
             nofChecks = self.sensorReadings[i][1]
 
-            if nofChecks == self.checkThreshold:
+            if nofChecks == self.checkThreshold and inRange != self.activatedSensors[i]:
                 changed = True
                 # set the new status of the sensor ('determined' now)
                 self.activatedSensors[i] = inRange

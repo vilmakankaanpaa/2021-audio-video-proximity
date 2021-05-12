@@ -120,6 +120,7 @@ if __name__ == "__main__":
             # Checks the state of switches and handles what to do with media: should it start or stop or content switched.
             # Also logs when interaction starts and ends.
             switches.update()
+            switches.manageMedia()
 
             if logger.ix_id == None:
                 activated = False
@@ -191,7 +192,7 @@ if __name__ == "__main__":
                 elif hourNow == 0:
                     logfilesUploadedToday = False
 
-            sleep(0.4)
+            sleep(0.2)
 
 
     except KeyboardInterrupt:
@@ -201,6 +202,7 @@ if __name__ == "__main__":
         if camera.is_recording:
             printlog('Exit','Stopping camera recording.')
             camera.stop_recording()
+            camera.close()
         if mic.is_recording:
             printlog('Exit','Stopping mic recording.')
             mic.stop()

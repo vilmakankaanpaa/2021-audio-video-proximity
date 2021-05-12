@@ -112,7 +112,7 @@ class Switches():
             # no stimulus
             return
 
-        sleep(0.3)
+        sleep(0.1)
 
 
     def turnOff(self):
@@ -135,7 +135,7 @@ class Switches():
         self.starttime = None
         self.switchPlaying = None
 
-        sleep(0.3)
+        sleep(0.1)
 
 
     def changeSwitch(self):
@@ -170,9 +170,6 @@ class Switches():
             if mostRecentOpen != self.switchPlaying:
                 # Set switch that was opened to the queue
                 self.queue = mostRecentOpen
-
-        if anyChanged:
-            self.manageMedia()
 
 
     def manageMedia(self):

@@ -44,3 +44,6 @@ class Camera():
         sleep(5)
         self.camera.capture(path + imageName + '.jpg')
         self.camera.stop_preview()
+
+    def close(self):
+        self.camera.close()

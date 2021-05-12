@@ -46,6 +46,7 @@ def init():
     global videoPlayer
     videoPlayer = None
 
+    # in practice, delays are about 1 second longer because of sleep times during code
     global periodDelay
     periodDelay = 3 # seconds, delay to stop interactive period and recording after interactions
     global mediaDelay
