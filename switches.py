@@ -49,7 +49,7 @@ class Switches():
 
         if self.logger.ix_period == None:
             # First interaction of the new interactive period
-            selg.logger.start_ixPeriod()
+            self.logger.start_ixPeriod()
 
         self.starttime = datetime.now()
         self.endtime = None
