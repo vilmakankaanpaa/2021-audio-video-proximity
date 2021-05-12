@@ -44,3 +44,5 @@ SYSTEM_SHEET = 'system-status'
 # Google Drive API parameters for uploading listDriveFiles
 GDRIVE_FOLDER_ID = '1F-kDuVRUCY_HZTpls-HjgoMZfQsHHsFy'  #recordings
 GDRIVE_FOLDER_ID_LOGS = '1ZhqiXGb0yIBRg-h_UlASro2tIVav0YmO'  #system logs
+
+service_account_file = '/home/pi/sakis-tunnel-2021-distance/service_account.json'

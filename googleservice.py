@@ -30,7 +30,7 @@ class GoogleService:
         self.nof_rows_left = 100
         self.quota_timer = datetime.now() # The service account has request quota of 100 requests per 100 seconds
 
-        SERVICE_ACCOUNT_FILE = '/home/pi/sakis-tunnel-2021/service_account.json'
+        SERVICE_ACCOUNT_FILE = configs.service_account_file
         SCOPE = ['https://www.googleapis.com/auth/drive', 'https://www.googleapis.com/auth/spreadsheets']
 
         self.creds = service_account.Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPE)
