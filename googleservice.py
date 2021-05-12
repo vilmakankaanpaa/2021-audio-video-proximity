@@ -39,7 +39,7 @@ class GoogleService:
         try:
             printlog('Gservice','Logging into Google Sheets..')
             self.gsheets = build('sheets', 'v4', credentials=self.creds)
-            printlog('Gservice','Logging into Google Sheets..')
+            printlog('Gservice','Logging into Google Drive..')
             self.gdrive = build('drive', 'v3', credentials=self.creds)
         except Exception as e:
             printlog('Gservice','Could not log into google services: {}'.format(type(e).__name__, e))
@@ -227,47 +227,3 @@ class GoogleService:
 
         for vid in videoIds:
             self.delete_resource(vid)
-
-'''
-# Google Drive resumable upload
-#https://developers.google.com/drive/api/v3/manage-uploads#resumable
-# example, since the docs only have HTTP examples:
-#   https://tanaikech.github.io/2020/03/05/simple-script-of-resumable-upload-with-google-drive-api-for-python/
-
-import json
-import os
-import requests
-
-access_token = '###'  ## Please set the access token.
-
-filename = './sample.png'
-
-filesize = os.path.getsize(filename)
-
-# 1. Retrieve session for resumable upload.
-
-headers = {"Authorization": "Bearer " + access_token, "Content-Type": "application/json"}
-params = {
-    "name": "sample.png",
-    "mimeType": "image/png"
-}
-r = requests.post(
-    "https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable",
-    headers=headers,
-    data=json.dumps(params)
-)
-location = r.headers['Location']
-
-# 2. Upload the file.
-
-headers = {"Content-Range": "bytes 0-" + str(filesize - 1) + "/" + str(filesize)}
-r = requests.put(
-    location,
-    headers=headers,
-    data=open(filename, 'rb')
-)
-print(r.text)
-
-# Needs more code in case want to actually resume to interrupted uploads
-
-'''
