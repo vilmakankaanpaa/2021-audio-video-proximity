@@ -81,7 +81,7 @@ class Switches():
                 printlog('Switches','ERROR: Could not start recording. {}'.format(type(e).__name__, e))
                 self.logger.log_system_status('Switches','ERROR: Could not start recording. {}'.format(type(e).__name__, e))
 
-        sleep(0.1)
+        sleep(0.2)
 
         filename = globals.mediaorder[self.switchPlaying]
         if globals.usingAudio:
@@ -135,7 +135,7 @@ class Switches():
         self.starttime = None
         self.switchPlaying = None
 
-        sleep(0.1)
+        sleep(0.2)
 
 
     def changeSwitch(self):
@@ -211,8 +211,8 @@ class Switches():
                                     self.changeSwitch()
                             else:
                                 # Weird case: no queue but something else than the current one playing is open.
-                                # Just play the switch that is detected open.
-                                printlog('Switches','Weird case: no queue but somethign else than the current on playing is open')
+                                # Just change to play the switch that is detected open.
+                                printlog('Switches','Weird case: no queue but something else than the current one playing is open')
                                 for i in range(0,4):
                                     if self.switchPlaying == i:
                                         continue
