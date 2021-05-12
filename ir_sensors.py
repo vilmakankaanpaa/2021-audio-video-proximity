@@ -1,53 +1,50 @@
 import spidev
-#import Adafruit_GPIO.SPI as SPI
-#import Adafruit_MCP3008
-from time import sleep
 
 from filemanager import printlog
 
+# Spidev used to connect to and read the sensors
+spi = spidev.SpiDev()
+spi.open(0,0)
+spi.max_speed_hz=1000000
 
 class Sensors():
 
     def __init__(self):
 
-    # Spidev used to connect to and read the sensors
-    spi = spidev.SpiDev()
-    spi.open(0,0)
-    spi.max_speed_hz=1000000
-    # Channels and thresholds. 0-3 from right to left when facing screen. Might
-    # depend on location so good to test every time the device moves.
-    self.voltThresholds = {0:0.40, 1:0.50, 2:0.50}
-    self.checkThreshold = 3
+        # Channels and thresholds. 0-3 from right to left when facing screen. Might
+        # depend on location so good to test every time the device moves.
+        self.voltThresholds = {0:0.40, 1:0.50, 2:0.50}
+        self.checkThreshold = 3
 
-    self.monkeyInside = False
-    # self.inRange = [False, False, False]
-    # self.previously = [False, False, False]
+        self.monkeyInside = False
+        # self.inRange = [False, False, False]
+        # self.previously = [False, False, False]
 
-    #self.sensorsInRange = {0:[False,0],1:[False,0],2:[False,0]}
-    self.sensor1 = [False,0]
-    self.sensor2 = [False,0]
-    self.sensor3 = [False,0]
-    #self.threshold = 2 # how many checks is needed to determine otherwise
-    #self.factor = 5
-    #self.currentValue = self.threshold # where the checks are on scale currently
+        #self.sensorsInRange = {0:[False,0],1:[False,0],2:[False,0]}
+        self.sensor1 = [False,0]
+        self.sensor2 = [False,0]
+        self.sensor3 = [False,0]
+        #self.threshold = 2 # how many checks is needed to determine otherwise
+        #self.factor = 5
+        #self.currentValue = self.threshold # where the checks are on scale currently
 
-    self.activatedSensors = [False, False, False]
+        self.activatedSensors = [False, False, False]
 
-    # # Save the first timestamp when sensor gave FALSE reading
-    #self.nofChecks = 0
-    # self.firstFalseReadingTime = None
+        # # Save the first timestamp when sensor gave FALSE reading
+        #self.nofChecks = 0
+        # self.firstFalseReadingTime = None
 
-    #self.logger = logger
+        #self.logger = logger
 
     def read_channel(self, channel=0):
 
-      val = spi.xfer2([1,(8+channel)<<4,0])
-      data = ((val[1]&3) << 8) + val[2]
-      volts = data/1023.0)*3.3
-      return volts
+        val = spi.xfer2([1,(8+channel)<<4,0])
+        data = ((val[1]&3) << 8) + val[2]
+        volts = (data/1023.0)*3.3
+        return volts
 
 
-    def singleSensor(self, sensor, index):
+    def single_sensor(self, sensor, index):
 
         # Read the sensor value
         volts = self.read_channel(index)
@@ -73,13 +70,23 @@ class Sensors():
 
     def check_sensors(self):
 
-        voltsList = [] # the closer, the larger volts
-        rangeList = []
+        #voltsList = [] # the closer, the larger volts
+        #rangeList = []
 
 #        for i in range(3):
-        self.sensor1[0], self.sensor1[1] = self.singleSensor(self.sensor1, 0)
-        self.sensor2[0], self.sensor2[1] = self.singleSensor(self.sensor2, 1)
-        self.sensor3[0], self.sensor3[1] = self.singleSensor(self.sensor3, 2)
+        #print(self.sensor1[0])
+        value, checks = self.single_sensor(self.sensor1, 0)
+        self.sensor1[0] = value
+        self.sensor1[1] = checks
+        value, checks = self.single_sensor(self.sensor2, 1)
+        self.sensor2[0] = value
+        self.sensor2[1] = checks
+        value, checks = self.single_sensor(self.sensor3, 2)
+        self.sensor3[0] = value
+        self.sensor3[1] = checks
+        #self.sensor1[0], self.sensor1[1] = self.single_sensor(self.sensor1, 0)
+        #self.sensor2[0], self.sensor2[1] = self.single_sensor(self.sensor2, 1)
+        #self.sensor3[0], self.sensor3[1] = self.single_sensor(self.sensor3, 2)
             #voltsList.append(volts)
             #rangeList.append(volts > self.voltThresholds.get(i))
 

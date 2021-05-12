@@ -165,9 +165,10 @@ class Switches():
 
         self.switchesOpen, mostRecentOpen, anyChanged = self.sensors.update()
 
-        if self.switchesOpen[self.queue] != True:
-            # Switch set in queue earlier is no longer open
-            self.queue = None
+        if self.queue != None:
+            if self.switchesOpen[self.queue] != True:
+                # Switch set in queue earlier is no longer open
+                self.queue = None
 
         if mostRecentOpen != None:
             if mostRecentOpen != self.switchPlaying:

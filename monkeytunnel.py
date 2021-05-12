@@ -1,4 +1,4 @@
-s c# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 #!/usr/bin/env python3
 
 import os
@@ -96,8 +96,7 @@ if __name__ == "__main__":
     logfilesUploadedToday = False
 
     try:
-        #switches = Switches(logger, camera, mic)
-        sensors = Sensors(logger)
+        switches = Switches(logger, camera, mic)
 
         logger.log_program_run_info()
         logger.log_system_status('Main','Tunnel started.')
