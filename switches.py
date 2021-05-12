@@ -15,13 +15,14 @@ class Switches():
 
     def __init__(self, logger, camera, mic):
 
+        self.monkeyInside = False
         self.switchesOpen = [False, False, False]
         self.switchPlaying = None
         self.queue = None
         self.second_queue = None # for rare cases of X is changed to Y but X is still kept open: when Y closes, X should be put back
         self.starttime = None
         self.endtime = None
-        self.delay = 3 # seconds
+        self.delay = globals.mediaDelay # seconds
 
         self.sensors = Sensors()
 
@@ -45,6 +46,10 @@ class Switches():
 
     def turnOn(self):
     # Turn media on
+
+        if self.logger.ix_period == None:
+            # First interaction of the new interactive period
+            selg.logger.start_ixPeriod()
 
         self.starttime = datetime.now()
         self.endtime = None
@@ -148,6 +153,13 @@ class Switches():
     def update(self):
 
         self.switchesOpen, mostRecentOpen, anyChanged = self.sensors.update()
+
+        if not self.monkeyInside and any(self.switchesOpen):
+            printlog('Main','Monkey came in!')
+            self.monkeyInside = True
+        elif self.monkeyInside and not any(self.activatedSensors):
+            printlog('Main','All monkeys left. :(')
+            self.monkeyInside = False
 
         if self.queue != None:
             if self.switchesOpen[self.queue] != True:

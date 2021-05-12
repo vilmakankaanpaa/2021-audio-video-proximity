@@ -13,7 +13,7 @@ def init():
     testMode = 1
 
     global ordername
-    ordername = 'ABCD'
+    ordername = 'ABC'
 
     global mediaorder
     mediaorder = [None, None, None]
@@ -45,3 +45,8 @@ def init():
     audioPlayer = None
     global videoPlayer
     videoPlayer = None
+
+    global periodDelay
+    periodDelay = 3 # seconds, delay to stop interactive period and recording after interactions
+    global mediaDelay
+    mediaDelay = 3

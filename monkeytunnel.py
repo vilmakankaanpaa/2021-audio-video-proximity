@@ -89,7 +89,6 @@ if __name__ == "__main__":
     # Timer to avoid uploading data during and right after interactions
     ix_timer = datetime.now()
 
-    cameraDelay = 10 # seconds
     lastActivity = datetime.now()
     activated = False
 
@@ -130,12 +129,17 @@ if __name__ == "__main__":
             if switches.endtime != None:
                 lastActivity = switches.endtime
 
-            if globals.recordingOn:
-                if not activated and camera.is_recording:
-                    # Stop recording after certain time since interaction ended
-                    timeSinceActivity = round((datetime.now() - lastActivity).total_seconds(),2)
+            # Stop interactive period and recording after certain time since last interaction
+            if not activated:
 
-                    if timeSinceActivity > camera.delay:
+                timeSinceActivity = round((datetime.now() - lastActivity).total_seconds(),2)
+
+                if timeSinceActivity > globals.periodDelay:
+                    # delay has passed
+
+                    logger.end_ixPeriod()
+
+                    if globals.recordingOn and camera.is_recording:
                         try:
                             camera.stop_recording()
                             mic.stop()

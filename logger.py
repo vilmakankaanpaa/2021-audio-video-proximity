@@ -31,6 +31,7 @@ class Logger:
         self.ix_tempdata = []
 
         # Info on ongoing interaction with the tunnel
+        self.ix_period = None
         self.ix_id = None
         self.ix_date = None
         self.ix_start = None
@@ -103,6 +104,12 @@ class Logger:
             printlog('Logger','ERROR: Could not log program status: {}, {}'.format(type(e).__name__, e))
             filemanager.log_local(data, sheet=configs.local_program_log)
 
+    def start_ixPeriod(self):
+        self.ix_period = str(uuid.uuid4())[0:4]
+
+    def end_ixPeriod(self):
+        self.ix_period = None
+
 
     def log_interaction_start(self, switch):
 
@@ -116,6 +123,7 @@ class Logger:
     def log_interaction_end(self, endtime):
 
         pid = self.pid
+        period = self.ix_period
         ID = self.ix_id
         date = self.ix_date
         startime = self.ix_start
@@ -131,7 +139,7 @@ class Logger:
         content = self.ix_content
         video = self.ix_recording + '.h264'
 
-        data = [self.pid, ID, date, stimulus, switch, content,
+        data = [self.pid, period, ID, date, stimulus, switch, content,
                 startime.strftime("%Y-%m-%d %H:%M:%S"),
                 endtime.strftime("%Y-%m-%d %H:%M:%S"), duration, video]
 
@@ -147,7 +155,7 @@ class Logger:
 
     def new_recording_name(self):
 
-        self.ix_recording = (self.ix_start).strftime("%Y-%m-%d_%H-%M") + '_' + self.ix_id
+        self.ix_recording = (self.ix_start).strftime("%Y-%m-%d_%H-%M") + '_' + self.ix_period
         return self.ix_recording
 
 

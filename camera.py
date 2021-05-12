@@ -12,7 +12,6 @@ class Camera():
 
         self.camera = PiCamera()
         self.is_recording = False
-        self.delay = 10 # seconds, delay to stop recording after interaction
 
 
     def start_recording(self, videoName, directory):
