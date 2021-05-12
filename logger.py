@@ -118,7 +118,7 @@ class Logger:
         self.ix_date = date.isoformat(date.today())
         self.ix_start = datetime.now()
         self.ix_switch = switch
-        self.ix_switchesOpen = switchesOpen
+        self.ix_switchesOpen = '{},{},{}'.format(switchesOpen[0],switchesOpen[1],switchesOpen[2])
         self.ix_content = globals.mediaorder[switch]
 
 
@@ -143,7 +143,7 @@ class Logger:
         video = self.ix_recording + '.h264'
 
         data = [self.pid, period, ID, date, stimulus, switch,
-        content, switchesOpen, startime.strftime("%Y-%m-%d %H:%M:%S"), 
+        content, switchesOpen, startime.strftime("%Y-%m-%d %H:%M:%S"),
         endtime.strftime("%Y-%m-%d %H:%M:%S"), duration, video]
 
         self.ix_tempdata.append(data)
