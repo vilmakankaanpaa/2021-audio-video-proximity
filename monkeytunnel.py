@@ -143,6 +143,7 @@ if __name__ == "__main__":
                         try:
                             camera.stop_recording()
                             mic.stop()
+                            sleep(0.2)
                             printlog('Main','Stopping to record, time since last interaction end: {}.'.format(timeSinceActivity))
                         except Exception as e:
                             logger.log_system_status('Main','Error when trying to stop camera or mic from recording: {}'.format(type(e).__name__, e))
@@ -195,6 +196,12 @@ if __name__ == "__main__":
         printlog('Main','Exiting, KeyboardInterrupt')
 
     finally:
+
+        try:
+            logger.log_system_status('Exit','Exiting program.')
+        except:
+            pass
+
         if camera.is_recording:
             printlog('Exit','Stopping camera recording.')
             camera.stop_recording()
