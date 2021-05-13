@@ -23,6 +23,9 @@ class Sensors():
         # Determined state of sensors
         self.activatedSensors = [False, False, False]
 
+        self.timer = datetime.now()
+        self.counter = 0
+
 
     def read_channel(self, channel=0):
 
@@ -53,7 +56,7 @@ class Sensors():
         current = self.sensorReadings[sensorNo][1]
         if not changed and current <= self.checkThreshold:
             # Allow the checks counter go one above threshold.
-            counter = current + 1
+            counter += 1
         elif not changed and current > self.checkThreshold:
             counter = current
         # elif changed, keep at 0
@@ -69,9 +72,16 @@ class Sensors():
 
         for i in range(3):
             volts = self.single_sensor(i)
-            voltsList.append(volts)
-        
-        print(voltsList)
+            voltsList.append(round(volts,3))
+
+        if (datetime.now()-self.timer).total_seconds()/60 > 10:
+            if self.counter < 10:
+                printlog('Sensors: ',voltsList)
+                self.counter += 1
+            else:
+                self.timer = datetime.now()
+                self.counter = 0
+
         return voltsList
 
 
