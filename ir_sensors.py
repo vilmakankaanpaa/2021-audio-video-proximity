@@ -71,9 +71,7 @@ class Sensors():
             volts = self.single_sensor(i)
             voltsList.append(volts)
 
-        #print(datetime.isoformat(datetime.now()))
-        #print(self.sensorReadings)
-        #print(voltsList)
+        return voltsList
 
 
     def check_changed(self):
@@ -104,8 +102,8 @@ class Sensors():
     def update(self):
 
         # Read the sensor values now
-        self.check_sensors()
+        volts = self.check_sensors()
         # After checking with threshold, which are activated?
         mostRecentOpen, someChanged = self.check_changed()
 
-        return self.activatedSensors, mostRecentOpen, someChanged
+        return self.activatedSensors, mostRecentOpen, someChanged, volts

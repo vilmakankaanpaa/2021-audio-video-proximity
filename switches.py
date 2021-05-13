@@ -25,6 +25,7 @@ class Switches():
         self.delay = globals.mediaDelay # seconds
 
         self.sensors = Sensors()
+        self.sensorVolts = [0,0,0]
 
         self.logger = logger
         self.camera = camera
@@ -65,7 +66,7 @@ class Switches():
             return
 
         # New interaction starts whenever new media turns on
-        self.logger.log_interaction_start(self.switchPlaying, self.switchesOpen)
+        self.logger.log_interaction_start(self.switchPlaying, self.switchesOpen, self.sensorVolts)
         printlog('Switches','Interaction started,')
 
         # Start recording
@@ -152,7 +153,7 @@ class Switches():
 
     def update(self):
 
-        self.switchesOpen, mostRecentOpen, anyChanged = self.sensors.update()
+        self.switchesOpen, mostRecentOpen, anyChanged, self.sensorVolts = self.sensors.update()
 
         if not self.monkeyInside and any(self.switchesOpen):
             printlog('Main','Monkey came in!')

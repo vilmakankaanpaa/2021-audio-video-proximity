@@ -37,6 +37,7 @@ class Logger:
         self.ix_start = None
         self.ix_switch = None
         self.ix_switchesOpen = [False, False, False]
+        self.ix_voltReadings = [0, 0, 0]
         self.ix_content = None
         self.ix_recording = None
         self.ix_folder_today = {}
@@ -112,13 +113,14 @@ class Logger:
         self.ix_period = None
 
 
-    def log_interaction_start(self, switch, switchesOpen):
+    def log_interaction_start(self, switch, switchesOpen, volts):
 
         self.ix_id = str(uuid.uuid4())[0:6]
         self.ix_date = date.isoformat(date.today())
         self.ix_start = datetime.now()
         self.ix_switch = switch
         self.ix_switchesOpen = '{}, {}, {}'.format(switchesOpen[0],switchesOpen[1],switchesOpen[2])
+        self.ix_voltReadings = '{}, {}, {}'.format(volts[0], volts[1], volts[2])
         self.ix_content = globals.mediaorder[switch]
 
 
@@ -139,11 +141,12 @@ class Logger:
 
         switch = self.ix_switch
         switchesOpen = self.ix_switchesOpen
+        volts = self.ix_voltReadings
         content = self.ix_content
         video = self.ix_recording + '.h264'
 
         data = [self.pid, period, ID, date, stimulus, switch,
-        content, switchesOpen, startime.strftime("%Y-%m-%d %H:%M:%S"),
+        content, switchesOpen, volts, startime.strftime("%Y-%m-%d %H:%M:%S"),
         endtime.strftime("%Y-%m-%d %H:%M:%S"), duration, video]
 
         self.ix_tempdata.append(data)
