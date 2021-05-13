@@ -199,6 +199,7 @@ if __name__ == "__main__":
 
         try:
             logger.log_system_status('Exit','Exiting program.')
+            logger.upload_ix_logs()
         except:
             pass
 
