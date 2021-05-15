@@ -14,7 +14,7 @@ class Sensors():
 
         # Channels and thresholds. 0-3 from right to left when facing screen.
         # Might depend on location so good to test every time the device moves.
-        self.voltThresholds = {0:0.34, 1:0.30, 2:0.20}
+        self.voltThresholds = {0:0.40, 1:0.40, 2:0.40}
 
         self.sensorReadings = [[False,0],[False,0],[False,0]]
 
