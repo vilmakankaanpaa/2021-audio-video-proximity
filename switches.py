@@ -130,7 +130,7 @@ class Switches():
                 globals.videoPlayer = None
 
         self.endtime = datetime.now()
-        self.logger.log_interaction_end(self.endtime,)
+        self.logger.log_interaction_end(self.endtime)
         printlog('Switches','Interaction ended.')
 
         self.starttime = None
@@ -218,8 +218,9 @@ class Switches():
                                     if self.switchPlaying == i:
                                         continue
                                     if self.switchesOpen[i]:
-                                        self.second_queue = i
-                                        self.changeSwitch()
+                                        if self.delayPassed():
+                                            self.second_queue = i
+                                            self.changeSwitch()
                         else:
                             # the switch playing is still open, don't turn off
                             pass
