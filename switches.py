@@ -214,7 +214,7 @@ class Switches():
                                 # Weird case: no queue but something else than the current one playing is open.
                                 # Just change to play the switch that is detected open.
                                 printlog('Switches','Weird case: no queue but something else than the current one playing is open')
-                                for i in range(0,4):
+                                for i in range(0,len(switchesOpen)):
                                     if self.switchPlaying == i:
                                         continue
                                     if self.switchesOpen[i]:
