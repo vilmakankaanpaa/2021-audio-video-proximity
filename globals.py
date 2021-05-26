@@ -10,7 +10,7 @@ def init():
 
     # 0 = no-stimulus, 1 = audio, 2 = video, 3 = no stimulus but play black video
     global testMode
-    testMode = 1
+    testMode = 2
 
     global ordername
     ordername = 'ABC'
