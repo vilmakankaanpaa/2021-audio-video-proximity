@@ -61,12 +61,12 @@ if __name__ == "__main__":
 
     printlog('Main','Starting up monkeytunnel..')
 
-    # Order: CDAB
+    # Order CAB
     if globals.testMode == 1:
-        globals.mediaorder = [configs.audio1,configs.audio2,configs.audio3]
+        globals.mediaorder = [configs.audio3,configs.audio1,configs.audio2]
 
     elif globals.testMode == 2:
-        globals.mediaorder = [configs.video1,configs.video2,configs.video3]
+        globals.mediaorder = [configs.video3,configs.video1,configs.video2]
 
     elif globals.testMode == 3:
         globals.mediaorder = [configs.video5,configs.video5,configs.video5]
