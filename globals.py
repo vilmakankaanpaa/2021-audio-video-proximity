@@ -10,10 +10,10 @@ def init():
 
     # 0 = no-stimulus, 1 = audio, 2 = video, 3 = no stimulus but play black video
     global testMode
-    testMode = 2
+    testMode = 0
 
     global ordername
-    ordername = 'BCA'
+    ordername = 'None'
 
     global mediaorder
     mediaorder = [None, None, None]
