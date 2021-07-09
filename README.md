@@ -1,6 +1,3 @@
-# Sakis interactive tunnel 2021
+# Interactive device for white-faced sakis
 
-## Requirements
-```
-python3.7.3
-```
+An enrichment device for sakis to activate visual and audio stimuli. Uses body-tracking, IR sensors, to detect the saki inside the device.
