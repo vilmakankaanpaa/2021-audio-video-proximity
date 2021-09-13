@@ -7,12 +7,11 @@ library(gridExtra)
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 
 # Load data
+
+# First table
 df <- read.table("parttwo-data.csv", header = T, sep = ",", dec = ".", stringsAsFactors = TRUE) %>%
   select(period_id, ix_id, date, study_day, test_phase, test_phase_day, using_stimuli, condition, stimulus, switch, content, starttime, duration, individual)
-df
-
-# What are the data types of columns?
-str(df)
+head(df)
 
 # Change some data types
 df$period_id <- as.character(df$period_id)
@@ -24,10 +23,12 @@ df$test_phase_day <- as.factor(df$test_phase_day)
 # Data now
 head(df)
 
+# Other table to use for comparing stimuli content and interaction zones
 df2 <- read.table("parttwo-stimuli-interactions.csv", header = T, sep = ",", dec = ".", stringsAsFactors = TRUE)
-df2
+head(df2)
+df2$switch <- as.factor(df2$switch)
 
-monkeys=3
+# -- INFO ------------------------------------------------------------------------------------------
 
 # What type of wilxocon test and why?
 
@@ -65,63 +66,68 @@ monkeys=3
 # # *On adjusting p-values: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6099145/*
 
 
-
-# Data ------------------------------------------------------------------------------------------------
+# --- Transform data ------------------
 
 # Collect summary data for each study day
 data.daily <- df %>% group_by(stimulus, using_stimuli, condition, test_phase, test_phase_day, study_day) %>% 
-  summarise(.groups='drop',
+  summarise(
     periods = n_distinct(period_id),
-    periods.monkey = n_distinct(period_id)/monkeys,
     interactions = n_distinct(ix_id),
-    interactions.monkey = n_distinct(ix_id)/monkeys,
     usetime = sum(duration),
-    usetime.monkey = sum(duration)/monkeys
-  )
+  ) %>% ungroup()
 
-# IF GOING TO TAKE ANY MEANS, NEED TO ADD EMPTY ROWS FOR MISSING DAYS
+# For calculating mean values over the daily data, 
+# we need to add values for any day that did not 
+# have any interactions.
 
 # video 2
-data.daily <- bind_rows(data.daily, list(stimulus='visual', using_stimuli=TRUE, condition='stimuli', test_phase='5-visual-2', test_phase_day="3", study_day=19, periods=0, periods.monkey=0, interactions=0, interactions.monkey=0, usetime=0, usetime.monkey=0))
+data.daily <- bind_rows(
+  data.daily, list(stimulus='visual', using_stimuli=TRUE, condition='stimuli', 
+                   test_phase='5-visual-2', test_phase_day="3", study_day=19, 
+                   periods=0, interactions=0, usetime=0))
 
 # audio 3
-data.daily <- bind_rows(data.daily, list(stimulus='auditory', using_stimuli=TRUE, condition='stimuli', test_phase='6-audio-3', test_phase_day="3", study_day=22, periods=0, periods.monkey=0, interactions=0, interactions.monkey=0, usetime=0, usetime.monkey=0))
+data.daily <- bind_rows(
+  data.daily, list(stimulus='auditory', using_stimuli=TRUE, condition='stimuli', 
+                   test_phase='6-audio-3', test_phase_day="3", study_day=22, 
+                   periods=0, interactions=0, usetime=0))
 
 # Posterior baseline
-data.daily <- bind_rows(data.daily, list(stimulus='no-stimulus', using_stimuli=FALSE, condition='second-baseline', test_phase='8-control-post', test_phase_day="2", study_day=27, periods=0, periods.monkey=0, interactions=0, interactions.monkey=0, usetime=0, usetime.monkey=0))
+data.daily <- bind_rows(
+  data.daily, list(stimulus='no-stimulus', using_stimuli=FALSE, condition='second-baseline', 
+                   test_phase='8-control-post', test_phase_day="2", study_day=27, 
+                   periods=0, interactions=0, usetime=0))
 
 
 # Arrange the table
 data.daily <- data.daily %>% arrange(study_day)
+data.daily$condition <- as.factor(data.daily$condition)
+data.daily$stimulus <- as.factor(data.daily$stimulus)
 
-data.daily
+head(data.daily)
 
+
+# --- Significance tests ------------------------
 
 # 1 Stimuli vs no-stimuli-----------------------------------------------------------------------------------
-# Data: daily interaction time by monkey (usetime.monkey), by stimuli condition (using_stimuli)
 
-data <- data.daily %>% filter(condition!='second-baseline') %>% select(condition, study_day, usetime.monkey)
-data$condition <- as.factor(data$condition)
-
-data
-
-# Summary stats
-tab <- data %>% 
-  group_by('Condition'=condition) %>% 
+## Summary statistics
+tab <- data.daily %>% 
+  group_by(condition) %>% 
   summarise(
     N = n_distinct(study_day),
-    Mean=round(mean(usetime.monkey),2), 
-    Median=round(median(usetime.monkey),2), 
-    SD=round(sd(usetime.monkey),2), 
+    Mean=round(mean(usetime),2), 
+    Median=round(median(usetime),2), 
+    SD=round(sd(usetime),2), 
     SE=round(SD/sqrt(N),2))
 
 tab
 
-png("significance-tests/stimuli-effect/summary-stats.png",height=100,width=400)
+png("figures/significance-tests/1 condition_summary-stats.png",height=100,width=400)
 grid.table(tab)
 dev.off()
 
-# Visualising
+## Visualising
 
 # The boxplot compactly displays the distribution of a continuous variable. 
 # It visualises five summary statistics (the median, two hinges and two whiskers), 
@@ -133,14 +139,14 @@ dev.off()
 # The lower whisker extends from the hinge to the smallest value at most 1.5 * IQR of the hinge. 
 # Data beyond the end of the whiskers are called "outlying" points and are plotted individually.
 
-g1 <- data %>%
-  ggplot(aes(x=condition, y=usetime.monkey)) +
+fig <- data.daily %>%
+  ggplot(aes(x=condition, y=usetime)) +
   geom_boxplot(outlier.colour = "red", outlier.shape = 1) +
   xlab(NULL) +
-  ylab("Daily interaction time per monkey (s)") +
+  ylab("Troop's daily interaction time (s)") +
   theme_minimal() +
-  scale_x_discrete(labels = list('baseline','stimuli'))
-g1
+  scale_x_discrete(labels = list('baseline','post-stimuli','stimuli'))
+fig
 
 # g2 <- data %>% 
 #   group_by(using_stimuli) %>%
@@ -156,391 +162,353 @@ g1
 #   labs(
 #     caption="Error bars present standard error (SE).")
 
-ggsave("significance-tests/stimuli-effect/boxplot.png", g1, width=3.5, height=4.5)
-
+ggsave("figures/significance-tests/1 condition_boxplot.png", fig, width=3.5, height=4.5)
 
 ## Significance of difference with Wilcoxon rank-sum test
 
-test1.1 <- wilcox_test(
-  data$usetime.monkey ~ data$condition, 
-  alternative='two.sided', # we look into whether group1 has either smaller or larger values than group2, not only one of them.
+results <- tibble(
+  cond1=c("first-baseline","first-baseline","stimuli"),
+  cond2=c("stimuli","second-baseline","second-baseline"), 
+  p=0)
+
+### baseline to stimuli
+data <- data.daily %>% filter(condition!='second-baseline')
+
+test <- wilcox_test(
+  data$usetime ~ data$condition, 
+  alternative='two.sided',
   paired=FALSE,
   detailed=TRUE)
 
-test1.1
+results[1,3] <- round(as.double(pvalue(test)),3)
 
-## Signed-rank (do also signed rank test to compare "drug")
+### stimuli to post-stimuli
+data <- data.daily %>% filter(condition!='first-baseline')
 
-data <- data.daily %>% filter(using_stimuli==FALSE) %>% select(test_phase, usetime.monkey)
-data$test_phase <- as.factor(data$test_phase)
-
-test1.2 <- wilcox_test(
-  data$usetime.monkey ~ data$test_phase, 
-  alternative='two.sided', # we look into whether group1 has either smaller or larger values than group2, not only one of them.
-  paired=TRUE,
+test <- wilcox_test(
+  data$usetime ~ data$condition, 
+  alternative='two.sided',
+  paired=FALSE,
   detailed=TRUE)
 
-test1.2
+results[2,3] <- round(as.double(pvalue(test)),3)
 
-# Comparing baselines and stimuli --------------------------------------------------------------------------------
+### baseline to post-stimuli ("drug effect")
+data <- data.daily %>% filter(condition!='stimuli')
 
-data <- data.daily %>% select(condition, study_day, usetime.monkey)
-data$condition <- as.factor(data$condition)
+test <- wilcox_test(
+  data$usetime ~ data$condition, 
+  alternative='two.sided',
+  paired=FALSE,
+  detailed=TRUE)
 
-# Summary stats
-tab <- data %>% 
-  group_by(condition) %>% 
-  summarise(
-    N = n_distinct(study_day),
-    Mean=round(mean(usetime.monkey),2), 
-    Median=round(median(usetime.monkey),2), 
-    SD=round(sd(usetime.monkey),2), 
-    SE=round(SD/sqrt(N),2))
+results[3,3] <- round(as.double(1-pvalue(test)),3)
+results
 
-tab
-
-png("significance-tests/stimuli-effect/summary-stats-baselines.png",height=100,width=400)
-grid.table(tab)
+png("figures/significance-tests/1 condition_tests.png",height=100,width=400)
+grid.table(results)
 dev.off()
 
-g1 <- data %>%
-  ggplot(aes(x=condition, y=usetime.monkey)) +
-  geom_boxplot(outlier.colour = "red", outlier.shape = 1) +
-  xlab(NULL) +
-  ylab("Daily interaction time per monkey (s)") +
-  theme_minimal() +
-  scale_x_discrete(labels = list('baseline','post-stimuli','stimuli'))
-
-g1
-
-ggsave("significance-tests/stimuli-effect/baselines-boxplot.png", g1, width=3.5, height=4.5)
-
-results.baselines <- tibble(cond1=c("first-baseline","first-baseline","stimuli"),cond2=c("stimuli","second-baseline","second-baseline"),p=0)
-results.baselines
-
-d <- data %>% filter(condition!='stimuli')
-test <- wilcox_test(
-  d$usetime.monkey ~ d$condition, 
-  alternative='two.sided', # we look into whether group1 has either smaller or larger values than group2, not only one of them.
-  paired=FALSE,
-  detailed=TRUE)
-
-results.baselines[1,3] <- as.double(pvalue(test))
-results.baselines
-
-
-d <- data %>% filter(condition!='first-baseline')
-test <- wilcox_test(
-  d$usetime.monkey ~ d$condition, 
-  alternative='two.sided', # we look into whether group1 has either smaller or larger values than group2, not only one of them.
-  paired=FALSE,
-  detailed=TRUE)
-
-results.baselines[2,3] <- as.double(pvalue(test))
-results.baselines
-
-d <- data %>% filter(condition!='second-baseline')
-test <- wilcox_test(
-  d$usetime.monkey ~ d$condition, 
-  alternative='two.sided', # we look into whether group1 has either smaller or larger values than group2, not only one of them.
-  paired=FALSE,
-  detailed=TRUE)
-results.baselines[3,3] <- as.double(1-pvalue(test))
-results.baselines
-
-png("significance-tests/stimuli-effect/baselines-sigs.png",height=100,width=400)
-grid.table(results.baselines)
-dev.off()
-
+remove(test, data, fig, tab, results)
 
 # 2 Audio vs Visual-----------------------------------------------------------------------------------------
 
-data <- data.daily %>% filter(condition!='second-baseline') %>% select(stimulus, study_day, usetime.monkey)
-data$stimulus <- as.factor(data$stimulus)
-
-data
-
-# Summary stats
-tab <- data %>% 
-  group_by(stimulus) %>% 
+## Summary stats
+tab <- data.daily %>% filter(stimulus!='no-stimulus') %>%
+  group_by(condition, stimulus) %>% 
   summarise(
     N = n_distinct(study_day),
-    Mean=round(mean(usetime.monkey),2), 
-    Median=round(median(usetime.monkey),2), 
-    SD=round(sd(usetime.monkey),2), 
-    SE=round(SD/sqrt(N),2))
+    Mean=round(mean(usetime),2), 
+    Median=round(median(usetime),2), 
+    SD=round(sd(usetime),2), 
+    SE=round(SD/sqrt(N),2)) %>% ungroup()
 
 tab
 
-png("significance-tests/stimuli-type/summary-stats.png",height=100,width=400)
+png("figures/significance-tests/2 stimuli-type_summary-stats.png",height=100,width=400)
 grid.table(tab)
 dev.off()
 
-# Visualising
-g1 <- data %>%
-  ggplot(aes(x=stimulus, y=usetime.monkey)) +
+## Visualising
+fig <- data.daily %>% filter(stimulus!='no-stimulus') %>%
+  ggplot(aes(x=stimulus, y=usetime)) +
   geom_boxplot(outlier.colour = "red", outlier.shape = 1) +
   xlab(NULL) +
-  ylab("Daily interaction time per monkey (s)") +
-  theme_minimal() +
-  scale_x_discrete(labels = list('audio','baseline','visual'))
-g1
+  ylab("Troop's daily interaction time (s)") +
+  theme_minimal() 
+fig
 
-ggsave("significance-tests/stimuli-type/boxplot.png", g1, width=5.0, height=4.5)
+ggsave("figures/significance-tests/2 stimuli-type_boxplot.png", fig, width=5.0, height=4.5)
 
-## Significance of difference with Wilcoxon rank-sum test
-### pairwise, with p.adj method
-
-test2.1 <- pairwise_wilcox_test(data,
-  usetime.monkey ~ stimulus, 
-    p.adjust.method = 'holm', 
-    alternative='two.sided', # we look into whether group1 has either smaller or larger values than group2, not only one of them.
-    paired=FALSE,
-    detailed=TRUE)
-
-tab <- test2.1 %>% select(group1, group2, statistic, p, p.adj, p.adj.signif)
-tab
-
-png("significance-tests/stimuli-type/wilcoxon-pairwise-rank-sum.png",height=100,width=400)
-grid.table(tab)
-dev.off()
-
-
-### Just audio vs visual
-data <- data %>% filter(stimulus!='no-stimulus')
-data
-
-test2.2 <- wilcox_test(
-  data$usetime.monkey ~ data$stimulus, 
-  alternative='two.sided', # we look into whether group1 has either smaller or larger values than group2, not only one of them.
+## Significance test
+data <- data.daily %>% filter(stimulus!='no-stimulus')
+test <- wilcox_test(
+  data$usetime ~ data$stimulus, 
+  alternative='two.sided', 
   paired=FALSE,
   detailed=TRUE)
 
-test2.2
+test
 
-# XXX Audio to baseline weeks -----------------------------------------------------------------------------------------
+results <- tibble(cond1=c("audio"),cond2=c("visual"),p=0)
+results[1,3] <- as.double(1-pvalue(test))
+results
 
-data <- data.daily %>% filter(stimulus != 'visual') %>% select(condition, study_day, usetime.monkey)
-data$condition <- as.factor(data$condition)
+png("figures/significance-tests/2 stimuli_type_tests.png",height=100,width=400)
+grid.table(results)
+dev.off()
 
-data
+remove(results, test, fig, tab)
+
+# 3 Audio to baseline and post-stimuli ---------------------
 
 # Summary stats
-data %>% 
-  group_by(condition) %>% 
+data.daily %>% 
+  group_by(condition, stimulus) %>%
   summarise(
     N = n_distinct(study_day),
-    Mean=round(mean(usetime.monkey),2), 
-    Median=round(median(usetime.monkey),2), 
-    SD=round(sd(usetime.monkey),2), 
+    Mean=round(mean(usetime),2), 
+    Median=round(median(usetime),2), 
+    SD=round(sd(usetime),2), 
     SE=round(SD/sqrt(N),2))
 
 # Visualising
-data %>%
-  ggplot(aes(x=condition, y=usetime.monkey)) +
+data.daily %>% filter(stimulus!="visual") %>%
+  ggplot(aes(x=condition, y=usetime)) +
   geom_boxplot(outlier.colour = "red", outlier.shape = 1) +
   xlab(NULL) +
   ylab("Daily interaction time per monkey (s)") +
+  scale_x_discrete(labels= list("Baseline", "Post-stimuli", "Audio")) +
   theme_minimal()
 
-
-d <- data %>% filter(condition!='stimuli')
-
+# Audio to baseline
+data <- data.daily %>% filter(stimulus!='visual') %>% filter(condition!="second-baseline")
 wilcox_test(
-  d$usetime.monkey ~ d$condition, 
+  data$usetime ~ data$condition, 
   alternative='two.sided', # we look into whether group1 has either smaller or larger values than group2, not only one of them.
   paired=FALSE,
   detailed=TRUE)
 
+# Audio to post-stimuli
+data <- data.daily %>% filter(stimulus!='visual') %>% filter(condition!="first-baseline")
+wilcox_test(
+  data$usetime ~ data$condition, 
+  alternative='two.sided', # we look into whether group1 has either smaller or larger values than group2, not only one of them.
+  paired=FALSE,
+  detailed=TRUE)
 
-# 3 Stimuli Content-----------------------------------------------------------------------------------------
+remove(data)
 
-# Data
-df2
+# 4 - Stimuli Content----------------
 
-# A - AUDIO - summary stats and visualisation
+# A - Audio
 
-data <- df2 %>% filter(stimulus=='auditory')
-data
-
-tab <- data %>% 
+tab <- df2 %>% filter(stimulus=='auditory') %>% 
   group_by(content) %>% 
   summarise(
     N = n_distinct(study_day),
-    Mean=round(mean(usetime.monkey),2), 
-    Median=round(median(usetime.monkey),2), 
-    SD=round(sd(usetime.monkey),2), 
+    Mean=round(mean(usetime),2), 
+    Median=round(median(usetime),2), 
+    SD=round(sd(usetime),2), 
     SE=round(SD/sqrt(N),2))
 
 tab
 
-png("significance-tests/stimuli-content/audio-summary-stats.png",height=100,width=400)
+png("figures/significance-tests/4-A content_audio_summary-stats.png",height=100,width=400)
 grid.table(tab)
 dev.off()
 
 # Visualising
-g1 <- data %>%
-  ggplot(aes(x=content, y=usetime.monkey)) +
+fig <- df2 %>% filter(stimulus=='auditory') %>%
+  ggplot(aes(x=content, y=usetime)) +
   geom_boxplot(outlier.colour = "red", outlier.shape = 1) +
   xlab(NULL) +
-  ylab("Daily interaction time per monkey (s)") + 
+  ylab("Daily interaction time (s)") + 
   theme_minimal()
-g1
+fig
 
-ggsave("significance-tests/stimuli-content/audio-boxplot.png", g1, width=5.0, height=4.5)
+ggsave("figures/significance-tests/4-A content_audio_boxplot.png", fig, width=5.0, height=4.5)
 
-#----------------------------------------------------------------------------------------------------------------------------------
+## Significance tests
 
-results.audio <- tibble(cond1=c("music","music","traffic"),cond2=c("traffic","rain","rain"),p=0)
-results.audio
+results <- tibble(
+  cond1=c("music","music","traffic"),
+  cond2=c("traffic","rain","rain"),
+  p=0)
+results
 
-d <- data %>% filter(content=="music" | content=="traffic")
+data <- df2 %>% filter(content=="music" | content=="traffic")
 test <- wilcox_test(
-  d$usetime.monkey ~ d$content, 
+  data$usetime ~ data$content, 
   alternative='two.sided', # we look into whether group1 has either smaller or larger values than group2, not only one of them.
   paired=FALSE,
   detailed=TRUE
 )
-test
-results.audio[1,3] <- as.double(1-pvalue(test))
-results.audio
+results[1,3] <- as.double(1-pvalue(test))
 
-d <- data %>% filter(content=="music" | content=="rain")
+data <- df2 %>% filter(content=="music" | content=="rain")
 test <- wilcox_test(
-  d$usetime.monkey ~ d$content, 
+  data$usetime ~ data$content, 
   alternative='two.sided', # we look into whether group1 has either smaller or larger values than group2, not only one of them.
   paired=FALSE,
   detailed=TRUE
 )
-test
-results.audio[2,3] <- as.double(1-pvalue(test))
-results.audio
+results[2,3] <- as.double(1-pvalue(test))
 
-d <- data %>% filter(content=="traffic" | content=="rain")
+data <- df2 %>% filter(content=="traffic" | content=="rain")
 test <- wilcox_test(
-  d$usetime.monkey ~ d$content, 
+  data$usetime ~ data$content, 
   alternative='two.sided', # we look into whether group1 has either smaller or larger values than group2, not only one of them.
   paired=FALSE,
   detailed=TRUE
 )
-test
-results.audio[3,3] <- as.double(1-pvalue(test))
-results.audio
+results[3,3] <- as.double(1-pvalue(test))
 
-png("significance-tests/stimuli-content/audio-sig-tests.png",height=100,width=400)
-grid.table(results.audio)
+png("figures/significance-tests/4-A content_audio_tests.png",height=100,width=400)
+grid.table(results)
 dev.off()
 
+remove(data, tab,fig,results,test)
 
-# B - VIDEO - summary stats and visualisation--------------------------------------------------------
+# B - Video ------------------------------
 
-data <- df2 %>% filter(stimulus=='visual')
-data
-
-# Summary stats
-tab <- data %>% 
+## Summary stats
+tab <- df2 %>% filter(stimulus=='visual') %>% 
   group_by(content) %>% 
   summarise(
     N = n_distinct(study_day),
-    Mean=round(mean(usetime.monkey),2), 
-    Median=round(median(usetime.monkey),2), 
-    SD=round(sd(usetime.monkey),2), 
+    Mean=round(mean(usetime),2), 
+    Median=round(median(usetime),2), 
+    SD=round(sd(usetime),2), 
     SE=round(SD/sqrt(N),2))
 
 tab
 
-png("significance-tests/stimuli-content/video-summary-stats.png",height=100,width=400)
+png("figures/significance-tests/4-B content_visual_summary-stats.png",height=100,width=400)
 grid.table(tab)
 dev.off()
 
 # Visualising
-g1 <- data %>%
-  ggplot(aes(x=content, y=usetime.monkey)) +
+fig <- df2 %>% filter(stimulus=='visual') %>%
+  ggplot(aes(x=content, y=usetime)) +
   geom_boxplot(outlier.colour = "red", outlier.shape = 1) +
   xlab(NULL) +
-  ylab("Daily interaction time per monkey (s)") +
+  ylab("Daily interaction time (s)") +
   theme_minimal()
-g1
+fig
 
-g2 <- data %>% 
-  group_by(content) %>%
-  summarise(usetime=mean(usetime.monkey), se=sd(usetime.monkey)/sqrt(n_distinct(study_day)), 
-            se.min=usetime-se, se.max=usetime+se) %>%
-  ggplot(aes(content, usetime)) +
-  geom_bar(stat = "identity", position = "dodge", width = 0.7) +
-  geom_errorbar(aes(ymin=se.min,ymax=se.max, width = 0.3)) +
-  xlab(NULL) +
-  ylab("Daily interaction time per monkey (s)") +
-  theme_minimal() +
-  labs(
-    caption="Error bars present standard error (SE).")
-g2
+ggsave("figures/significance-tests/4-B content_visual_boxplot.png", fig, width=5.0, height=4.5)
 
-ggsave("significance-tests/stimuli-content/video-boxplot.png", g1, width=5.0, height=4.5)
-ggsave("significance-tests/stimuli-content/video-barplot.png", g2, width=5.0, height=4.5)  
+## Signfiicance tests
 
-#----------------------------------------------------------------------------------------------------------------------------------
+results <- tibble(
+  cond1=c("underwater","underwater","abstract"),
+  cond2=c("abstract","worms","worms"),
+  p=0)
 
-results.video <- tibble(cond1=c("underwater","underwater","abstract"),cond2=c("abstract","worms","worms"),p=0)
-results.video
-
-d <- data %>% filter(content=="underwater" | content=="abstract")
+data <- df2 %>% filter(content=="underwater" | content=="abstract")
 test <- wilcox_test(
-  d$usetime.monkey ~ d$content, 
+  data$usetime ~ data$content, 
   alternative='two.sided', # we look into whether group1 has either smaller or larger values than group2, not only one of them.
   paired=FALSE,
   detailed=TRUE
 )
-test
-results.video[1,3] <- as.double(1-pvalue(test))
-results.video
+results[1,3] <- as.double(1-pvalue(test))
 
-d <- data %>% filter(content=="underwater" | content=="worms")
+data <- df2 %>% filter(content=="underwater" | content=="worms")
 test <- wilcox_test(
-  d$usetime.monkey ~ d$content, 
+  data$usetime ~ data$content, 
   alternative='two.sided', # we look into whether group1 has either smaller or larger values than group2, not only one of them.
   paired=FALSE,
   detailed=TRUE
 )
-test
-results.video[2,3] <- as.double(1-pvalue(test))
-results.video
+results[2,3] <- as.double(1-pvalue(test))
 
-d <- data %>% filter(content=="abstract" | content=="worms")
+data <- df2 %>% filter(content=="abstract" | content=="worms")
 test <- wilcox_test(
-  d$usetime.monkey ~ d$content, 
+  data$usetime ~ data$content, 
   alternative='two.sided', # we look into whether group1 has either smaller or larger values than group2, not only one of them.
   paired=FALSE,
   detailed=TRUE
 )
-test
-results.video[3,3] <- as.double(1-pvalue(test))
-results.video
+results[3,3] <- as.double(1-pvalue(test))
 
+results
 
-png("significance-tests/stimuli-content/video-sig-tests.png",height=100,width=400)
-grid.table(results.video)
+png("figures/significance-tests/4-B content_visual_tests.png",height=100,width=400)
+grid.table(results)
 dev.off()
 
-#----------------------------------------------------------------------------------------------------------------------------------
-# Significance of difference with Wilcoxon rank-sum test
-# pairwise, with p.adj method
+remove(tab,fig,data,results,test)
 
-test3.1 <- pairwise_wilcox_test(
-  df2,
-  usetime.monkey ~ content, 
-  p.adjust.method = 'holm', 
-  alternative='two.sided', # we look into whether group1 has either smaller or larger values than group2, not only one of them.
-  paired=FALSE,
-  detailed=TRUE
-)
 
-test3.1
-tab <- test3.1 %>% select(group1, group2, statistic, p, p.adj, p.adj.signif)
+# 5 - Interactions between zones
+
+## Summary stats
+tab <- df2 %>% 
+  group_by(switch) %>% 
+  summarise(
+    N = n_distinct(study_day),
+    Mean=round(mean(usetime),2), 
+    Median=round(median(usetime),2), 
+    SD=round(sd(usetime),2), 
+    SE=round(SD/sqrt(N),2))
+
 tab
 
-png("significance-tests/stimuli-content/wilcoxon-pairwise-rank-sum.png",height=400,width=400)
+png("figures/significance-tests/5 zones_summary-stats.png",height=100,width=400)
 grid.table(tab)
 dev.off()
 
+## Visualising
+
+fig <- df2 %>%
+  ggplot(aes(x=switch, y=usetime)) +
+  geom_boxplot(outlier.colour = "red", outlier.shape = 1) +
+  xlab(NULL) +
+  ylab("Daily interaction time (s)") +
+  theme_minimal()
+fig
+
+ggsave("figures/significance-tests/5 zones_boxplot.png", fig, width=5.0, height=4.5)
+
+## Significance tests
+
+results <- tibble(cond1=c("0","0","1"),cond2=c("1","2","2"),p=0)
+
+data <- df2 %>% filter(switch=="0" | switch=="1")
+test <- wilcox_test(
+  data$usetime ~ data$switch, 
+  alternative='two.sided', # we look into whether group1 has either smaller or larger values than group2, not only one of them.
+  paired=FALSE,
+  detailed=TRUE
+)
+results[1,3] <- as.double(pvalue(test))
+
+data <- df2 %>% filter(switch=="0" | switch=="2")
+test <- wilcox_test(
+  data$usetime ~ data$switch, 
+  alternative='two.sided', # we look into whether group1 has either smaller or larger values than group2, not only one of them.
+  paired=FALSE,
+  detailed=TRUE
+)
+results[2,3] <- as.double(pvalue(test))
+
+
+data <- df2 %>% filter(switch=="1" | switch=="2")
+test <- wilcox_test(
+  data$usetime ~ data$switch, 
+  alternative='two.sided', # we look into whether group1 has either smaller or larger values than group2, not only one of them.
+  paired=FALSE,
+  detailed=TRUE
+)
+results[3,3] <- as.double(pvalue(test))
+
+results
+
+png("figures/significance-tests/5 zones_tests.png",height=100,width=400)
+grid.table(results)
+dev.off()
+
+remove(tab,fig,data,results,test)
 

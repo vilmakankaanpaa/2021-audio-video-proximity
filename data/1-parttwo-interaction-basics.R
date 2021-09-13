@@ -1,8 +1,10 @@
 
-# TODO: can I just collectively leave the second baseline out of the data instead of filtering it here and there?
+# There were 3 monkeys
+# The study period was 32 days
 
 library(tidyverse)
 library(gridExtra)
+library(Kendall) # for testing trend in time-series data
 
 # Set directory to where this file resides.
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
@@ -22,166 +24,275 @@ df$switch <- as.factor(df$switch)
 df$starttime <- as.character(df$starttime)
 df$test_phase_day <- as.factor(df$test_phase_day)
 
-# Data now
+# Let's peek
 head(df)
 
+# --------- TRANSFORM DATA -----------------------
 
-# BASIC VALUES
-monkeys = 3
-study_days = 32
-labels <- c(
-  "1-control-prior" = "1. No-stimuli",
-  "2-audio-1"= "2. Audio 1", 
-  "3-visual-1" = "3. Visual 1", 
-  "4-audio-2" = "4. Audio 2", 
-  "5-visual-2" = "5. Visual 2",
-  "6-audio-3" = "6. Audio 3",
-  "7-visual-3" = "7. Visual 3",
-  "8-control-post" = "8. No-stimuli")
-
-
-# ------------------------------------------------ TRANSFORM DATA ------------------------------------------------------------------------
-
-# DATA BASED ON STUDY DAY
+# 1 - Daily summary data ---------------
 
 # Collect summary data for each study day
-data.daily <- df %>% group_by(stimulus, using_stimuli, condition, test_phase, test_phase_day, study_day) %>% 
+df.daily <- df %>% 
+  group_by(stimulus, using_stimuli, condition, test_phase, test_phase_day, study_day) %>% 
   summarise(
     periods = n_distinct(period_id),
-    periods.monkey = n_distinct(period_id)/monkeys,
     interactions = n_distinct(ix_id),
-    interactions.monkey = n_distinct(ix_id)/monkeys,
     usetime = sum(duration),
-    usetime.monkey = sum(duration)/monkeys
-  )
+  ) %>% ungroup()
 
-# IF GOING TO TAKE ANY MEANS, NEED TO ADD EMPTY ROWS FOR MISSING DAYS
+# For calculating mean values over the daily data, 
+# we need to add values for any day that did not 
+# have any interactions.
 
-# video 2
-data.daily <- bind_rows(data.daily, list(stimulus='visual', using_stimuli=TRUE, condition='stimuli', test_phase='5-visual-2', test_phase_day="3", study_day=19, periods=0, periods.monkey=0, interactions=0, interactions.monkey=0, usetime=0, usetime.monkey=0))
+# Cycle: visual 2
+df.daily <- bind_rows(
+  df.daily, list(stimulus='visual', using_stimuli=TRUE, condition='stimuli', 
+                 test_phase='5-visual-2', test_phase_day="3", study_day=19, 
+                 periods=0, interactions=0, usetime=0))
 
-# audio 3
-data.daily <- bind_rows(data.daily, list(stimulus='auditory', using_stimuli=TRUE, condition='stimuli', test_phase='6-audio-3', test_phase_day="3", study_day=22, periods=0, periods.monkey=0, interactions=0, interactions.monkey=0, usetime=0, usetime.monkey=0))
+# Cycle: audio 3
+df.daily <- bind_rows(
+  df.daily, list(stimulus='auditory', using_stimuli=TRUE, condition='stimuli', 
+                 test_phase='6-audio-3', test_phase_day="3", study_day=22, 
+                 periods=0, interactions=0, usetime=0))
 
 # Posterior baseline
-data.daily <- bind_rows(data.daily, list(stimulus='no-stimulus', using_stimuli=FALSE, condition='second-baseline', test_phase='8-control-post', test_phase_day="2", study_day=27, periods=0, periods.monkey=0, interactions=0, interactions.monkey=0, usetime=0, usetime.monkey=0))
-
+df.daily <- bind_rows(
+  df.daily, list(stimulus='no-stimulus', using_stimuli=FALSE, condition='second-baseline', 
+                 test_phase='8-control-post', test_phase_day="2", study_day=27, 
+                 periods=0, interactions=0, usetime=0))
 
 # Arrange the table
-data.daily <- data.daily %>% arrange(study_day)
+df.daily <- df.daily %>% arrange(study_day)
 
-data.daily
+head(df.daily)
 
-# DATA BASED ON INTERACTIVITY PERIODS (combine interactions together)
+# 2 - Data grouped by interactivity periods -----
 
 # Group the data by the interactive periods. 
 #   Calculate the duration of period by sum of its interaction durations. 
 #   Pick the starttime as the earliest time of its interactions.
-df.periods <- df %>% group_by(period_id, date, study_day, test_phase, test_phase_day, stimulus, switch, content, individual, using_stimuli, condition) %>%
+df.periods <- df %>% 
+  group_by(period_id, date, study_day, test_phase, 
+           test_phase_day, stimulus, individual, using_stimuli, condition) %>%
   summarise(
-    stimulus_interactions = n_distinct(ix_id),
+    interactions = n_distinct(ix_id),
     starttime = min(starttime),
     duration = sum(duration)
-  )
+  ) %>% ungroup()
 
-df.periods
+# Let's peek
+head(df.periods)
 
+# The original data is by interactions. Let's just rename it for later use.
+df.interactions <-  df
 
-# ------------------------------------------------ ANALYSIS ------------------------------------------------------------------------
+remove(df)
 
+# --------- ANALYSIS ------------------------------
 
-# 1 Sumary stats -------------------------------------------------------------------------------------------------------------------
+# 0 - Trend test ------------------------
+# Is there a trend in the data distribution of daily interaction time?
+# (it looks like the data follows a cyclic or zigzag pattern)
+# Trend test: testing whether there is a trend in visible "cycles" over the study 
+MannKendall(df.daily$usetime)
 
-# Interactive periods: total, daily, per monkey, daily per monkey
-# Button interactions: total, daily, per monkey, daily per monkey
-# Interaction time: total, per monkey, daily per monkey, SD
+# 1 - Sumary stats -----------------------
 
-# A - WHOLE STUDY
+# Interactive periods: total and daily
+# (Zone) Interactions: total and daily
+# Interaction time (usetime): total, daily and SD
 
-tab1 <- df %>% summarise(
-  'Interactive periods' = n_distinct(period_id),
-  'Button interactions' = n_distinct(ix_id),
-  'AVG. daily interactive periods' = n_distinct(period_id)/study_days,
-  'AVG. daily button interactions' = format(round(n_distinct(ix_id)/study_days,2),nsmall=2),
-  'AVG. daily interaction time' = format(round(sum(duration)/study_days,2),nsmall=2)
+# A - Whole study
+
+tab <- df.daily %>% summarise(
+  'Interactive periods' = sum(periods),
+  'Zone interactions' = sum(interactions),
+  'Total interaction time' = sum(usetime),
+  'Daily interactive periods' = mean(periods),
+  'Daily zone interactions' = format(round(mean(interactions),2),nsmall=2),
+  'Daily interaction time' = format(round(mean(usetime),2),nsmall=2)
 )
+tab
 
-tab1
-
-png("1-A summary_whole-study.png",height=150,width=800)
-grid.table(tab1)
+png("figures/basics/1-A summary_whole-study.png",height=100,width=900)
+grid.table(tab)
 dev.off()
 
-# B - NO-STIMULI VS STIMULI
+# B - Condition (Baseline or stimuli)
 
-tab2 <- data.daily %>% filter(condition!='second-baseline') %>% group_by(condition) %>% 
+tab <- df.daily %>% group_by(using_stimuli) %>% 
   summarise(
+    # Total values:
     'Study days' = n_distinct(study_day),
     'Interactive periods' = sum(periods),
-    'Mean interactive periods daily per monkey' = format(round(mean(periods.monkey),2),nsmall=2),
-    'Button Interactions' = sum(interactions),
-    'Mean button Interactions daily per monkey' = format(round(mean(interactions.monkey),2),nsmall=2),
+    'Zone Interactions' = sum(interactions),
     'Interaction time (s)' = format(round(sum(usetime),2),nsmall=2),
-    'Mean interaction time (s) daily per monkey' = format(round(mean(usetime.monkey),2),nsmall=2),
-    'SD of interaction time (s) daily per monkey' = format(round(sd(usetime.monkey),2),nsmall=2)
-  )
+    # Comparable daily values (as there are different number of test days):
+    'Interactive periods daily' = format(round(mean(periods),2),nsmall=2),
+    'Zone Interactions daily' = format(round(mean(interactions),2),nsmall=2),
+    'Interaction time (s) daily' = format(round(mean(usetime),2),nsmall=2),
+    'SD of interaction time (s) daily' = format(round(sd(usetime),2),nsmall=2)
+  ) %>% ungroup()
 
-tab2
+tab
 
-png("1-B summary_using-stimuli.png",height=150,width=1600)
-grid.table(tab2)
+png("figures/basics/1-B summary_using-stimuli.png",height=150,width=1600)
+grid.table(tab)
 dev.off()
 
-# C - STIMULI TYPE (AUDIO, VISUAL, NO)
+# C - Stimuli type (audio, visual, no-stimuli)
 
-tab3 <- data.daily %>% filter(condition!='second-baseline') %>% group_by(stimulus) %>% 
+tab <- df.daily %>% group_by(stimulus) %>% 
   summarise(
+    # Total values:
     'Study days' = n_distinct(study_day),
     'Interactive periods' = sum(periods),
-    'Interactive periods daily per monkey' = format(round(mean(periods.monkey),2),nsmall=2),
-    'Button Interactions' = sum(interactions),
-    'Button Interactions daily per monkey' = format(round(mean(interactions.monkey),2),nsmall=2),
+    'Zone Interactions' = sum(interactions),
     'Interaction time (s)' = format(round(sum(usetime),2),nsmall=2),
-    'Interaction time (s) daily per monkey' = format(round(mean(usetime.monkey),2),nsmall=2),
-    'SD of interaction time (s) daily per monkey' = format(round(sd(usetime.monkey),2),nsmall=2)
-  )
+    # Comparable daily values (as there are different number of test days):
+    'Interactive periods daily' = format(round(mean(periods),2),nsmall=2),
+    'Zone Interactions daily' = format(round(mean(interactions),2),nsmall=2),
+    'Interaction time (s) daily' = format(round(mean(usetime),2),nsmall=2),
+    'SD of interaction time (s) daily' = format(round(sd(usetime),2),nsmall=2)
+  ) %>% ungroup()
 
-tab3
+tab
 
-png("1-C summary_stimuli-type.png",height=150,width=1600)
-grid.table(tab3)
+png("figures/basics/1-C summary_stimuli-type.png",height=150,width=1600)
+grid.table(tab)
 dev.off()
 
-# D - CYCLES
+# D - Study cycles
 
-tab4 <- data.daily %>% group_by(test_phase) %>% 
+tab <- df.daily %>% group_by(test_phase) %>% 
   summarise(
+    # Total values:
     'Study days' = n_distinct(study_day),
     'Interactive periods' = sum(periods),
-    'Interactive periods daily per monkey' = format(round(mean(periods.monkey),2),nsmall=2),
-    'Button Interactions' = sum(interactions),
-    'Button Interactions daily per monkey' = format(round(mean(interactions.monkey),2),nsmall=2),
+    'Zone Interactions' = sum(interactions),
     'Interaction time (s)' = format(round(sum(usetime),2),nsmall=2),
-    'Interaction time (s) daily per monkey' = format(round(mean(usetime.monkey),2),nsmall=2),
-    'SD of interaction time (s) daily per monkey' = format(round(sd(usetime.monkey),2),nsmall=2)
-  )
+    # Comparable daily values (as there are different number of test days):
+    'Interactive periods daily' = format(round(mean(periods),2),nsmall=2),
+    'Zone Interactions daily' = format(round(mean(interactions),2),nsmall=2),
+    'Interaction time (s) daily' = format(round(mean(usetime),2),nsmall=2),
+    'SD of interaction time (s) daily' = format(round(sd(usetime),2),nsmall=2)
+  ) %>% ungroup()
 
-tab4
+tab
 
-png("1-D summary_cycles.png",height=150,width=1600)
-grid.table(tab4)
+png("figures/basics/1-D summary_cycles.png",height=300,width=1600)
+grid.table(tab)
 dev.off()
 
+# Clean up
+remove(tab)
 
-# 2 Duration of interactivity periods ----------------------------------------------------------------------------------------
 
-# Interactions = Interactivity periods
+# 2 - Duration of interactivity periods ------------
+
 # Collect the stats about interactive period durations: 
 #   Mean, median, std, longest, shortest
 
-# A - WHOLE STUDY
+# A - Whole study
 
-results.periods <- df.periods %>% group_by() %>% summarise(
+tab <- df.periods %>% 
+  summarise(
+    'Mean duration' = format(round(mean(duration),2), nsmall=2),
+    'Median duration' = format(round(median(duration),2), nsmall=2),
+    'SD of duration' = format(round(sd(duration),2), nsmall=2),
+    'Longest duration' = format(round(max(duration),2),nsmall=2),
+    'Shortest duration' = format(round(min(duration),2), nsmall=2)
+  )
+tab
+
+png("figures/basics/2-A duration_whole-study.png",height=100,width=600)
+grid.table(tab)
+dev.off()
+
+# B - Condition (baseline or stimuli)
+
+tab <- left_join(
+  df.daily %>% 
+    group_by(using_stimuli) %>%
+    summarise('Interactive periods' = sum(periods),
+              'Interactive periods daily' = format(round(mean(periods),2), nsmall=2)
+    ) %>% ungroup(), 
+  df.periods %>% 
+    group_by(using_stimuli) %>% 
+    summarise(
+      'Mean duration' = format(round(mean(duration),2), nsmall=2),
+      'Median duration' = format(round(median(duration),2), nsmall=2),
+      'SD of duration' = format(round(sd(duration),2), nsmall=2),
+      'Longest duration' = format(round(max(duration),2),nsmall=2),
+      'Shortest duration' = format(round(min(duration),2), nsmall=2)
+    ) %>% ungroup()
+)
+tab
+
+png("figures/basics/2-B duration_using-stimuli.png",height=150,width=900)
+grid.table(tab)
+dev.off()
+
+# C - Stimuli type (audio, visual, no-stimuli)
+
+tab <- left_join(
+  df.daily %>% 
+    group_by(stimulus) %>%
+    summarise(
+      'Interactive periods' = sum(periods),
+      'Interactive periods daily' = format(round(mean(periods),2), nsmall=2)
+    ) %>% ungroup(), 
+  df.periods %>% group_by(stimulus) %>% 
+    summarise(
+      'Mean duration' = format(round(mean(duration),2), nsmall=2),
+      'Median duration' = format(round(median(duration),2), nsmall=2),
+      'SD of duration' = format(round(sd(duration),2), nsmall=2),
+      'Longest duration' = format(round(max(duration),2),nsmall=2),
+      'Shortest duration' = format(round(min(duration),2), nsmall=2)
+    ) %>% ungroup()
+)
+
+tab
+
+# Print out the results table. Saved to the same directory as the file is at.
+png("figures/basics/2-C duration_stimuli-type.png",height=150,width=900)
+grid.table(tab)
+dev.off()
+
+# D - Study cycles
+
+tab <- left_join(
+  df.daily %>% 
+    group_by(test_phase) %>%
+    summarise(
+      'Interactive periods' = sum(periods),
+      'Interactive periods daily' = format(round(mean(periods),2), nsmall=2)
+    ) %>% ungroup(), 
+  df.periods %>% group_by(test_phase) %>% 
+    summarise(
+      'Mean duration' = format(round(mean(duration),2), nsmall=2),
+      'Median duration' = format(round(median(duration),2), nsmall=2),
+      'SD of duration' = format(round(sd(duration),2), nsmall=2),
+      'Longest duration' = format(round(max(duration),2),nsmall=2),
+      'Shortest duration' = format(round(min(duration),2), nsmall=2)
+    ) %>% ungroup()
+)
+
+tab
+
+# Print out the results table. Saved to the same directory as the file is at.
+png("figures/basics/2-D duration_cycles.png",height=300,width=900)
+grid.table(tab)
+dev.off()
+
+remove(tab)
+
+# 3 - Duration of zone interactions ---------------------
+
+# A - Whole study
+df.interactions
+tab <- df.interactions %>% summarise(
   'Mean duration' = format(round(mean(duration),2), nsmall=2),
   'Median duration' = format(round(median(duration),2), nsmall=2),
   'SD of duration' = format(round(sd(duration),2), nsmall=2),
@@ -189,227 +300,208 @@ results.periods <- df.periods %>% group_by() %>% summarise(
   'Shortest duration' = format(round(min(duration),2), nsmall=2)
 )
 
-results.periods
+tab
 
-png("2-A duration_whole-study.png",height=150,width=800)
-grid.table(results.periods)
+png("figures/basics/3-A duration_whole-study.png",height=100,width=600)
+grid.table(tab)
 dev.off()
 
+# B - Condition (Baseline or stimuli)
 
-# B - NO STIMULI VS STIMULI
-
-results.periods <- left_join(data.daily %>% filter(condition!='second-baseline') %>% group_by(condition) %>%
-                               summarise(
-                                 'Interactive periods' = sum(periods)
-                               ), 
-                             df.periods %>% filter(condition!='second-baseline') %>% group_by(condition) %>% 
-                               summarise(
-                                 'Mean duration' = format(round(mean(duration),2), nsmall=2),
-                                 'Median duration' = format(round(median(duration),2), nsmall=2),
-                                 'SD of duration' = format(round(sd(duration),2), nsmall=2),
-                                 'Longest duration' = format(round(max(duration),2),nsmall=2),
-                                 'Shortest duration' = format(round(min(duration),2), nsmall=2)
-                               )
+tab <- left_join(
+  df.daily %>% 
+    group_by(using_stimuli) %>%
+    summarise(
+      'Zone interactions' = sum(interactions),
+      'Daily zone interactions' = format(round(mean(interactions),2), nsmall=2)
+    ) %>% ungroup(), 
+  df.interactions %>% 
+    group_by(using_stimuli) %>% 
+    summarise(
+      'Mean duration' = format(round(mean(duration),2), nsmall=2),
+      'Median duration' = format(round(median(duration),2), nsmall=2),
+      'SD of duration' = format(round(sd(duration),2), nsmall=2),
+      'Longest duration' = format(round(max(duration),2),nsmall=2),
+      'Shortest duration' = format(round(min(duration),2), nsmall=2)
+    ) %>% ungroup()
 )
 
-results.periods
+tab
 
-# Print out the results table. Saved to the same directory as the file is at.
-png("2-B duration_using-stimuli.png",height=150,width=800)
-grid.table(results.periods)
+png("figures/basics/3-B duration_using-stimuli.png",height=120,width=920)
+grid.table(tab)
 dev.off()
 
-# C - STIMULI TYPE
+# C - Stimuli type (audio, visual, no-stimuli)
 
-results.periods <- left_join(data.daily %>% filter(condition!='second-baseline') %>% group_by(stimulus) %>%
-                               summarise(
-                                 'Interactive periods' = sum(periods)
-                               ), 
-                             df.periods %>% filter(condition!='second-baseline') %>% group_by(stimulus) %>% 
-                               summarise(
-                                 'Mean duration' = format(round(mean(duration),2), nsmall=2),
-                                 'Median duration' = format(round(median(duration),2), nsmall=2),
-                                 'SD of duration' = format(round(sd(duration),2), nsmall=2),
-                                 'Longest duration' = format(round(max(duration),2),nsmall=2),
-                                 'Shortest duration' = format(round(min(duration),2), nsmall=2)
-                               )
+tab <- left_join(
+  df.daily %>% 
+    group_by(stimulus) %>%
+    summarise(
+      'Zone interactions' = sum(interactions),
+      'Daily zone interactions' = format(round(mean(interactions),2), nsmall=2)
+    ) %>% ungroup(), 
+  df.interactions %>% group_by(stimulus) %>% 
+    summarise(
+      'Mean duration' = format(round(mean(duration),2), nsmall=2),
+      'Median duration' = format(round(median(duration),2), nsmall=2),
+      'SD of duration' = format(round(sd(duration),2), nsmall=2),
+      'Longest duration' = format(round(max(duration),2),nsmall=2),
+      'Shortest duration' = format(round(min(duration),2), nsmall=2)
+    ) %>% ungroup()
 )
 
-results.periods
+tab
 
-# Print out the results table. Saved to the same directory as the file is at.
-png("2-C duration_stimuli-type.png",height=150,width=800)
-grid.table(results.periods)
+png("figures/basics/3-C duration_stimuli-type.png",height=150,width=920)
+grid.table(tab)
 dev.off()
 
-# D - CYCLES
+# D - Study cycles
 
-results.periods <- left_join(data.daily %>% group_by(test_phase) %>%
-                               summarise(
-                                 'Interactive periods' = sum(periods)
-                               ), 
-                             df.periods %>% group_by(test_phase) %>% 
-                               summarise(
-                                 'Mean duration' = format(round(mean(duration),2), nsmall=2),
-                                 'Median duration' = format(round(median(duration),2), nsmall=2),
-                                 'SD of duration' = format(round(sd(duration),2), nsmall=2),
-                                 'Longest duration' = format(round(max(duration),2),nsmall=2),
-                                 'Shortest duration' = format(round(min(duration),2), nsmall=2)
-                               )
+tab <- left_join(
+  df.daily %>% 
+    group_by(test_phase) %>%
+    summarise(
+      'Zone interactions' = sum(interactions),
+      'Daily Zone interactions' = format(round(mean(interactions),2), nsmall=2)
+    ) %>% ungroup(), 
+  df.interactions %>% group_by(test_phase) %>% 
+    summarise(
+      'Mean duration' = format(round(mean(duration),2), nsmall=2),
+      'Median duration' = format(round(median(duration),2), nsmall=2),
+      'SD of duration' = format(round(sd(duration),2), nsmall=2),
+      'Longest duration' = format(round(max(duration),2),nsmall=2),
+      'Shortest duration' = format(round(min(duration),2), nsmall=2)
+    ) %>% ungroup()
 )
 
-results.periods
+tab
 
-# Print out the results table. Saved to the same directory as the file is at.
-png("2-D duration_cycles.png",height=150,width=800)
-grid.table(results.periods)
+png("figures/basics/3-D duration_cycles.png",height=300,width=900)
+grid.table(tab)
 dev.off()
 
+remove(tab)
 
 
-# 3 Duration of button interactions ----------------------------------------------------------------------------------------
+# 4 - Trajectory of interaction time over the study period -----
 
-# Interactions = Button interactions
+# Plot the troop's daily interaction time
 
-# A - WHOLE STUDY
+# A - By study days 
 
-results.buttons <- df %>% group_by() %>% summarise(
-  'Mean duration' = format(round(mean(duration),2), nsmall=2),
-  'Median duration' = format(round(median(duration),2), nsmall=2),
-  'SD of duration' = format(round(sd(duration),2), nsmall=2),
-  'Longest duration' = format(round(max(duration),2),nsmall=2),
-  'Shortest duration' = format(round(min(duration),2), nsmall=2)
-)
-
-results.buttons
-
-png("3-A duration_whole-study.png",height=150,width=800)
-grid.table(results.buttons)
-dev.off()
-
-# B - USING STIMULI
-results.buttons <- left_join(data.daily %>% filter(condition!='second-baseline') %>% group_by(condition) %>%
-                               summarise(
-                                 'Button interactions' = sum(interactions)
-                               ), 
-                             df %>% filter(condition!='second-baseline') %>% group_by(condition) %>% 
-                               summarise(
-                                 'Mean duration' = format(round(mean(duration),2), nsmall=2),
-                                 'Median duration' = format(round(median(duration),2), nsmall=2),
-                                 'SD of duration' = format(round(sd(duration),2), nsmall=2),
-                                 'Longest duration' = format(round(max(duration),2),nsmall=2),
-                                 'Shortest duration' = format(round(min(duration),2), nsmall=2)
-                               )
-)
-
-results.buttons
-
-png("3-B duration_using-stimuli.png",height=150,width=800)
-grid.table(results.buttons)
-dev.off()
-
-# C - STIMULI TYPE
-
-results.buttons <- left_join(data.daily %>% filter(condition!='second-baseline') %>% group_by(stimulus) %>%
-                               summarise(
-                                 'Button interactions' = sum(interactions)
-                               ), 
-                             df %>% filter(condition!='second-baseline') %>% group_by(stimulus) %>% 
-                               summarise(
-                                 'Mean duration' = format(round(mean(duration),2), nsmall=2),
-                                 'Median duration' = format(round(median(duration),2), nsmall=2),
-                                 'SD of duration' = format(round(sd(duration),2), nsmall=2),
-                                 'Longest duration' = format(round(max(duration),2),nsmall=2),
-                                 'Shortest duration' = format(round(min(duration),2), nsmall=2)
-                               )
-)
-
-results.buttons
-
-png("3-C duration_stimuli-type.png",height=150,width=800)
-grid.table(results.buttons)
-dev.off()
-
-# D - CYCLES
-
-results.buttons <- left_join(data.daily %>% group_by(test_phase) %>%
-                               summarise(
-                                 'Button interactions' = sum(interactions)
-                               ), 
-                             df %>% group_by(test_phase) %>% 
-                               summarise(
-                                 'Mean duration' = format(round(mean(duration),2), nsmall=2),
-                                 'Median duration' = format(round(median(duration),2), nsmall=2),
-                                 'SD of duration' = format(round(sd(duration),2), nsmall=2),
-                                 'Longest duration' = format(round(max(duration),2),nsmall=2),
-                                 'Shortest duration' = format(round(min(duration),2), nsmall=2)
-                               )
-)
-
-results.buttons
-
-png("3-D duration_cycles.png",height=150,width=800)
-grid.table(results.buttons)
-dev.off()
-
-
-
-
-# 4 TRAJECTORY OF DAILY USAGE ----------------------------------------------------------------------------------------
-
-# Interaction time per monkey
-g1 <- ggplot(data=data.daily, aes(study_day, usetime.monkey)) + #fill=test_phase
-  #geom_line() +
-  #geom_point() +
-  geom_col() +
-  geom_smooth(se=FALSE) +
+fig <- ggplot(data=df.daily, aes(study_day, usetime)) + 
+  geom_col(aes(fill=stimulus)) +
+  geom_smooth(se=FALSE, colour="black") +
   scale_x_continuous(breaks=seq(1,32,1)) +
-  scale_y_continuous(breaks=seq(0,24,2)) +
+  scale_y_continuous(breaks=seq(0,70,5)) +
   xlab('Study day') +
-  ylab('Interaction time per monkey (s)') +
-  #labs(title='Interaction time per monkey') +
+  ylab("Troop's interaction time (s)") +
   theme_minimal()
 
-g1 <- g1 + theme(panel.grid.minor = element_blank())
+fig <- fig + theme(panel.grid.minor = element_blank()) + 
+  theme(panel.grid.major = element_blank()) +
+  scale_fill_brewer("Condition:", palette="Set2") + 
+  theme(legend.position = "top")
 
-g1
+fig
+ggsave("figures/basics/4-A trajectory.png", fig, width=7.5, height=4.0)
 
-ggsave("4-periods-trajectory-cols-n-smooth.png", g1, width=8.5, height=4.5)  
+remove(fig)
 
-# By cycles
+# B - By cycles
 
-g2 <- ggplot(data=data.daily, aes(test_phase, usetime.monkey)) +
-  geom_col() +
+boxplot <- ggplot(data=df.daily,aes(test_phase, usetime)) +
+  geom_boxplot(outlier.colour = "red", outlier.shape = 1, aes(fill=stimulus)) +
   scale_y_continuous(breaks=seq(0,70,5)) +
   xlab(NULL) +
-  ylab('Interaction time per monkey (s)') +
-  scale_x_discrete(labels = labels) +
-  #labs(title='Interaction time per monkey') +
+  ylab("Troop's interaction time per day (s)") +
+  scale_x_discrete(labels = list("Baseline", "Audio", "Visual", "Audio", "Visual", "Audio", "Visual", "Post-stimuli")) +
+  labs(caption = "\nMiddle lines = median; hinges = 25th and 75th percentiles; whiskers = max and min values") +
   theme_minimal()
 
-g2 <- g2 + theme(panel.grid.minor = element_blank())
+boxplot <- boxplot + 
+  theme(panel.grid.minor = element_blank()) + 
+  theme(panel.grid.major = element_blank()) +
+  scale_fill_brewer("Condition:", palette="Set2") +
+  theme(legend.position = "top")
 
-g2
+boxplot
 
-ggsave("4-2_cycle-trajectory.png", g2, width=6.5, height=4.5)  
+ggsave("figures/basics/4-B boxplot_cycles.png", boxplot, width=7.0, height=4.0)  
 
+remove(boxplot)
 
-png("4-B table-cycles-usage.png",height=200,width=300)
-grid.table(
-  data.daily %>% group_by(test_phase) %>%
-    summarise('interaction time (s)' =round(sum(usetime.monkey),1))
-)
-dev.off()
+# 5 - Interactive periods by individual monkeys ------------------
 
+# A - Whole study
 
-
-# 5 INDIVIDUAL USAGE -----------------------------------------------------------------------------------------------
-
-# WHOLE STDUY
-individuals <- df.periods %>% group_by(individual) %>% 
+tab <- df.periods %>% 
+  group_by(individual) %>% 
   summarise(
     periods = n_distinct(period_id),
-    interactions = sum(stimulus_interactions),
+    interactions = sum(interactions),
+    usetime = format(round(sum(duration),0),nsmall=0),
+    m.duration = format(round(mean(duration),1), nsmall=1),
+    md.duration = round(median(duration),1),
+    std.duration = format(round(sd(duration),1), nsmall=1),
+    max.duration = format(round(max(duration),1),nsmall=1),
+    min.duration = format(round(min(duration),1), nsmall=1)
+  ) %>% ungroup()
+
+tab
+
+png("figures/basics/5-A individuals_whole-study.png",height=150,width=800)
+grid.table(tab)
+dev.off()
+
+# B - Condition (baseline or stimuli)
+
+tab <- df.periods %>% 
+  group_by(using_stimuli, individual) %>% 
+  summarise(
+    periods = n_distinct(period_id),
+    interactions = sum(interactions),
+    usetime = format(round(sum(duration),0),nsmall=0),
+    m.duration = format(round(mean(duration),1), nsmall=1),
+    md.duration = round(median(duration),1),
+    std.duration = format(round(sd(duration),1), nsmall=1),
+    max.duration = format(round(max(duration),1),nsmall=1),
+    min.duration = format(round(min(duration),1), nsmall=1)
+  ) %>% ungroup()
+
+tab
+
+png("figures/basics/5-B individuals_using-stimuli.png",height=150,width=800)
+grid.table(tab)
+dev.off()
+
+# C - Stimuli type (audio, visual, no-stimuli)
+
+tab <- df.periods %>% group_by(stimulus, individual) %>% 
+  summarise(
+    periods = n_distinct(period_id),
+    interactions = sum(interactions),
+    usetime = format(round(sum(duration),0),nsmall=0),
+    m.duration = format(round(mean(duration),1), nsmall=1),
+    md.duration = round(median(duration),1),
+    std.duration = format(round(sd(duration),1), nsmall=1),
+    max.duration = format(round(max(duration),1),nsmall=1),
+    min.duration = format(round(min(duration),1), nsmall=1)
+  ) %>% ungroup()
+tab
+
+png("figures/basics/5-C individuals_stimuli-type.png",height=250,width=800)
+grid.table(tab)
+dev.off()
+
+# D - Study cycles
+
+tab <- df.periods %>% group_by(test_phase, individual) %>% 
+  summarise(
+    periods = n_distinct(period_id),
+    interactions = sum(interactions),
     usetime = format(round(sum(duration),0),nsmall=0),
     m.duration = format(round(mean(duration),1), nsmall=1),
     md.duration = round(median(duration),1),
@@ -417,131 +509,164 @@ individuals <- df.periods %>% group_by(individual) %>%
     max.duration = format(round(max(duration),1),nsmall=1),
     min.duration = format(round(min(duration),1), nsmall=1)
   )
-individuals
 
-png("5-A individuals_whole-study.png",height=150,width=800)
-grid.table(individuals)
+tab
+
+png("figures/basics/5-D individuals-cycles.png",height=450,width=800)
+grid.table(tab)
 dev.off()
 
-# NO STIMULI V STIMULI
+remove(tab)
 
-individuals <- df.periods %>% filter(condition!='second-baseline') %>% group_by(condition, individual) %>% 
+
+# 6 - Interactions with zones 1-3 ----------------------
+
+# A - Total
+tab <- df.interactions %>% 
+  group_by(switch) %>% 
   summarise(
-    periods = n_distinct(period_id),
-    interactions = sum(stimulus_interactions),
-    usetime = format(round(sum(duration),0),nsmall=0),
-    m.duration = format(round(mean(duration),1), nsmall=1),
-    md.duration = round(median(duration),1),
-    std.duration = format(round(sd(duration),1), nsmall=1),
-    max.duration = format(round(max(duration),1),nsmall=1),
-    min.duration = format(round(min(duration),1), nsmall=1)
-  )
-individuals
+    'Zone interactions' = n_distinct(ix_id)
+  ) %>% ungroup()
+tab
 
-png("5-B individuals_using-stimuli.png",height=150,width=800)
-grid.table(individuals)
+png("figures/basics/6-A Zone-usage_total.png",height=150,width=300)
+grid.table(tab)
 dev.off()
 
-# STIMULI TYPE
-
-individuals <- df.periods %>% filter(condition!='second-baseline') %>% group_by(stimulus, individual) %>% 
+# B - By individual
+tab <- df.interactions %>% 
+  group_by(switch, individual) %>% 
   summarise(
-    periods = n_distinct(period_id),
-    interactions = sum(stimulus_interactions),
-    usetime = format(round(sum(duration),0),nsmall=0),
-    m.duration = format(round(mean(duration),1), nsmall=1),
-    md.duration = round(median(duration),1),
-    std.duration = format(round(sd(duration),1), nsmall=1),
-    max.duration = format(round(max(duration),1),nsmall=1),
-    min.duration = format(round(min(duration),1), nsmall=1)
-  )
-individuals
+    'Zone interactions' = n_distinct(ix_id)
+  ) %>% ungroup()
+tab
 
-png("5-C individuals_stimuli-type.png",height=150,width=800)
-grid.table(individuals)
+png("figures/basics/6-B Zone-usage_individual.png",height=250,width=300)
+grid.table(tab)
 dev.off()
 
-# CYCLES
+remove(tab)
 
-individuals <- df.periods %>% group_by(test_phase, individual) %>% 
+# 7 Content preference ------------------------------------------------------------------------------------------
+
+condition_length = 9 # (3 zones x 3 days cycle)
+
+tab <- df.interactions %>% filter(stimulus!='no-stimulus') %>% group_by(stimulus,content) %>% 
   summarise(
-    periods = n_distinct(period_id),
-    interactions = sum(stimulus_interactions),
-    usetime = format(round(sum(duration),0),nsmall=0),
-    m.duration = format(round(mean(duration),1), nsmall=1),
-    md.duration = round(median(duration),1),
-    std.duration = format(round(sd(duration),1), nsmall=1),
-    max.duration = format(round(max(duration),1),nsmall=1),
-    min.duration = format(round(min(duration),1), nsmall=1)
-  )
-individuals
-
-png("5-D individuals-cycles.png",height=500,width=800)
-grid.table(individuals)
-dev.off()
-
-
-# 6 BUTTON USAGE -----------------------------------------------------------------------------------------------
-
-png("6-Button usage.png",height=150,width=300)
-grid.table(
-  df %>% group_by(switch) %>% summarise(
-    'Button interactions' = n_distinct(ix_id),
-  )
-)
-dev.off()
-
-
-# 7 CONTENT PREFERENCE ------------------------------------------------------------------------------------------
-
-df2 <- read.table("parttwo-stimuli-interactions.csv", header = T, sep = ",", dec = ".", stringsAsFactors = TRUE)
-df2
-
-content.preference <- df2 %>% group_by(stimulus,content) %>%
-  summarise(
-    'Activations' = sum(interactions),
-    'Activations per monkey' = round(sum(interactions.monkey),2),
-    'Mean of activations per monkey' = round(mean(interactions.monkey),2),
-    'Interaction time (s)' = round(sum(usetime),2),
-    'Interaction time (s) per monkey' = round(sum(usetime.monkey),2),
-    'Mean of interaction time per monkey' = round(mean(usetime.monkey),2)
-  )
-content.preference
-
-png("7-content-preference-1-basics.png",height=300,width=1500)
-grid.table(content.preference)
-dev.off()
-
-content.preference2 <- df %>% filter(stimulus!='no-stimuli') %>% group_by(stimulus,content) %>% 
-  summarise(
-    'Mean duration (s)' = round(mean(duration),2),
-    'Median duration (s)' = round(median(duration),2),
-    'SD of duration (s)' = round(sd(duration),2),
-    'Longest duration (s)' = round(max(duration),2),
-    'Shortest duration (s)' = round(min(duration),2)
+    'Activations' = n_distinct(ix_id),
+    'Activations per day' = round(n_distinct(ix_id)/condition_length,2),
+    'Interaction time' = sum(duration),
+    'Interaction time per day' = round(sum(duration)/condition_length,2),
+    'Mean duration' = round(mean(duration),2),
+    'Median duration' = round(median(duration),2),
+    'SD of duration' = round(sd(duration),2),
+    'Longest duration' = round(max(duration),2),
+    'Shortest duration' = round(min(duration),2)
   )
 
-content.preference2
+tab
 
-png("7-content-preference-2-durations.png",height=300,width=1500)
-grid.table(content.preference2)
+png("figures/basics/7 content-preference.png",height=300,width=1500)
+grid.table(tab)
 dev.off()
 
+remove(tab, condition_length)
 
-# 8 PASSING THROUGH AND SITTING ------------------------------------------------------------------------------------------
+# 8 - Behaviours (walking through or sitting) -------------------------
 
-df <- read.table("parttwo-data.csv", header = T, sep = ",", dec = ".", stringsAsFactors = TRUE) %>%
+df.behaviours <- read.table("parttwo-data.csv", header = T, sep = ",", dec = ".", stringsAsFactors = TRUE) %>%
   select(period_id, ix_id, walking_through, sitting)
-df
 
-n_distinct(df$period_id)
-
-df %>% filter(walking_through==TRUE) %>% 
+tab <- df.behaviours %>% group_by(walking_through, sitting) %>% 
   summarise(periods = n_distinct(period_id),
             interactions = n_distinct(ix_id)
             )
 
-df %>% filter(sitting==TRUE) %>% 
-  summarise(periods = n_distinct(period_id),
-            interactions = n_distinct(ix_id)
-  )
+png("figures/basics/8 Behaviours.png",height=200,width=500)
+grid.table(tab)
+dev.off()
+
+remove(df.behaviours, tab)
+
+# 9 - Interaction time by the hour of the day --------------------
+
+df <- read.table("parttwo-data.csv", header = T, sep = ",", dec = ".", 
+                 stringsAsFactors = TRUE) %>%
+  select(period_id, ix_id, date, study_day, using_stimuli, stimulus, 
+         test_phase, test_phase_day, start_hour, duration, individual)
+df$period_id <- as.character(df$period_id)
+df$ix_id <- as.character(df$ix_id)
+
+# B - Whole study
+
+## Raw data
+tab <- df %>% 
+  group_by(start_hour) %>% # Summarise over test weeks and each hour of the day..
+  summarise(
+    usetime.hour = sum(duration),
+    periods.hour = n_distinct(period_id),
+  ) %>% arrange(start_hour) %>% ungroup()
+
+tab
+
+png("figures/basics/9-A hourly-interactions_whole-study.png",height=500,width=400)
+grid.table(tab)
+dev.off()
+
+# Barplot
+fig <- ggplot(data=tab, aes(start_hour, usetime.hour)) + 
+  geom_col() +
+  ylab("Cumulative interaction time") +
+  xlab("Hour of the day") + 
+  scale_x_continuous(breaks=seq(4,18,1)) +
+  theme_minimal()
+
+fig
+
+ggsave("figures/basics/9-A hourly-interactions_whole-study_barplot.png", fig, width=6.0, height=4.0)
+
+remove(fig)
+
+# In order to create a graph that presents the porportional values of 
+# each hour of the day for a given measure (i.e. how big proportion of 
+# interactions happened at 6AM during the test week?), we need to also
+# obtain the reference value, the total values over the test week to
+# what to compare to. 
+
+df.hourly <- df.hourly %>%
+  group_by(stimulus) %>%
+  summarise(
+    tot.usetime = sum(usetime.hour), # The total avg. duration of use over the test week per monkey
+    tot.periods = sum(periods.hour) # The total interactions over the test week per monkey
+  ) %>% left_join(df.hourly, ., by='stimulus')
+
+# Dotplot with a fitted 
+fig <- df.hourly %>%
+  ggplot(data=., aes(x=start_hour, y=usetime.hour/tot.usetime)) +
+  geom_point() +
+  geom_smooth(method=loess,se=FALSE) +
+  xlab('Start hour') +
+  ylab(NULL) +
+  scale_x_continuous(breaks=seq(0,24,1), limits=c(5,17)) +
+  #scale_y_continuous(limits=c(0,0.5)) +
+  theme_minimal()
+
+fig
+
+ggsave("figures/basics/9-A hourly-interactions_whole-study_trend.png", fig, width=6.0, height=4.0)
+
+# B - By stimuli type
+tab <- df %>% 
+  group_by(stimulus, start_hour) %>% # Summarise over test weeks and each hour of the day..
+  summarise(
+    usetime.hour = sum(duration),
+    periods.hour = n_distinct(period_id),
+  ) %>% arrange(stimulus, start_hour) %>% ungroup()
+
+tab
+
+png("figures/basics/9-B hourly-interactions_stimuli-type.png",height=700,width=400)
+grid.table(tab)
+dev.off()
+
+remove(df, tab, fig, df.hourly)
